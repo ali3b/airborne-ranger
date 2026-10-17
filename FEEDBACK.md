@@ -224,7 +224,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a layered render: `<base>.json`/`_0.png` (a bald soldier with empty hands), `<base>_head…`, `<base>_weapon…` and `<base>.layers.json`; 3328 frames instead of 832 (~5 min instead of ~50 s on CPU). A game that loads `<base>.json` as before draws soldiers without rifles or helmets and gets no warning. Sizes, clips, events, speeds, `scale` and the `object` blocks were otherwise identical to the export path.
 - Workaround: `ssg.assets.json` sets `"layered": false` on both soldiers; `scripts/build-assets.mjs` warns when a downloaded folder has a `.layers.json`.
 - Suggested change: make an apply entry render what `ssg export` renders for the same keys (bake `with` unless `layered: true`), or say in the apply result that the sprite will be layered and why. The README's apply section should state the default.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator, integrating into wizard: apply bakes equipment unless `layered` is set): re-test by removing `layered: false`
 
 ## FB-022 · Tileset texture terrains: no way to find a ground texture, and a missing one is accepted silently
 - Severity: polish        Milestone: G2
@@ -260,7 +260,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only the wreck `SM_Veh_German_Tank_Destroyed_01` (category `wreck`, states `intact,destroyed`); the intact tank is kind `vehicle` with an empty category (`ssg assets POLYGON_War/SM_Veh_German_Tank_01`) and `--category vehicle` is refused (`category must be one of building, …`). `ssg props states POLYGON_War/SM_Veh_German_Tank_01` does find the pair.
 - Workaround: none needed (named the tank from the brief).
 - Suggested change: include `vehicle` kind models in `props list` (they're the commonest destructibles), or add a `vehicle` category; list the wreck under its intact model instead of as a separate row.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-026 · Apply entries with `states`: the README example is refused, and a vehicle defaults to 8 directions
 - Severity: polish        Milestone: G1
@@ -269,7 +269,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `ssg: sprites[7] (tank): states are the sprite's moves; leave out anim, template, set and class (or drop states).` Without `template` it rendered, but in **8 directions**: 152 frames of 442×348, a 9.0 MB + 0.36 MB two-page atlas (the large bunker, kind prop, got one SE facing). With `"facings": 2`: 38 frames, 2.5 MB.
 - Workaround: `ssg.assets.json` drops `template` on state entries and sets `"facings": 2` on the tank.
 - Suggested change: accept (ignore) `template: "still"` next to `states`, and fix the README example; give vehicles exported as objects (with `states`) the same one-facing default as props.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-027 · `intact_to_destroyed` ends on an empty frame and never shows the wreck; the hull flips over
 - Severity: workaround        Milestone: G1
@@ -278,7 +278,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the frame size, pivot and anchor are shared as documented (442×348, every clip), so placement is right. But the intact tank's parts fly apart like a toy: the whole hull rotates upside down (frames 3–12 show its flat underside), both tracks are thrown upright above it and are cropped at the frame top in frames 5–7, the turret tumbles off the front, and from frame 12 everything fades to an empty frame. The rusted wreck (a different model) then pops in. At 1.7 s the first half reads well; the second half is a fading grey slab.
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-027`) draws the `destroyed` frame under the transition and fades it in over the transition's last 40 %.
 - Suggested change: let the destroy template end in the target state: crossfade the target state model in while the parts fade (it's already loaded under the same root), or a `settle` option. Weight the launch by part size so the hull lifts and drops instead of flipping, and clamp rotation of the largest part.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-028 · No transition for single-mesh models; the War bunkers have no destroyed state, the large one's damaged state is almost identical
 - Severity: workaround        Milestone: G1
@@ -287,7 +287,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `validation warn:state_clip_skipped` (`intact_to_damaged: destroy does not apply to SM_Bld_Bunker_Large_01`): only `intact` and `damaged` (608×532, 1 facing). `SM_Bld_Bunker_Large_Damaged_01` differs from the intact model by one chipped corner with rebar on the far side; side by side at tile scale it's hard to tell which is which. Its collision is nearly the same (`sameAsBase: false`, 10.17 vs 10.06 m deep).
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-028`): a dust burst hides the swap and the damaged state is scorched with a tint.
 - Suggested change: a fallback transition for single meshes (`hit_shake` + sink/dust, or `collapse`: shear down and crossfade to the target state) usable as `damaged@hit_shake`; and a generated `burnt` state (charred texture tint) for models without a damaged file, so the plain bunker can be destroyed too.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-029 · An object's frame pivot is the model origin, not its anchor, so `play()` moves a sprite placed by its anchor
 - Severity: polish        Milestone: G1
@@ -296,7 +296,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: every frame's `pivot` is (221, 230) (= 0.5, 0.661), the model origin, while `object.directions[SE].anchor` is (241.62, 240.31) and `object.anchor` (direction 0) is (200.38, 240.31). Phaser applies the frame pivot as the origin on each animation frame, so the tank jumps ~22 px on the first `play()`. Images placed once with `setOrigin` never noticed this.
 - Workaround: `src/scenes/Field.ts` `showState()` positions the sprite at `at + (pivot − anchor)` and lets the pivot be the origin.
 - Suggested change: for object exports, write each direction's anchor as the frame `pivot`, or document that a Phaser sprite must be offset by (pivot − anchor).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-030 · Several sprites of one model share one animation prefix
 - Severity: polish        Milestone: G1
@@ -305,7 +305,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: all three export `Particle_Smoke_01.json` and keys `Particle_Smoke_01/<clip>_S`. They only coexist because the clip names differ; two sprites of one model with the same clip (a tank in two liveries, a `smoke` and a `smoke_big`) would collide in Phaser's global animation manager.
 - Workaround: none needed yet.
 - Suggested change: in `sprite apply` / project downloads, prefix keys (and base file names) with the sprite name.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-031 · `smoke_loop` renders light grey and additive, and barely rises
 - Severity: polish        Milestone: G1
@@ -314,4 +314,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `meta.blend: "add"`, light grey puffs that stay in one blob across the loop (little visible rise at this size). `fire_loop` (74×118, 7 frames) and `explosion` (284×348, 9 frames, `impact` on frame 0) look right.
 - Workaround: `src/scenes/Field.ts` `smokeAndFire()` draws the smoke with normal blending, scaled 1.6 and tinted dark (marked FB-031).
 - Suggested change: write `blend: normal` for smoke templates, and a `color`/`dark` parameter (wreck smoke vs. steam); more rise per loop.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
