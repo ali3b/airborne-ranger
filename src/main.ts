@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Title } from './scenes/Title';
+import { Field } from './scenes/Field';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -7,7 +8,7 @@ const game = new Phaser.Game({
   backgroundColor: '#10140c',
   scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
   pixelArt: true,
-  scene: [Title],
+  scene: [Title, Field],
 });
 
 // Exposed for scripts/load-check.mjs.

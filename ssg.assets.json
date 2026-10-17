@@ -1,1 +1,34 @@
-{ "tileSize": [64, 32], "view": "iso8", "sprites": [], "tilesets": [], "maps": [] }
+{
+  "tileSize": [64, 32],
+  "view": "iso8",
+  "ppm": 32,
+  "format": "phaser3",
+  "fps": 10,
+  "sprites": [
+    {
+      "name": "ranger",
+      "asset": "Character_American_Soldier_01",
+      "pack": "POLYGON_War",
+      "class": "rifle",
+      "with": ["SM_Wep_American_Rifle_01", "SM_Char_Attach_American_Helmet_01"],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "german",
+      "asset": "Character_German_Soldier_01",
+      "pack": "POLYGON_War",
+      "class": "rifle",
+      "with": ["SM_Wep_German_Rifle_01", "SM_Char_Attach_German_Helmet_01"],
+      "dirs": "8",
+      "uniform": true
+    },
+    { "name": "bunker", "asset": "SM_Bld_Bunker_01", "pack": "POLYGON_War", "template": "still", "dirs": "4d" },
+    { "name": "sandbags", "asset": "SM_Env_Sandbag_Wall_01", "pack": "POLYGON_War", "template": "still", "dirs": "4d" },
+    { "name": "wire", "asset": "SM_Prop_Wire_01", "pack": "POLYGON_War", "template": "still", "dirs": "4d" },
+    { "name": "tree", "asset": "SM_Env_Tree_01", "pack": "POLYGON_War", "template": "still", "dirs": "4d" },
+    { "name": "crate", "asset": "SM_Prop_Crate_02", "pack": "POLYGON_War", "template": "still", "dirs": "4d" }
+  ],
+  "tilesets": [],
+  "maps": []
+}
