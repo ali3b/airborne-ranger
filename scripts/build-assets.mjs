@@ -3,6 +3,7 @@
 //   node scripts/build-assets.mjs ranger     apply/render/download a subset by name (the manifest keeps the rest)
 //   node scripts/build-assets.mjs --no-tilesets   skip the ground tilesets
 //   node scripts/build-assets.mjs --no-maps       skip the mission maps (scripts/build-maps.mjs)
+//   node scripts/build-assets.mjs tree --force    re-render even when nothing changed (`sprite apply --force`)
 // Sprites: `ssg sprite apply ssg.assets.json --render --download public/assets` keeps every sprite in the
 // generator project named in the file (visible and editable in the app), renders only what is outdated and writes
 // public/assets/<name>/; the declared tilesets go to public/assets/tilesets/<name>/ in the same apply.
@@ -148,7 +149,9 @@ if (sprites.length || tilesets.length) {
   const subset = JSON.stringify({ ...rest, sprites, tilesets });
   console.error(`=== project "${spec.project}": sprites ${sprites.map((s) => s.name).join(', ') || '-'}; tilesets ${tilesets.map((t) => t.name).join(', ') || '-'}`);
   try {
-    const r = await ssg(['sprite', 'apply', '-', '--render', '--download', 'public/assets'], { input: subset });
+    // --force (FB-042 fixed): re-render the named sprites (or every one) even when nothing changed.
+    const force = args.includes('--force') ? ['--force', ...sprites.filter((s) => only.includes(s.name)).map((s) => s.name)] : [];
+    const r = await ssg(['sprite', 'apply', '-', '--render', ...force, '--download', 'public/assets'], { input: subset });
     fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
     fs.writeFileSync(path.join(root, 'test-results/sprite-apply.json'), r.stdout);
     if (r.code !== 0) console.error(`  ssg sprite apply exited ${r.code}: ${r.json ? '' : r.stdout.trim().slice(0, 400)}`);

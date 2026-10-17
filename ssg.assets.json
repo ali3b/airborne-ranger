@@ -73,8 +73,7 @@
       "name": "crate",
       "asset": "POLYGON_War/SM_Prop_Crate_02",
       "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "template": "still",
-      "maxSeconds": 3
+      "template": "still"
     },
     {
       "name": "tank",
@@ -85,36 +84,31 @@
     {
       "name": "bunker_large",
       "asset": "POLYGON_War/SM_Bld_Bunker_Large_01",
-      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "maxSeconds": 3
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
     },
     {
       "name": "crate_pile",
       "asset": "POLYGON_War/SM_Prop_Crate_Pile_01",
       "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "template": "still",
-      "maxSeconds": 3
+      "template": "still"
     },
     {
       "name": "barrel_pile",
       "asset": "POLYGON_War/SM_Prop_Barrel_Pile_01",
       "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "template": "still",
-      "maxSeconds": 3
+      "template": "still"
     },
     {
       "name": "container",
       "asset": "POLYGON_Apocalypse/SM_Prop_Shipping_Container_01",
       "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "facings": 2,
-      "maxSeconds": 3
+      "facings": 2
     },
     {
       "name": "tent",
       "asset": "POLYGON_War/SM_Bld_Camonetting_Tent_01",
       "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "template": "still",
-      "maxSeconds": 3
+      "template": "still"
     },
     {
       "name": "tree_small",
@@ -150,15 +144,13 @@
       "name": "radar_dish",
       "asset": "POLYGON_Palm_City/SM_Prop_Satelite_Dish_02",
       "template": "still",
-      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "maxSeconds": 3
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
     },
     {
       "name": "radio_tower",
       "asset": "POLYGON_War/SM_Prop_Radio_Tower_01",
       "template": "still",
-      "states": "destroyed=@scorch:dark=0.9@collapse",
-      "maxSeconds": 3
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
     },
     {
       "name": "truck",
@@ -170,22 +162,19 @@
       "name": "smoke",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
       "template": "smoke_loop:dark=0.8",
-      "dirs": "1",
-      "fps": 12
+      "dirs": "1"
     },
     {
       "name": "fire",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
       "template": "fire_loop",
-      "dirs": "1",
-      "fps": 12
+      "dirs": "1"
     },
     {
       "name": "explosion",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
       "template": "explosion",
-      "dirs": "1",
-      "fps": 12
+      "dirs": "1"
     },
     {
       "name": "plane",
@@ -197,8 +186,7 @@
       "name": "plane_big",
       "asset": "POLYGON_War/SM_Veh_Plane_German_02",
       "template": "still",
-      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
-      "maxSeconds": 3
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
     },
     {
       "name": "hangar",

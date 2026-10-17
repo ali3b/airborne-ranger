@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
 import { buildGround } from '../ground';
+import { sfx } from '../sound';
 
 const MAP = 40; // tiles per side (1 m per tile)
 
@@ -143,6 +144,8 @@ export class Field extends Phaser.Scene {
   protected dead = false;
   /** Test hook (scripts/load-check.mjs): the Ranger takes no damage. */
   god = false;
+  /** R restarts after the Ranger dies (the test field; a mission debriefs a KIA instead). */
+  protected restartOnR = true;
   protected hud!: Phaser.GameObjects.Text;
 
   /** Grenades the Ranger carries (the field test scene has no limit; missions restock from supply pods). */
@@ -154,6 +157,15 @@ export class Field extends Phaser.Scene {
 
   preload() {
     preloadAssets(this);
+    // The first load of the sprites takes a few seconds: say so (and how far it got) instead of a blank screen.
+    const { width, height } = this.scale;
+    const t = this.add.text(width / 2, height / 2, 'AIRBORNE DROP IN PROGRESS', { fontFamily: 'monospace', fontSize: '22px', color: '#e8d27a' }).setOrigin(0.5);
+    const bar = this.add.rectangle(width / 2 - 150, height / 2 + 34, 0, 6, 0xe8d27a).setOrigin(0, 0.5);
+    this.load.on('progress', (v: number) => bar.setSize(300 * v, 6));
+    this.load.once('complete', () => {
+      t.destroy();
+      bar.destroy();
+    });
   }
 
   create() {
@@ -183,6 +195,7 @@ export class Field extends Phaser.Scene {
 
     this.ranger = this.add.sprite(start.x, start.y, 'ranger');
     this.play(this.ranger, 'ranger', 'rifle_idle', this.facing);
+    this.footsteps(this.ranger, 'ranger');
 
     if (m.sprites.german) this.spawnEnemies();
 
@@ -195,7 +208,7 @@ export class Field extends Phaser.Scene {
     this.keys.SPACE.on('down', () => this.shoot());
     this.keys.G.on('down', () => this.throwGrenade());
     this.keys.R.on('down', () => {
-      if (this.dead) this.scene.restart();
+      if (this.dead && this.restartOnR) this.scene.restart();
     });
 
     const b = this.worldBounds();
@@ -440,7 +453,30 @@ export class Field extends Phaser.Scene {
     const e: Enemy = { sprite: spr, path: pts, next: (start + 1) % pts.length, angle: a, state: 'patrol', reaction: 0, cooldown: 0, unseen: 0, busy: false };
     this.enemies.push(e);
     this.play(spr, 'german', 'rifle_idle', dir);
+    this.footsteps(spr, 'german');
     return e;
+  }
+
+  /**
+   * Footstep sounds on the clips' `footstep_l` / `footstep_r` events (the generator's clip events), quieter with
+   * distance from the Ranger.
+   */
+  protected footsteps(spr: Phaser.GameObjects.Sprite, name: string) {
+    const info = this.manifest.sprites[name]?.clipInfo ?? {};
+    const prefix = this.manifest.sprites[name]?.animPrefix ?? '';
+    spr.on(Phaser.Animations.Events.ANIMATION_UPDATE, (a: Phaser.Animations.Animation, f: Phaser.Animations.AnimationFrame) => {
+      const clip = a.key.slice(prefix.length).replace(/_[A-Z]+$/, '');
+      if (!info[clip]?.events.some((e) => e.name.startsWith('footstep') && e.frame === f.index - 1)) return;
+      const v = this.loudness(spr, 14) * (name === 'ranger' ? 1 : 0.6);
+      if (v > 0.02) sfx.footstep(v);
+    });
+  }
+
+  /** 1 at the Ranger, falling to 0 at `range` metres: how loud something there sounds. */
+  protected loudness(at: Pt, range: number) {
+    if (!this.ranger) return 1;
+    const d = distW(this.worldOf(at), this.worldOf(this.ranger));
+    return Phaser.Math.Clamp(1 - d / range, 0, 1);
   }
 
   protected play(spr: Phaser.GameObjects.Sprite, name: string, clip: string, dir: Dir8, ignoreIfPlaying = true) {
@@ -505,6 +541,7 @@ export class Field extends Phaser.Scene {
       'shoot',
       () => {
         this.shotsFired++;
+        sfx.shot();
         const muzzle = this.socket('ranger', clip, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -50 };
         const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
         this.fireBullet(this.ranger, muzzle, { x: Math.cos(a), y: Math.sin(a) }, RANGER_BULLET_RANGE, 'ranger', true);
@@ -590,6 +627,11 @@ export class Field extends Phaser.Scene {
     this.ranger.removeAllListeners(Phaser.Animations.Events.ANIMATION_UPDATE);
     this.ranger.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE);
     this.play(this.ranger, 'ranger', 'rifle_death', this.facing, false);
+    this.onRangerDown();
+  }
+
+  /** The Ranger is dead: the test field offers a restart (a mission goes to its debriefing instead). */
+  protected onRangerDown() {
     const { width, height } = this.scale;
     this.add
       .text(width / 2, height / 2, 'RANGER DOWN\npress R to restart', {
@@ -706,6 +748,7 @@ export class Field extends Phaser.Scene {
         let ang = Math.atan2(b.y - a.y, b.x - a.x);
         if (!hits) ang += (Math.random() < 0.5 ? -1 : 1) * Math.atan2(0.9 + Math.random(), d);
         const muzzle = this.socket('german', 'rifle_shoot', dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -50 };
+        sfx.enemyShot(0.3 + 0.7 * this.loudness(e.sprite, 30));
         this.fireBullet(e.sprite, muzzle, { x: Math.cos(ang), y: Math.sin(ang) }, d + 6, 'enemy', hits);
       },
       () => {
@@ -731,6 +774,7 @@ export class Field extends Phaser.Scene {
       () => {
         // The procedural throw uses the free left hand by default (the rifle stays in the right).
         const off = this.socket('ranger', clip, dir, 'release', ['hand_l', 'hand_r']) ?? { x: 0, y: -60 };
+        sfx.throwWhoosh();
         this.spawnGrenade(dir, off);
       },
       () => {
@@ -755,6 +799,7 @@ export class Field extends Phaser.Scene {
   protected explode(at: Pt) {
     // The generator's explosion (fireball, sparks); a flash circle when it wasn't built.
     const boom = this.fx('explosion', at, at.y + 1000, { once: true });
+    sfx.explosion(0.35 + 0.65 * this.loudness(at, 40));
     const flash = this.add.circle(at.x, at.y - 10, 10, 0xffd060, boom ? 0 : 0.95).setDepth(at.y + 1000);
     const ring = this.add.ellipse(at.x, at.y, 20, 10, 0xff6020, 0.6).setDepth(at.y + 999);
     this.tweens.add({ targets: flash, scale: 5, alpha: 0, duration: 450, onComplete: () => flash.destroy() });
@@ -834,7 +879,7 @@ export class Field extends Phaser.Scene {
     this.updateBullets(dt);
 
     const g = Number.isFinite(this.grenadesLeft) ? `${this.grenadesLeft} left` : `${this.grenadesThrown}`;
-    this.hud.setText(`${this.hudLine()}\nWASD/arrows move · Shift run · X prone · Space shoot · G grenade (${g})`);
+    this.hud.setText(`${this.hudLine()}\nWASD/arrows move · Shift run · X prone · Space shoot · G grenade (${g}) · M sound`);
   }
 
   /**

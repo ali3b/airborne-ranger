@@ -18,11 +18,15 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 - A workaround in the game (hand-made data, code that fixes up an export) is allowed only with a FEEDBACK entry.
   Mark it in code with `// FB-NNN` so it can be removed once the generator is fixed.
 - Asset builds are heavy. Run one at a time, and never while a generator walk is running.
+- Never kill processes by name (`pkill vite`, `killall node`): the generator's shared dev server is a vite process
+  too. Start your own servers on a known port (vite 5195, a static `dist` server e.g. 5298), note the PID, and stop
+  that PID only.
 - `Airborne Ranger (1988)/` and `decoded/` hold the original game and its reverse-engineering notes. They're
   reference only and git-ignored. Don't ship anything from them.
 
 ## Checks before you finish a milestone
 - `npm run typecheck`
-- `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>`. It needs no page
-  errors, and it writes `test-results/<scene>.png`.
+- `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>` for `title` (Ranger
+  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3` (each plays to the debriefing). It
+  needs no page errors, and it writes `test-results/<scene>.png`.
 - Update `FEEDBACK.md`, and commit in this repo.

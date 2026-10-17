@@ -19,6 +19,7 @@ page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 const base = url.replace(/\/$/, '');
 await page.goto(scene === 'title' ? url : isMission ? `${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}` : `${base}/?scene=${encodeURIComponent(scene)}`);
 let ok = true;
+let shotTaken = false;
 try {
   await page.waitForFunction((s) => window.game?.scene?.isActive(s), sceneKey, { timeout: 90000 });
   await page.waitForTimeout(1500);
@@ -92,12 +93,39 @@ try {
     }
   }
   if (scene === 'title') {
-    // The mission select lists every mission.
-    const rows = await page.evaluate(() => window.game.scene.getScene('title').rows?.map((t) => t.text) ?? []);
-    console.log('missions:', JSON.stringify(rows));
-    if (rows.length < 2) {
+    // G4: the Ranger select shows the roster's six slots (a fresh browser: all vacant); enlist one in slot 1, choose
+    // him, and the mission select lists every mission under his name.
+    const slots = await page.evaluate(() => window.game.scene.getScene('title').rows?.map((t) => t.text) ?? []);
+    console.log('roster:', JSON.stringify(slots));
+    if (slots.length !== 6) {
       ok = false;
-      console.log('NO MISSION SELECT (want at least 2 missions)');
+      console.log('NO RANGER SELECT (want 6 roster slots)');
+    }
+    await page.screenshot({ path: 'test-results/title-roster.png' }).catch(() => undefined);
+    const enlisted = await page.evaluate(() => {
+      const t = window.game.scene.getScene('title');
+      t.go(0); // vacant: starts typing a name
+      const typing = t.typing;
+      const r = t.enlist('LOADCHECK');
+      return { typing, ...r, row: t.rows[0].text };
+    });
+    console.log('enlisted:', JSON.stringify(enlisted));
+    await page.waitForTimeout(400);
+    await page.keyboard.press('Enter');
+    const picked = await page
+      .waitForFunction(() => window.game.scene.isActive('missions'), null, { timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+    await page.waitForTimeout(800);
+    const rows = await page.evaluate(() => {
+      const m = window.game.scene.getScene('missions');
+      return { ranger: m.ranger?.name ?? null, missions: m.rows?.map((t) => t.text) ?? [] };
+    });
+    console.log('missions:', JSON.stringify(rows));
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('ar.roster.v1') ?? '[]').filter(Boolean).length);
+    if (!picked || rows.ranger !== 'LOADCHECK' || rows.missions.length < 3 || saved !== 1) {
+      ok = false;
+      console.log(`NO MISSION SELECT FOR THE RANGER (picked ${picked}, saved rangers ${saved}, want 3 missions)`);
     }
   }
   if (isMission) {
@@ -177,13 +205,30 @@ try {
         m.cameras.main.centerOn(t.at.x - 60, t.at.y - 40);
       });
       await page.waitForTimeout(800);
+      await page.screenshot({ path: `test-results/${scene}.png` }).catch(() => undefined);
+      // G4: Enter → the debriefing (a guest: merit lines, total, medal/promotion as earned).
+      const deb = await page.evaluate(async () => {
+        const m = window.game.scene.getScene('mission');
+        if (!m.toDebrief()) return { error: 'toDebrief refused' };
+        const t0 = performance.now();
+        while (performance.now() - t0 < 15000 && !window.game.scene.getScene('debrief')?.shown) await new Promise((r) => setTimeout(r, 100));
+        const d = window.game.scene.getScene('debrief');
+        return { shown: !!d?.shown, points: d?.award?.points, lines: d?.award?.lines?.length, medal: d?.award?.medal, promotedTo: d?.award?.promotedTo };
+      });
+      console.log('debrief:', JSON.stringify(deb));
+      if (!deb.shown || !(deb.points > 0)) {
+        ok = false;
+        console.log('NO DEBRIEFING (or no merit for an accomplished mission)');
+      }
+      await page.screenshot({ path: `test-results/${scene}-debrief.png` }).catch(() => undefined);
+      shotTaken = true;
     }
   }
 } catch (e) {
   ok = false;
   console.log('NOT LOADED:', e.message.split('\n')[0]);
 }
-await page.screenshot({ path: `test-results/${scene}.png` }).catch(() => undefined);
+if (!shotTaken) await page.screenshot({ path: `test-results/${scene}.png` }).catch(() => undefined);
 const uniq = [...new Set(errors)].filter((e) => !/favicon/.test(e));
 if (uniq.length) console.log('page errors:', uniq.slice(0, 5).join(' | '));
 console.log(ok && !uniq.length ? 'game loads ok' : 'FAILED');

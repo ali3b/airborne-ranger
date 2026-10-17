@@ -3,6 +3,8 @@ import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, type Dir8 } from '../iso';
 import { Field, type Placed, type Pt } from './Field';
 import { missionByKey, type MissionConfig } from '../missions';
+import { award, selected, type Award, type MissionResult } from '../roster';
+import { sfx } from '../sound';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -45,8 +47,16 @@ export class Mission extends Field {
   protected extractMarker?: Phaser.GameObjects.Graphics;
   protected timeLeft = 0;
   protected objectiveDone = false;
-  /** 'accomplished' | 'failed' once the mission is over. */
-  outcome: string | null = null;
+  /** 'accomplished' | 'failed' | 'kia' once the mission is over. */
+  outcome: MissionResult['outcome'] | null = null;
+  /** The Ranger on the roster playing this mission (null: a guest, see Title). */
+  protected rangerId: string | null = null;
+  /** Mission seconds at the first alert / when the objective was done (for the merit). */
+  protected alertAt: number | null = null;
+  protected objectiveAt: number | null = null;
+  /** The debriefing's data, set when the mission ends. */
+  result: MissionResult | null = null;
+  award: Award | null = null;
   /** For scripts/load-check.mjs: how the map turned into the scene. */
   report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0 };
 
@@ -54,10 +64,10 @@ export class Mission extends Field {
     super('mission');
   }
 
-  init(data: { mission?: string }) {
-    // A restart (R after dying) keeps the mission being played.
+  init(data: { mission?: string; ranger?: string }) {
     const key = data?.mission ?? (this.started ? this.cfg.map : new URLSearchParams(window.location.search).get('mission'));
     this.started = true;
+    this.rangerId = data?.ranger ?? selected.get();
     this.cfg = missionByKey(key);
     this.mapName = this.cfg.map;
   }
@@ -69,12 +79,15 @@ export class Mission extends Field {
     this.timeLeft = this.cfg.seconds;
     this.objectiveDone = false;
     this.outcome = null;
+    this.result = null;
+    this.award = null;
+    this.alertAt = null;
+    this.objectiveAt = null;
+    this.restartOnR = false;
     this.grenadesLeft = START_GRENADES;
     this.report = { tiles: 0, objects: 0, missingSprites: [], blockedCells: 0, enemies: 0, pods: 0, targets: 0 };
     super.create();
-    this.input.keyboard?.on('keydown-ENTER', () => {
-      if (this.outcome) this.scene.start('title');
-    });
+    this.input.keyboard?.on('keydown-ENTER', () => this.toDebrief());
   }
 
   /** Cell coordinates of a Tiled object position (pixels of `tileheight` per cell). */
@@ -259,11 +272,18 @@ export class Mission extends Field {
       if (p.taken || Phaser.Math.Distance.Between(p.at.x, p.at.y / 0.5, this.ranger.x, this.ranger.y / 0.5) > POD_RADIUS * this.ppm) continue;
       p.taken = true;
       this.grenadesLeft += p.grenades;
+      sfx.pickup();
       this.tweens.killTweensOf(p.sprite);
       this.tweens.add({ targets: p.sprite, alpha: 0, y: p.sprite.y - 30, duration: 400, onComplete: () => p.sprite.destroy() });
     }
+    const elapsed = this.cfg.seconds - this.timeLeft;
+    if (this.alertAt === null && this.enemies.some((e) => e.state === 'alert')) {
+      this.alertAt = elapsed;
+      sfx.alert();
+    }
     if (!this.objectiveDone && this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0)) {
       this.objectiveDone = true;
+      this.objectiveAt = elapsed;
       this.extractMarker?.setAlpha(1);
       if (this.extractMarker) this.tweens.add({ targets: this.extractMarker, alpha: 0.4, yoyo: true, repeat: -1, duration: 500 });
     }
@@ -272,28 +292,57 @@ export class Mission extends Field {
     else if (this.timeLeft <= 0) this.finish('failed');
   }
 
-  /** The end screen. */
-  protected finish(outcome: 'accomplished' | 'failed') {
+  /** A KIA: the death clip plays out, then the mission ends (no restart: the roster remembers). */
+  protected onRangerDown() {
+    this.time.delayedCall(1800, () => this.finish('kia'));
+  }
+
+  /** The end screen; the merit is awarded (and the roster saved) right away, the debriefing follows on Enter. */
+  protected finish(outcome: MissionResult['outcome']) {
+    if (this.outcome) return;
     this.outcome = outcome;
     this.busy = true;
     const { width, height } = this.scale;
     const ok = outcome === 'accomplished';
     const kills = this.enemies.filter((e) => e.state === 'dead').length;
     const used = this.cfg.seconds - Math.max(0, this.timeLeft);
+    this.result = {
+      mission: this.cfg.number,
+      title: this.cfg.title,
+      outcome,
+      objectiveDone: this.objectiveDone,
+      kills,
+      enemies: this.enemies.length,
+      installations: this.props.filter((p) => p.hp !== undefined && p.hp <= 0).length,
+      targets: this.targets.length,
+      secondsLeft: Math.max(0, this.timeLeft),
+      seconds: this.cfg.seconds,
+      alertAt: this.alertAt,
+      objectiveAt: this.objectiveAt,
+    };
+    this.award = award(this.rangerId, this.result);
+    const head = ok ? 'MISSION ACCOMPLISHED' : outcome === 'kia' ? 'RANGER KILLED IN ACTION' : 'MISSION FAILED';
+    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : 'The plane left without you.';
     this.add.rectangle(width / 2, height / 2, width, height, 0x10140c, 0.8).setScrollFactor(0).setDepth(1e9);
     this.add
       .text(
         width / 2,
         height / 2,
-        `${ok ? 'MISSION ACCOMPLISHED' : 'MISSION FAILED'}\n\n` +
-          `${ok ? this.cfg.success : 'The plane left without you.'}\n` +
+        `${head}\n\n${line}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n\n` +
-          'press Enter for the title',
+          'press Enter for the debriefing',
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(1e9 + 1);
+  }
+
+  /** Enter after the end: the debriefing. */
+  toDebrief() {
+    if (!this.outcome || !this.award || !this.result) return false;
+    this.scene.start('debrief', { award: this.award, result: this.result });
+    return true;
   }
 }
 

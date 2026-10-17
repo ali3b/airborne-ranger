@@ -437,7 +437,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `smoke: updated · up to date`. `ssg sprite show smoke` says `render now: No changes` while the spec has `params {dark: 0.8}` and the current render `params {}`; same for `look: "scorch:dark=0.9"` vs the rendered `"scorch"`. Generator fixes (smoke blend, anim prefix) don't mark old renders outdated either, so FB-030/031 could only be re-tested by changing something else.
 - Workaround: `ssg.assets.json` `"fps": 12` on smoke/fire/explosion and `"maxSeconds": 3` on the scorched objects (both counted as changes) forced the renders.
 - Suggested change: compare template/state parameters in the outdated check; `ssg sprite render --force` / apply `--force <names>`; optionally mark renders made by an older renderer version as outdated ("renderer changed").
-- Status: fixed (generator wave-7: sprite render/apply --force, params mark outdated, RENDERER_VERSION): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. Dropping the hacks (`fps` 12 on smoke/fire/explosion, `maxSeconds` 3 on the scorched objects) and putting `blast=1` back on the radio tower made exactly those 12 sprites `would update · outdated` with a reason (`Clip length changed`, `Move settings changed` for the parameter-only `@collapse` → `@collapse:blast=1`). `node scripts/build-assets.mjs tree --force` (→ `sprite apply --force tree`) re-rendered an unchanged sprite as v2. Everything else now reads `outdated (renderer updated; --force re-renders)` and is left alone by `--render`, which is what I want. The workaround is gone. One nit: removing `fps` reports `View or size changed` (FB-055).
+- Status: verified
 
 ## FB-043 · `collapse` / `@scorch`: see-through crossfade, a sink that pops back up, and a scorch that barely darkens
 - Severity: polish        Milestone: G4
@@ -446,7 +447,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: during the crossfade (frames 10–12) both models are half transparent and draw their back faces: the container is seen inside out (its far walls and floor through the near ones), the dish shows its back. The intact model sinks/squashes (10 %) and then the scorched still (sunk 6 %) fades in taller, so the object pops up at the end. With `dark=0.9` the rust-red container only turns dark red, and the camo tent looks almost the same as intact; the rubble pieces are the main tell.
 - Workaround: none needed (the game adds fire and smoke on the wreck).
 - Suggested change: crossfade with the destination drawn opaque underneath (or dither instead of alpha); sink the scorched still as far as the collapse ends; let `dark` reach charcoal at 1 and desaturate.
-- Status: fixed (generator wave-7: opaque crossfade, no pop, darker scorch): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. Contact sheets of `intact_to_destroyed` (container SW, plane_big, tent, radio tower; 15 frames): the crossfade frames are opaque (no inside-out container, no see-through dish), the scorched still doesn't pop up at the end, and `dark=0.9` now ends charcoal (the rust-red container and the Ju 87 come out near-black grey). In the game the depot's containers, the radar array and mission 3's planes collapse into dark wrecks (test-results/mission3.png, the v2 video).
+- Status: verified
 
 ## FB-044 · `collapse:blast=1` on a tall thin model draws the flash as a big rectangular slab
 - Severity: polish        Milestone: G4
@@ -455,7 +457,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: frames 1–5 show a white/orange rectangle half the tower's height and wider than its frame column (a clipped billboard), starting with a white disc mid-air. The radar dish's flash with the same parameters looks right.
 - Workaround: the radio tower is declared without `blast` (the game's own grenade explosion plays anyway).
 - Suggested change: size the blast by the footprint and place it at the base, or clip it to a circle.
-- Status: fixed (generator wave-7: round footprint-sized flash): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. The radio tower is declared with `blast=1` again: the flash is a round fireball at the base, inside the tower's column, from a white core to orange to dust; no slab.
+- Status: verified
 
 ## FB-045 · MCP: an author can't see an object sprite's footprint before placing it
 - Severity: polish        Milestone: G4
@@ -465,7 +468,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: trial and error (one failed batch).
 - Suggested change: `list_sprites` / `get_sprite` with `object: {facings: {SE: {u, v}}, states}` from the current export; a `place` error that says the footprint it tried.
 - Re-test (G4 wave 7, mission 3, 2026-10-17): still open. `get_sprite plane` (4 kB) has `facings: 1` but no footprint, and neither does `list_sprites`. Mission 3's 16 placements worked first time only because I read `object.directions[].tiles` from the game's downloaded manifest, which an MCP-only author doesn't have. `props list` / `search_props` don't help either: they give model `w×d`, and for the SE facing that is the other way round from the map footprint `u×v` (plane 10x9 → 9x10, hangar 14x18 → 18x14, plane_big 14x12 → 12x14).
-- Status: fixed (generator wave-7: map_sprites + per-facing footprints in get_sprite/list_sprites): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. `map_sprites {map: "mission3"}` (7.5 kB, project inferred from the map) lists every sprite with per-facing footprints that match the game's manifest (plane SE 9×10, plane_big 12×14, hangar 18×14, container SW 7×3 / SE 3×7, bunker four facings), with height, states and anchor. `get_sprite plane` has `perFacing {SE: {u: 9, v: 10, metres}}`. A refused `place` now says the footprint it tried (`o2 covers 9×10 cells centred at (17.5, 14)`). Nit: `kind: "object"` leaves out the vehicles (plane, tank, truck) that are placed as objects (FB-053).
+- Status: verified
 
 ## FB-046 · MCP map authoring: answers are big, every call needs `project`, the picture is buried
 - Severity: polish        Milestone: G4
@@ -475,7 +479,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `scripts/mcp-picture.mjs` prints just the picture and legend from a saved answer; `"show": false` on later edits.
 - Suggested change: `show: "picture"` (picture + legend + counts, no objectList) as the default for edit/generate; a session/default project (or the only project with maps); keep seeds as given in dry runs; offset overlapping labels.
 - Re-test (G4 wave 7, mission 3, 2026-10-17): partly better. Mission 3 took 7 map calls (create_map, 5 edit_map, 1 map_preview) with no errors, against mission 2's 21 calls and 2 failed batches. Sprites by name, the scatter `short` advice and the separate collision picture did most of that. Still open: `project` must go in every call (it defaults to the first project); `edit_map` with `show: true` returns 7 / 13 / 22 kB as objects are added (the `objectList` dominates), against 1 kB with `show: false`; and zone outlines in the picture hide the objects under them (the objective's `1` edge over the hangar column, the patrol `6` over a crate pile).
-- Status: fixed (generator wave-7: detail brief/normal/full, use_project + inference, text seeds kept, labels placed): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. `get_map` brief 78 chars / normal 8.4 kB / full 14.3 kB on mission 3; `edit_map` answers briefly (1.7 kB with a 24×20 picture, 0.25 kB for a refused batch). `use_project` holds for the session (scripts/mcp.mjs gained `--project` and `calls @file` to run several calls in one session), and a map given by name finds its project without either. `generate_map` `dryRun` keeps a text seed (`"seed": "ranger-w8"`). `map_preview labels: "all"` places overlapping labels apart with leader lines (two guard spawns 1 cell apart, the objective label and a patrol). Still in the text picture: zone marks overwrite object cells (FB-054).
+- Status: verified
 
 ## FB-047 · `ssg tileset apply --dry-run` doesn't check textures, and its tile count reads oddly
 - Severity: polish        Milestone: G4
@@ -484,7 +489,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the dry run says `would create · grass · 1 tiles`; the real run refuses it (with good suggestions). The dry run of the temperate update says `152 tiles (+854 −0)` (the old count next to the change, not the result 1006), and its pairs column lists the current pairs, not the declared ones.
 - Workaround: none needed.
 - Suggested change: validate textures in the dry run; show `152 → 1006 tiles` and the declared pairs.
-- Status: fixed (generator wave-7: dry-run checks textures, clear tile counts): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. The dry run refuses `Terrain/Grass_99.png` with the same closest-texture suggestions as the real run, and adding a pair reads `1006 → 1034 tiles (would create 28, keep 1006)` with the declared pairs listed.
+- Status: verified
 
 ## FB-048 · `props list` reports some models at 100+ metres
 - Severity: polish        Milestone: G4
@@ -493,7 +499,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `POLYGON_BattleRoyale/SM_Env_Bush_01` 161.7×156.7×145.6 m (162×157 tiles), `POLYGON_Adventure_Pack/SM_Env_Bush_03` 106 m, `POLYGON_Palm_City/SM_Env_Tree_Palm_Sappling_01` 154 m, next to sane 2 m bushes in the same packs. Probably a unit/scale import problem; they'd render enormous.
 - Workaround: picked `POLYGON_Palm_City/SM_Env_Bush_01` (2.1 m) and `POLYGON_City/SM_Env_PalmTree_01`.
 - Suggested change: flag or fix outliers on ingest (a bush over 20 m is a scale bug); show a warning column in `props list`.
-- Status: fixed (generator wave-7: per-pack scale fix, size? flags): re-test in the next game wave
+- Re-test (G4 wave 8, 2026-10-18): works. `props list Bush`: every bush is 1–4 m now (Palm City `Bush_01` 2.1 m, BattleRoyale 1.6 m, Adventure 1.1–2.1 m); the palm saplings are 1.5–2.2 m. Across all props the only big ones left are the War battleships (223 m and 154 m, plausibly real) and the juice cart, which is flagged `size?`.
+- Status: verified
 
 ## FB-049 · A road meeting a river bank (or a track crossing a road) always leaves three-terrain cells the tileset can't draw
 - Severity: polish        Milestone: G4
@@ -530,3 +537,31 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: build-maps.mjs compares the returned size itself.
 - Suggested change: say `--replace` / `--if-missing` in the CLI; `existed: true, differs: {size: …}` (or refuse) on a mismatch; AUTOINCREMENT ids.
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
+
+## FB-053 · `map_sprites kind: "object"` leaves out vehicles that are placed as objects
+- Severity: polish        Milestone: G4
+- Tried: `map_sprites {map: "mission3", kind: "object"}` to plan the airfield.
+- Wanted: everything that can stand on the map as an object, with its footprint.
+- Got: the planes, the tank and the truck are `kind: "vehicle"`, so they're missing from that list (they appear without the filter, with footprints). An author filtering for scenery to place misses the airfield's main targets.
+- Workaround: call it without `kind`.
+- Suggested change: let `kind: "object"` mean "placeable with a footprint" (objects and vehicles with an `object` block), or add `placeable: true`; or say in the answer that vehicles were filtered out.
+- Status: open
+
+## FB-054 · The text picture still lets zone marks overwrite object cells
+- Severity: polish        Milestone: G4
+- Tried: a scratch map: a plane (9×10) with two guard spawns and a patrol line over it, `edit_map` / `get_map` picture.
+- Wanted: the objects readable under zones (or both shown).
+- Got: the spawn digits `1`, `2` replace two of the plane's `P` cells and the patrol's `3` replaces its last column, so the plane looks 8 cells wide. FB-046's labels fix applies to `map_preview`; the text picture is unchanged.
+- Workaround: none (read the object list for sizes).
+- Suggested change: draw objects over zone outlines (zones only on empty cells), or mark shared cells with a combined symbol listed in the legend.
+- Status: open
+
+## FB-055 · An `fps` change is reported as "View or size changed"
+- Severity: polish        Milestone: G4
+- Tried: removing `"fps": 12` from the smoke, fire and explosion sprites (back to the project's 10), `sprite apply --dry-run`.
+- Wanted: `render: Frame rate changed` (like `Clip length changed` for `maxSeconds`).
+- Got: `smoke: would update · render: View or size changed`.
+- Workaround: none needed.
+- Suggested change: a reason of its own for fps (and for each sprite key that marks a render outdated).
+- Status: open
+

@@ -3,7 +3,11 @@
 //   node scripts/mcp.mjs schema <tool>                 a tool's full description and input schema
 //   node scripts/mcp.mjs call <tool> '<json args>'     call a tool; text content is printed, images are saved
 //   node scripts/mcp.mjs call <tool> @args.json        arguments from a file
-// Options: --out <dir> where image content goes (default test-results/mcp), --name <base> the image file name.
+//   node scripts/mcp.mjs calls @calls.json             several calls in ONE session ([{tool, args}, …]), so a
+//                                                      use_project at the start holds for the rest
+// Options: --out <dir> where image content goes (default test-results/mcp), --name <base> the image file name,
+// --project <name> runs use_project first (FB-046 fixed: later calls leave `project` out; maps given by name are
+// also inferred from their project, so most map calls need neither).
 // It spawns `ssg mcp` (the generator's own MCP server) with SSG_ALLOWED_DIRS set to this repo, exactly like the
 // `synty-sprites` entry in .mcp.json. Every call is appended to test-results/mcp-calls.jsonl (tool, args, timing,
 // size of the answer, error flag) for the FEEDBACK notes.
@@ -26,6 +30,7 @@ const opt = (k, d) => {
 };
 const outDir = path.resolve(root, opt('--out', 'test-results/mcp'));
 const baseName = opt('--name', null);
+const project = opt('--project', null);
 const [cmd, tool, rawArgs] = argv;
 
 const transport = new StdioClientTransport({
@@ -39,6 +44,35 @@ transport.stderr?.on('data', (d) => (serverErr += d));
 const client = new Client({ name: 'airborne-ranger-author', version: '0.1.0' });
 await client.connect(transport);
 
+/** One tool call: text printed, images saved, a line in test-results/mcp-calls.jsonl. */
+async function callOne(tool, args) {
+  const t0 = Date.now();
+  const res = await client.callTool({ name: tool, arguments: args }, undefined, { timeout: 15 * 60 * 1000 });
+  const ms = Date.now() - t0;
+  let textChars = 0;
+  const images = [];
+  for (const [k, c] of (res.content ?? []).entries()) {
+    if (c.type === 'text') {
+      textChars += c.text.length;
+      console.log(c.text);
+    } else if (c.type === 'image') {
+      fs.mkdirSync(outDir, { recursive: true });
+      const ext = c.mimeType === 'image/jpeg' ? 'jpg' : 'png';
+      const f = path.join(outDir, `${baseName ?? `${tool}-${Date.now()}`}${k ? `-${k}` : ''}.${ext}`);
+      fs.writeFileSync(f, Buffer.from(c.data, 'base64'));
+      images.push(path.relative(root, f));
+      console.log(`[image ${c.mimeType} → ${path.relative(root, f)}]`);
+    } else {
+      console.log(`[${c.type} content]`, JSON.stringify(c).slice(0, 400));
+    }
+  }
+  if (res.structuredContent) console.log('[structuredContent]', JSON.stringify(res.structuredContent).slice(0, 2000));
+  if (res.isError) console.log('[isError: true]');
+  fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
+  fs.appendFileSync(path.join(root, 'test-results/mcp-calls.jsonl'), JSON.stringify({ at: new Date().toISOString(), tool, args, ms, textChars, images, isError: !!res.isError }) + '\n');
+  if (res.isError) process.exitCode = 2;
+}
+
 try {
   if (cmd === 'tools') {
     const { tools } = await client.listTools();
@@ -49,38 +83,13 @@ try {
     if (!t) throw new Error(`no tool ${tool}`);
     console.log(t.description);
     console.log(JSON.stringify(t.inputSchema, null, 2));
-  } else if (cmd === 'call') {
-    const args = !rawArgs ? {} : rawArgs.startsWith('@') ? JSON.parse(fs.readFileSync(path.resolve(root, rawArgs.slice(1)), 'utf8')) : JSON.parse(rawArgs);
-    const t0 = Date.now();
-    const res = await client.callTool({ name: tool, arguments: args }, undefined, { timeout: 15 * 60 * 1000 });
-    const ms = Date.now() - t0;
-    let textChars = 0;
-    const images = [];
-    for (const [k, c] of (res.content ?? []).entries()) {
-      if (c.type === 'text') {
-        textChars += c.text.length;
-        console.log(c.text);
-      } else if (c.type === 'image') {
-        fs.mkdirSync(outDir, { recursive: true });
-        const ext = c.mimeType === 'image/jpeg' ? 'jpg' : 'png';
-        const f = path.join(outDir, `${baseName ?? `${tool}-${Date.now()}`}${k ? `-${k}` : ''}.${ext}`);
-        fs.writeFileSync(f, Buffer.from(c.data, 'base64'));
-        images.push(path.relative(root, f));
-        console.log(`[image ${c.mimeType} → ${path.relative(root, f)}]`);
-      } else {
-        console.log(`[${c.type} content]`, JSON.stringify(c).slice(0, 400));
-      }
-    }
-    if (res.structuredContent) console.log('[structuredContent]', JSON.stringify(res.structuredContent).slice(0, 2000));
-    if (res.isError) console.log('[isError: true]');
-    fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
-    fs.appendFileSync(
-      path.join(root, 'test-results/mcp-calls.jsonl'),
-      JSON.stringify({ at: new Date().toISOString(), tool, args, ms, textChars, images, isError: !!res.isError }) + '\n',
-    );
-    if (res.isError) process.exitCode = 2;
+  } else if (cmd === 'call' || cmd === 'calls') {
+    const load = (raw) => (!raw ? {} : raw.startsWith('@') ? JSON.parse(fs.readFileSync(path.resolve(root, raw.slice(1)), 'utf8')) : JSON.parse(raw));
+    const list = cmd === 'call' ? [{ tool, args: load(rawArgs) }] : load(tool);
+    if (project) list.unshift({ tool: 'use_project', args: { project } });
+    for (const c of list) await callOne(c.tool, c.args ?? {});
   } else {
-    console.error('usage: node scripts/mcp.mjs tools | schema <tool> | call <tool> <json|@file>');
+    console.error('usage: node scripts/mcp.mjs [--project <name>] tools | schema <tool> | call <tool> <json|@file> | calls <json|@file>');
     process.exitCode = 1;
   }
 } catch (e) {

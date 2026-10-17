@@ -41,6 +41,44 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
   `Sand_01` tinted `#eef4ff` (Fantasy Village's own `Snow_01` reads green-grey), its ice is `Generic_Water` tinted pale
   blue and its rock is a grey-tinted `Generic_Rock`. Snow-covered pines and rocks come from POLYGON_Adventure_Pack.
 
+## Roster, merit, promotions and medals (G4)
+The rules live in `src/roster.ts` (constants `RANK_POINTS`, `MERIT`, `MEDAL_POINTS`); this is what they say.
+
+**Flow:** title + Ranger select (six roster slots) → mission select → mission → end screen → debriefing → mission
+select (or the roster after a KIA / capture). The roster is saved in localStorage (`ar.roster.v1`): per Ranger the
+name, rank, career score, medals (counts), status (active, KIA, captured), missions flown and missions accomplished.
+A vacant slot enlists a new PFC (type a name); Delete twice retires a Ranger and frees the slot. Only active Rangers
+can fly. A mission entered by URL (`?scene=mission&mission=…`) is flown by an unsaved guest.
+
+**Mission merit** (never below 0):
+| | points |
+|---|---|
+| objective destroyed | 500 × difficulty (mission 1: 1.0, 2: 1.2, 3: 1.4) |
+| extraction (objective done, reached the zone) | +200 |
+| each enemy soldier killed | +25 |
+| each installation destroyed (targets and any other destructible) | +50 |
+| time bonus on extraction | +300 × fraction of the clock left |
+| early alert: the enemy alerted before the objective was done | −150 |
+| …and that alert in the first two minutes | −100 more |
+
+A clean, quick mission 1 scores about 1 300–1 400; mission 3 up to about 1 700.
+
+**Ranks** by career merit: PFC 0, CPL 400, SGT 900, SSG 1 500, SFC 2 200, MSG 3 000, 2LT 3 900, 1LT 4 900, CPT 6 000,
+MAJ 7 200, LTC 8 500, COL 10 000. At most two promotions per mission. **KIA:** the mission's merit still counts, and
+the Ranger is promoted one more rank posthumously; his status becomes KIA. **Captured:** the clock ran out (the plane
+left): merit for kills and installations only, no promotion beyond what the score earns, status captured.
+
+**Medals** (one per accomplished mission, the highest whose threshold the mission merit reaches): COM1 (Army
+Commendation Medal) 800, COM2 (Commendation, oak leaf cluster) 950, Bronze Star 1 100, Silver Star 1 250,
+Distinguished Service Cross 1 400, Medal of Honor 1 550 and the enemy never alerted. Ribbons are drawn as stripes on
+the roster and in the debriefing.
+
+## Sound (G4)
+All procedural WebAudio (`src/sound.ts`), no sample files: rifle shot (Ranger and enemy, the enemy's quieter with
+distance), explosion, footsteps on the clips' `footstep_l` / `footstep_r` events (the Ranger's and nearby
+Germans'), grenade throw whoosh on the `release` event, supply-pod pickup chime, UI click / confirm, an alert whistle,
+a promotion fanfare, and a 16-step march drum loop on the title. M or the corner button mutes (saved).
+
 ## Milestones (they mirror the generator's TODO "Phase G")
 | | Needs from the generator | Delivers |
 |---|---|---|
