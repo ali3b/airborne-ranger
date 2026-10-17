@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
-import { tileToScreen, screenToTile, DIRS8, type Dir8 } from '../iso';
+import { tileToScreen, screenToTile, type Dir8 } from '../iso';
 import { Field, type Placed, type Pt } from './Field';
 import { missionByKey, type MissionConfig } from '../missions';
 
@@ -148,18 +148,21 @@ export class Mission extends Field {
   }
 
   /**
-   * A placed object: its name is the generator sprite's name, which is also the sprite's name in ssg.assets.json and
-   * the manifest. Its position is the footprint centre, where the export's anchor goes.
+   * A placed object. The generator writes each one self-describing (FB-039 verified): `sprite` (its name here and in
+   * the manifest), `facing`, `state`, and `collision`, the ground polygon of that state and facing in Tiled pixels
+   * around the anchor (the footprint centre, which is the object's position).
    */
   protected addObject(o: TiledObject) {
     const p = props(o);
-    const facing = (typeof p.facing === 'string' && (DIRS8 as readonly string[]).includes(p.facing) ? p.facing : 'SE') as Dir8;
+    const name = String(p.sprite ?? o.name);
     const [cx, cy] = this.cell(o.x, o.y);
     const target = p.target === true;
-    const hp = target ? Number(p.hp ?? 100) : undefined;
-    const placed = this.placeObject(o.name, facing, tileToScreen(cx, cy), { hp, state: typeof p.state === 'string' ? p.state : undefined });
+    const th = this.tmj.tileheight;
+    // Tiled iso pixels (tileheight per cell on both axes) → screen pixels.
+    const collision = typeof p.collision === 'string' ? (JSON.parse(p.collision) as [number, number][]).map(([x, y]) => [((x - y) / th) * (this.tmj.tilewidth / 2), ((x + y) / th) * (this.tmj.tileheight / 2)] as [number, number]) : undefined;
+    const placed = this.placeObject(name, String(p.facing) as Dir8, tileToScreen(cx, cy), { hp: target ? Number(p.hp ?? 100) : undefined, state: String(p.state), collision });
     if (!placed) {
-      if (!this.report.missingSprites.includes(o.name)) this.report.missingSprites.push(o.name);
+      if (!this.report.missingSprites.includes(name)) this.report.missingSprites.push(name);
       return;
     }
     this.report.objects++;

@@ -337,7 +337,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none needed (maps/*.ops.json use `sprite`).
 - Suggested change: declare `sprite` (name or id) on `place` and `move`, and name sprites in reports (`"tree_small": 13`).
 - Re-test (G4, 2026-10-17): worse over MCP than through the CLI: `edit_map` `{op: "place", sprite: "radio_tower", …}` fails with `place needs a spriteId or an assetRef` (the undeclared key is stripped by the schema), so an MCP author must call `list_sprites` and use ids. Mission 2 places by `spriteId` (maps/mission2.ops.json).
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Re-test (G4 wave 7, 2026-10-17): works. The MCP `edit_map` schema declares `sprite` on `place` and `move` (and scatter/path objects); reports name sprites (`"byObject": {"rock": 10}`, ids under `sprites`). maps/mission2.ops.json now places by name; mission 3 was authored by name only.
+- Status: verified
 
 ## FB-033 · `map create` with a name that exists silently makes a second map; names then resolve to the oldest
 - Severity: workaround        Milestone: G3
@@ -346,7 +347,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `created map 3 "probe"` next to map 1 "probe"; `ssg map show probe` then shows map 1. A build script that creates its map when missing would fork the map on a race or a typo-free re-run after a failed lookup.
 - Workaround: `scripts/build-maps.mjs` `findMap()` (`// FB-033`) looks the map up by name in `map list`, warns on duplicates and uses the oldest.
 - Suggested change: unique map names per project (like sprites in `sprite apply`), or a clear error.
-- Status: fixed (generator wave-6: map create refuses duplicates (--replace/--if-missing), map delete/reset, clear op): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. `map create probe` on a taken name fails (exit 1; `--json` gives `{"error": …, "code": "conflict"}` naming both old probe ids); `--if-missing` returns the map as it is, `--replace` deletes and recreates it (new id). `findMap()` is gone: build-maps.mjs runs `map create … --if-missing` and uses the returned id. Small things: the CLI error says "pass replace: true … or ifMissing: true" (the MCP spelling, not `--replace` / `--if-missing`); `--if-missing` with a different `--size` silently returns the old size (the script still checks it); the two legacy `probe` maps (1 and 3) still share a name and `map show probe` silently picks id 1. Deleting them was refused by this session's permission policy, so they stay.
+- Status: verified
 
 ## FB-034 · No way to delete or reset a map from the CLI or MCP, so "rebuild from scratch" means removing everything with ops
 - Severity: workaround        Milestone: G3
@@ -355,7 +357,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: no delete or reset (HTTP has `DELETE /api/maps/:id`, but the game only uses the CLI/MCP). The two `probe` maps (ids 1 and 3) and nothing else from these tests are left in the "Airborne Ranger" project.
 - Workaround: `scripts/build-maps.mjs` `wipeOps()` (`// FB-034`) prepends `remove` / `removeZone` for every object and zone and a whole-map `rect value:false` to the op list, in the same atomic batch; the first op (`generate` over the whole map) repaints the ground.
 - Suggested change: `map delete` + MCP `delete_map`, and a `clear` op (or `edit_map {reset: true}`).
-- Status: fixed (generator wave-6: map delete/reset + clear op): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. `map reset <map> --base grass`, `map delete`, `map create --replace` and the `clear` op all tested on a scratch map; `{op: "clear"}` reports what it removed. `wipeOps()` is gone: build-maps.mjs puts `{op: "clear"}` first (each maps/*.ops.json now starts with it; the bunker stamp source clears to grass) in the same atomic batch. Note: a deleted map's id is reused by the next `map create` (6 → deleted → the next probe was 6 again).
+- Status: verified
 
 ## FB-035 · Path objects: `facing: "across"` on a path down the y axis gives the same facing as `along`; the README's "wire along a trench" lays it across
 - Severity: workaround        Milestone: G3
@@ -364,7 +367,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: path along x: `along` → SE (wire across the path), `across` → SW (along the path). Path along y: `along` → SW (across), `across` → **SW** too. So "along" means "the object's front points along the path" (right for a soldier, wrong for a wall or wire), and "across" on a y path picks a facing the 2-facing export doesn't have and falls back to SW.
 - Workaround: `maps/mission1.ops.json` trench 1 (down y) gives `facing: "SE"` explicitly, trench 2 (along x) `across`.
 - Suggested change: fix `across` for 2-facing sprites (pick the export's facing whose axis is perpendicular, SE↔NW and SW↔NE being the same line); say in the docs that along/across name where the front points, and add `"parallel"` / `"perpendicular"` for walls, wire and sandbags (their long side) — or make walls use their long axis.
-- Status: fixed (generator wave-6: path facings parallel/perpendicular): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. `facing: "parallel"` on both mission 1 trenches (down y and along x) lays the wire along the mud (1×4 cells down y, 4×1 along x; checked in the preview), and on both mission 2 sandbag walls. The explicit `SE` and the `across` workaround are gone. One gap: trench 2 reports `"placed": {"wire": 1}, "skipped": 1` with no reason (scatter has `rejected` by cause; path objects don't).
+- Status: verified
 
 ## FB-036 · Scatter under-delivers without saying why, and the result depends on op order
 - Severity: workaround        Milestone: G3
@@ -373,7 +377,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `{"placed": 13, "target": 39}`, `{"placed": 2, "target": 6}`; rocks after the trees `{"placed": 2, "target": 10}` but before them 10/10; a second tree pass (other seed, density 1, no clusters) `{"placed": 0, "target": 13}`. On an empty 20×16 map the same ops place their full count. The report has no reasons, so the only way to tune it is trial and error.
 - Workaround: `maps/mission1.ops.json` scatters the big trees first, then rocks, then small trees.
 - Suggested change: retry darts until `count` is met or the allowed area is exhausted; report rejections by reason (`"skipped": {"spacing": 40, "terrain": 12, "overlap": 5}`); name sprites in `byObject`.
-- Status: fixed (generator wave-6: scatter per-group spacing, reasons, retries, topUp): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. Mission 1's rocks are 10/10 although they still come after the big trees (were 2/10 in that order). Short scatters now explain themselves: the big trees `2/6` with `rejected {terrain 1479, zone 402, overlap 258, spacing 176, bounds 603}`, `swept 1920` and `short: "4 not placed, every spot of the region tried: mostly terrain …"`; small trees 12/38 the same way. Mission 2's scatters all reach their target (26 bushes instead of 13). `byObject` names sprites.
+- Status: verified
 
 ## FB-037 · Stamps: rotating needs every facing in the export, and a stamp's ground overwrites everything in its rectangle
 - Severity: polish        Milestone: G3
@@ -382,7 +387,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite 16 has no facing "SW" (facings: SE)` for the bunker (props default to one facing, FB-013); it needed `"facings": 4` on bunker and sandbags in `ssg.assets.json` (both re-rendered in ~5 s). The stamp then worked well (facings and footprints turn, zone ids renumbered). But its ground is the whole rectangle, so its grass border painted over the river bank where a stamp touched it (water|grass mixes, FB-023); there is no way to stamp only the non-base terrain.
 - Workaround: `ssg.assets.json` `facings: 4` on bunker and sandbags; stamp A moved a cell off the river.
 - Suggested change: say "render it with --facings 4" in the error (or offer the mirrored facing for objects with a 180° symmetric footprint); a stamp `ground: "painted"` option that keeps only cells/corners that differ from the source map's base terrain.
-- Status: fixed (generator wave-6: stamp ground mask + facing fallback): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. On a scratch map a stamp cut from a dirt pad on grass, placed turned 90° against a river's sand bank, wrote only its 36 dirt corners (`ground: {mode: "mask"}`) and left the bank alone; mission 1's three bunker nests report `mask, 99 corners`. The facing fallback couldn't be exercised: every multi-facing sprite in the project has 4 facings (or SE+SW wire) and one-facing sprites carry no facing to turn. The stamp next to the river now uses `ground: "none"` to avoid a dirt/sand/grass T-junction (FB-049).
+- Status: verified
 
 ## FB-038 · Map ops don't warn about corner mixes the tileset can't draw; it only shows up at export
 - Severity: polish        Milestone: G3
@@ -391,7 +397,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the edit reports `corners` only; `ssg map export` prints `54 cells have a corner mix the tileset has no tile for (…)`, with no positions. The preview draws them as fallback tiles, which is easy to miss at 1568 px.
 - Workaround: `scripts/build-maps.mjs` prints the export warnings; the op list was tuned by hand (FB-023 re-test).
 - Suggested change: count and list (a few cells each) unsupported mixes in the edit result and `get_map`; optionally a `path` option that adds a ring of a blendable terrain automatically.
-- Status: fixed (generator wave-6: missing mixes with positions + --fix add-pairs): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. `map edit` / `map show` warn with cell positions and corners, separate two-terrain mixes (`add the pair (ssg tileset blend temperate dirt water), or fix "add-pairs"`) from three-terrain cells; build-maps.mjs prints the edit's `warnings`. Repaint: mission 1 went 6 → 4 (the stamp by the river with `ground: "none"`), mission 2 19 → 7 (paint the road/track/ridge/pad first, then `generate desert` with `keep`, as mission 1 does). The rest are T-junctions where a road meets a sand bank or a track, which no repaint can remove: see FB-049. `--fix add-pairs` has nothing to add (no two-terrain gaps left), and it would fight the declared `pairs` in ssg.assets.json anyway.
+- Status: verified
 
 ## FB-039 · The exported object layer is thin for a game: no `facing` on one-facing sprites, ids the game can't map, no collision shapes
 - Severity: polish        Milestone: G3
@@ -400,7 +407,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `name` (the sprite name, which happens to match `ssg.assets.json`), `spriteId` (the generator's id: not in the downloaded sprite files or the game's manifest), `facing` only when the sprite has more than one facing (the tent, crate piles and trees have none), `state` only for sprites with states, `footprintW/H`, `anchor: "footprint-centre"`. Collision is only the map's blocked-cell rectangles; the objects' polygons have to come from each sprite's export `object` block. In Tiled the objects are bare points (no images), so a human can't check the layout there either.
 - Workaround: `src/scenes/Mission.ts` maps objects by `name`, defaults a missing facing to SE and takes collision from the manifest's object blocks.
 - Suggested change: always write `sprite` (name), `facing` and `state`; optionally a `collision` polygon per object (cells or Tiled pixels) and an image-collection tileset so Tiled shows the objects as tile objects.
-- Status: fixed (generator wave-6: Tiled objects: sprite/exportName/state/facing/collision): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. Every exported object has `sprite`, `exportName`, `asset`, `facing` and `state` (`still` for one-state sprites), and `collision` in Tiled pixels around the anchor; converted to screen pixels it equals the manifest's polygon for that state and facing (tent, wire, tree, container checked to 0.1 px). Mission.ts now reads `sprite`/`facing`/`state` and takes the collider from `collision` (no SE default, no manifest lookup for the first collider; destroyed states still swap to the manifest's polygon).
+- Status: verified
 
 ## FB-040 · `get_map` / `ssg map show` hide what an AI author needs: zone extents, paths and the terrain under collision
 - Severity: polish        Milestone: G3
@@ -409,7 +417,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: each zone is one digit at one cell (the drop rect 3..10 × 4..10 shows as a single `3`, a 5-point patrol loop as one `6`); digits are reused when there are more than ten zones (`0  spawn z1 "guard"; custom pod2 "supply pod"`); blocked cells print `#` over their terrain, so the river reads as `###` and the ford only shows as a gap. A 1.5 m trench paints corners, not whole cells, so trench 1 doesn't show in the picture at all (only its wire `W`). The `objectList` in `--json` has positions, but zones have no points there (`{"id","kind","name","shape"}` only).
 - Workaround: none (looked at the preview PNG).
 - Suggested change: draw rect/polygon zone outlines and polyline paths into the picture (or a second "zones" picture), unique zone symbols (letters after 9), collision as a separate picture or lower-case terrain symbols, and the zones' points in the JSON.
-- Status: fixed (generator wave-6: zone outlines, unique symbols, separate collision, thin features): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. `map show --collision separate` gives a terrain picture with the river's water, sand bank and the ford readable plus a collision picture of its own; rect zones are outlines, patrols path lines, 1.5 m trenches show as `%`; the legend gives extents (`rect cells 37..46 × 3..17`) and path lengths, symbols are unique (0–9 then letters). The arctic map (mission 3) was planned from this picture alone.
+- Status: verified
 
 ## FB-041 · Coordinate conventions differ between ops, and `--json` errors aren't JSON
 - Severity: polish        Milestone: G3
@@ -418,7 +427,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `rect` / `stamp save --rect` are inclusive **cells** (`x0..x1`), `addZone` rect points are **grid coordinates** (the drop zone `[[3,4],[10,10]]` exports as 7×6 cells, 224×192 px), `place` x,y is the **footprint centre** snapped (odd spans on cell centres, even on edges), `stamp` x,y the **top-left cell**, and Tiled objects are in `tileheight` px per cell on both axes. All documented somewhere, but an AI mixing `rect` and `addZone` gets off-by-one zones. Separately, `ssg --json map edit` with a failing op prints the errors as text on stderr and nothing on stdout.
 - Workaround: none needed.
 - Suggested change: a one-paragraph "coordinates" note in the `edit_map` description; `--json` errors as `{"errors": [...]}` on stdout.
-- Status: fixed (generator wave-6: coordinate table + anchor, JSON errors): re-test in the next game wave
+- Re-test (G4 wave 7, 2026-10-17): works. README "Coordinates" has the per-op table, `edit_map`'s description carries the convention and the `anchor` option, and `ssg --json map edit` with a bad op prints `{"error": "No sprite named \"nope\". Did you mean: …"}` on stdout (exit 1). With two bad ops only the first (the name lookup) is reported.
+- Status: verified
 
 ## FB-042 · Parameter-only changes don't make a sprite outdated, and there is no forced re-render
 - Severity: workaround        Milestone: G4

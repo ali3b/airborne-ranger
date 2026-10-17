@@ -282,9 +282,10 @@ export class Field extends Phaser.Scene {
 
   /**
    * An object sprite with its anchor on `at` (screen px), in `state` (default: its first state) with the facing's
-   * collision polygon. `hp` makes it destructible. Returns null when the sprite, facing or state wasn't exported.
+   * collision polygon (or `collision`: screen px around the anchor, e.g. from a map object). `hp` makes it
+   * destructible. Returns null when the sprite, facing or state wasn't exported.
    */
-  protected placeObject(name: string, dir: Dir8, at: Pt, opts: { hp?: number; state?: string } = {}): Placed | null {
+  protected placeObject(name: string, dir: Dir8, at: Pt, opts: { hp?: number; state?: string; collision?: [number, number][] } = {}): Placed | null {
     const s: SpriteEntry | undefined = this.manifest.sprites[name];
     const d: ObjectDirection | undefined = s?.object?.directions.find((x) => x.name === dir);
     const st = s?.object?.states?.find((x) => x.name === opts.state) ?? s?.object?.states?.[0];
@@ -297,7 +298,7 @@ export class Field extends Phaser.Scene {
       placed.hp = opts.hp;
       placed.state = st?.name ?? 'intact';
     }
-    const poly = st?.directions.find((x) => x.name === dir)?.polygon ?? d.polygon;
+    const poly = opts.collision?.map(([x, y]): [number, number] => [x + d.anchor.x, y + d.anchor.y]) ?? st?.directions.find((x) => x.name === dir)?.polygon ?? d.polygon;
     this.setCollision(placed, poly);
     // The collision polygon is what stands on the ground: a tree's trunk (`collision.source` "base"), the whole
     // hull for crates, walls and buildings.

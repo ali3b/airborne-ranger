@@ -2,8 +2,8 @@
 //   node scripts/build-maps.mjs              every map in ssg.assets.json `maps`
 //   node scripts/build-maps.mjs mission1     one map (and the stamp maps it needs are not rebuilt)
 // Each entry of `maps` names a map in the project, its size and tileset, and a JSON op list (maps/*.ops.json: the
-// same ops as the MCP's edit_map, applied in one atomic `ssg map edit`). The map is wiped first with ops (FB-034: no
-// map delete or reset), so the result depends only on the op list and its seeds. An entry can then save stamps cut from
+// same ops as the MCP's edit_map, applied in one atomic `ssg map edit`). A `clear` op goes first, so the result depends
+// only on the op list and its seeds. An entry can then save stamps cut from
 // the map (`stamps`), export Tiled .tmj with embedded tilesets (`export`, for Phaser) and preview PNGs.
 // public/assets/manifest.json gets a `maps` section.
 import { spawn } from 'node:child_process';
@@ -42,42 +42,17 @@ async function must(args, what) {
   return r;
 }
 
-/** The project's map with this name (FB-033: names aren't unique; the oldest wins). */
-async function findMap(name) {
-  const r = await must(['map', 'list', ...P], 'map list');
-  const all = (Array.isArray(r.json) ? r.json : r.json?.maps ?? []).filter((m) => m.name === name).sort((a, b) => a.id - b.id);
-  if (all.length > 1) console.error(`  warning: ${all.length} maps are named "${name}" (ids ${all.map((m) => m.id).join(', ')}); using ${all[0].id}`);
-  return all[0] ?? null;
-}
-
-/**
- * Ops that empty a map: remove every object and zone and clear the collision. The ground is repainted by the op list
- * (its first op is a whole-map `generate`). FB-034: there is no `map delete` / reset in the CLI or MCP.
- */
-async function wipeOps(id, size) {
-  const r = await must(['map', 'show', String(id), ...P], 'map show');
-  const m = r.json;
-  const [w, h] = size.split('x').map(Number);
-  return [
-    ...(m.objectList ?? []).map((o) => ({ op: 'remove', id: o.id })),
-    ...(m.zones ?? []).map((z) => ({ op: 'removeZone', id: z.id })),
-    { op: 'rect', x0: 0, y0: 0, x1: w - 1, y1: h - 1, value: false },
-  ];
-}
-
 const readJson = (f) => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
 
 async function buildMap(def) {
   const t0 = Date.now();
   console.error(`=== map: ${def.name} (${def.size}, ${def.ops})`);
-  let map = await findMap(def.name);
-  if (!map) {
-    await must(['map', 'create', def.name, ...P, '--size', def.size, '--tileset', def.tileset], 'map create');
-    map = await findMap(def.name);
-  } else if (map.size !== def.size) {
-    throw new Error(`map ${def.name} is ${map.size}, the definition says ${def.size} (resize it in the app or rename the entry)`);
-  }
-  const ops = [...(await wipeOps(map.id, def.size)), ...readJson(def.ops)];
+  // Map names are unique per project: create it, or use the one that exists (FB-033 verified).
+  const map = (await must(['map', 'create', def.name, ...P, '--size', def.size, '--tileset', def.tileset, '--if-missing'], 'map create')).json;
+  if (map.size !== def.size) throw new Error(`map ${def.name} is ${map.size}, the definition says ${def.size} (resize it in the app or rename the entry)`);
+  // `clear` empties every layer first, in the same atomic batch, so the op list alone defines the map (FB-034 verified).
+  const list = readJson(def.ops);
+  const ops = list[0]?.op === 'clear' ? list : [{ op: 'clear' }, ...list];
   const tmp = path.join(root, 'test-results', `${def.name}.ops.applied.json`);
   fs.mkdirSync(path.dirname(tmp), { recursive: true });
   fs.writeFileSync(tmp, JSON.stringify(ops));
@@ -88,6 +63,7 @@ async function buildMap(def) {
     const { index, op, ...rest } = x;
     console.error(`  ${op}: ${JSON.stringify(rest)}`);
   }
+  for (const w of r.json?.warnings ?? []) console.error(`  warning: ${typeof w === 'string' ? w : JSON.stringify(w)}`);
   console.error(`  revision ${r.json?.revision}, ${r.json?.applied ?? ops.length} ops`);
 
   for (const s of def.stamps ?? []) {
