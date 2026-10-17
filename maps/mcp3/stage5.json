@@ -1,0 +1,4 @@
+{"project":"Airborne Ranger","map":"mission3","show":false,"ops":[
+ {"op":"scatter","seed":"rocks-south","objects":[{"sprite":"rock_snow"}],"count":5,"spacing":3,"region":{"rect":[16,35,40,39]},"avoidZones":["custom"],"avoidMargin":0.5},
+ {"op":"scatter","seed":"pines-west2","objects":[{"sprite":"pine_snow_small"}],"count":6,"spacing":3,"relax":true,"region":{"rect":[0,0,11,39]},"avoidTerrains":["ice"],"avoidZones":["spawn","extraction","custom"],"avoidMargin":0.5}
+]}

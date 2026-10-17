@@ -1,0 +1,16 @@
+{"project":"Airborne Ranger","map":"mission3","show":true,"collision":"separate","ops":[
+ {"op":"addZone","kind":"spawn","id":"drop","name":"drop","points":[[2,2],[9,8]],"properties":{"team":"ranger"}},
+ {"op":"addZone","kind":"objective","id":"airfield","name":"Airfield","points":[[16,1],[41,34]],"properties":{"goal":"destroy","targets":"target"}},
+ {"op":"addZone","kind":"extraction","id":"extract","name":"extraction","points":[[2,31],[9,38]]},
+ {"op":"addZone","kind":"spawn","id":"guard_hangar","name":"guard","points":[[29.5,12.5]],"properties":{"team":"german","facing":"SW"}},
+ {"op":"addZone","kind":"spawn","id":"guard_apron","name":"guard","points":[[30.5,35.5]],"properties":{"team":"german","facing":"W"}},
+ {"op":"addZone","kind":"spawn","id":"guard_camp","name":"guard","points":[[40.5,34.5]],"properties":{"team":"german","facing":"NW"}},
+ {"op":"addZone","kind":"patrol","id":"patrol_apron","name":"apron loop","shape":"polyline","points":[[21,23.5],[40.5,23.5],[40.5,34.5],[21,34.5],[21,23.5]],"properties":{"team":"german","count":2,"loop":true}},
+ {"op":"addZone","kind":"patrol","id":"patrol_runway","name":"runway","shape":"polyline","points":[[17,20.5],[47,20.5]],"properties":{"team":"german","count":1,"loop":false}},
+ {"op":"addZone","kind":"patrol","id":"patrol_river","name":"west bank","shape":"polyline","points":[[8,11],[9,19],[8,27]],"properties":{"team":"german","count":1,"loop":false}},
+ {"op":"addZone","kind":"custom","id":"pod1","name":"supply pod","points":[[5.5,15.5]],"properties":{"pod":true,"grenades":4}},
+ {"op":"addZone","kind":"custom","id":"pod2","name":"supply pod","points":[[16.5,26.5]],"properties":{"pod":true,"grenades":4}},
+ {"op":"addZone","kind":"custom","id":"pod3","name":"supply pod","points":[[46.5,23.5]],"properties":{"pod":true,"grenades":4}},
+ {"op":"scatter","seed":"pines","objects":[{"sprite":"pine_snow","weight":2},{"sprite":"pine_snow_small","weight":1}],"density":2.5,"spacing":3.5,"cluster":0.55,"clusterScale":12,"avoidTerrains":["ice","road","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
+ {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock_snow"}],"count":12,"spacing":4,"avoidTerrains":["ice","road"],"avoidZones":["spawn","extraction","patrol","custom"],"avoidMargin":1}
+]}

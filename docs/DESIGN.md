@@ -37,7 +37,9 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
   - BattleRoyale and Apocalypse: huts, tents, containers.
   - Generic: rocks and trees.
   - Particle_FX: explosions and smoke.
-- **Arctic:** no snow pack exists, so tinted textures stand in for it (expected to be a generator feature request).
+- **Arctic:** no snow pack exists, so tinted textures stand in for it: the `arctic` tileset's snow is Palm City's
+  `Sand_01` tinted `#eef4ff` (Fantasy Village's own `Snow_01` reads green-grey), its ice is `Generic_Water` tinted pale
+  blue and its rock is a grey-tinted `Generic_Rock`. Snow-covered pines and rocks come from POLYGON_Adventure_Pack.
 
 ## Milestones (they mirror the generator's TODO "Phase G")
 | | Needs from the generator | Delivers |

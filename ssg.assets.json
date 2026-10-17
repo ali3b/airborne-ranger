@@ -186,6 +186,44 @@
       "template": "explosion",
       "dirs": "1",
       "fps": 12
+    },
+    {
+      "name": "plane",
+      "asset": "POLYGON_War/SM_Veh_Plane_German_01",
+      "template": "still",
+      "states": "intact=POLYGON_War/SM_Veh_Plane_German_01,destroyed=POLYGON_War/SM_Veh_Plane_Damaged_German_01@destroy"
+    },
+    {
+      "name": "plane_big",
+      "asset": "POLYGON_War/SM_Veh_Plane_German_02",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "maxSeconds": 3
+    },
+    {
+      "name": "hangar",
+      "asset": "POLYGON_War/SM_Bld_Hanger_01",
+      "template": "still"
+    },
+    {
+      "name": "guard_tower",
+      "asset": "POLYGON_War/SM_Bld_Guard_Tower_01",
+      "template": "still"
+    },
+    {
+      "name": "pine_snow",
+      "asset": "POLYGON_Adventure_Pack/SM_Env_TreePine_01_Snow",
+      "template": "still"
+    },
+    {
+      "name": "pine_snow_small",
+      "asset": "POLYGON_Adventure_Pack/SM_Env_TreePine_02_Snow",
+      "template": "still"
+    },
+    {
+      "name": "rock_snow",
+      "asset": "POLYGON_Adventure_Pack/SM_Env_Rock_05_Snow",
+      "template": "still"
     }
   ],
   "tilesets": [
@@ -263,6 +301,43 @@
         "road"
       ],
       "pairs": "all"
+    },
+    {
+      "name": "arctic",
+      "noisePeriod": 4,
+      "variants": 4,
+      "terrains": [
+        {
+          "name": "snow",
+          "kind": "snow",
+          "texture": "POLYGON_Palm_City_v3/SourceFiles/Textures/Terrain/Sand_01.png",
+          "scale": 4,
+          "tint": "#eef4ff",
+          "variants": 16
+        },
+        {
+          "name": "ice",
+          "kind": "water",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Water.png",
+          "scale": 4,
+          "tint": "#cfe6f2"
+        },
+        {
+          "name": "rock",
+          "kind": "custom",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Rock.png",
+          "scale": 2,
+          "tint": "#8c939c"
+        },
+        {
+          "name": "dirt",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Dirt.png",
+          "scale": 4,
+          "tint": "#857a6c"
+        },
+        "road"
+      ],
+      "pairs": "all"
     }
   ],
   "maps": [
@@ -296,6 +371,13 @@
       "tileset": "desert",
       "ops": "maps/mission2.ops.json",
       "export": "public/assets/maps/mission2"
+    },
+    {
+      "name": "mission3",
+      "size": "48x40",
+      "tileset": "arctic",
+      "ops": "maps/mission3.ops.json",
+      "export": "public/assets/maps/mission3"
     }
   ]
 }

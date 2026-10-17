@@ -464,6 +464,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `list_sprites` gives a summary line ("Isometric, 8 directions" for objects that render one facing) and `get_sprite` the spec; neither has the export's `object.tiles`. The first compound batch failed on two overlaps (`o1 would overlap radar_tent (tent) at (43.5, 12.5)`) whose sizes I then had to read off the `get_map` picture after the next try (truck 8×4 at SE, container 7×3 at SW, barrel pile 3×3). `search_props` has model-level tiles, but not per facing and not by sprite name.
 - Workaround: trial and error (one failed batch).
 - Suggested change: `list_sprites` / `get_sprite` with `object: {facings: {SE: {u, v}}, states}` from the current export; a `place` error that says the footprint it tried.
+- Re-test (G4 wave 7, mission 3, 2026-10-17): still open. `get_sprite plane` (4 kB) has `facings: 1` but no footprint, and neither does `list_sprites`. Mission 3's 16 placements worked first time only because I read `object.directions[].tiles` from the game's downloaded manifest, which an MCP-only author doesn't have. `props list` / `search_props` don't help either: they give model `w×d`, and for the SE facing that is the other way round from the map footprint `u×v` (plane 10x9 → 9x10, hangar 14x18 → 18x14, plane_big 14x12 → 12x14).
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-046 · MCP map authoring: answers are big, every call needs `project`, the picture is buried
@@ -473,6 +474,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: (1) `edit_map` with the default `show: true` returns ~20 kB (the full `objectList` with every object's properties, then the picture as a string array at `overview.overview`, inside an object also called `overview`); `generate_map` ~16 kB; `get_map` ~13 kB. (2) `project` defaults to "the first project", which isn't the game's, so every call must repeat `"project": "Airborne Ranger"`. (3) `generate_map` `dryRun` turns seeds into numbers (`"seed": -1421424047`), so the dry-run ops aren't the readable op list one would save; I wrote the ops by hand instead. (4) In `map_preview` labels sit on top of each other (the objective's label under a guard spawn's). (5) Zone digits are still reused (`0` = the drop zone and pod 3) and the ridge's rock terrain shows only as `#` (FB-040). (6) 19 three-terrain cells only show up at `export_map` (FB-038).
 - Workaround: `scripts/mcp-picture.mjs` prints just the picture and legend from a saved answer; `"show": false` on later edits.
 - Suggested change: `show: "picture"` (picture + legend + counts, no objectList) as the default for edit/generate; a session/default project (or the only project with maps); keep seeds as given in dry runs; offset overlapping labels.
+- Re-test (G4 wave 7, mission 3, 2026-10-17): partly better. Mission 3 took 7 map calls (create_map, 5 edit_map, 1 map_preview) with no errors, against mission 2's 21 calls and 2 failed batches. Sprites by name, the scatter `short` advice and the separate collision picture did most of that. Still open: `project` must go in every call (it defaults to the first project); `edit_map` with `show: true` returns 7 / 13 / 22 kB as objects are added (the `objectList` dominates), against 1 kB with `show: false`; and zone outlines in the picture hide the objects under them (the objective's `1` edge over the hangar column, the patrol `6` over a crate pile).
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-047 · `ssg tileset apply --dry-run` doesn't check textures, and its tile count reads oddly
@@ -492,3 +494,39 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: picked `POLYGON_Palm_City/SM_Env_Bush_01` (2.1 m) and `POLYGON_City/SM_Env_PalmTree_01`.
 - Suggested change: flag or fix outliers on ingest (a bush over 20 m is a scale bug); show a warning column in `props list`.
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
+
+## FB-049 · A road meeting a river bank (or a track crossing a road) always leaves three-terrain cells the tileset can't draw
+- Severity: polish        Milestone: G4
+- Tried: FB-038's advice to "repaint so at most two meet" on mission 1 (road across a sand-banked river, with a sand ford) and mission 2 (dirt track crossing the road).
+- Wanted: a map where every cell has a tile.
+- Got: wherever three areas meet (grass | road | sand bank, or sand | road | dirt track), some cell has corners from all three. No repaint removes that, because it is a T-junction, and a buffer ring only moves the junction somewhere else. Reordering helped where the third terrain was incidental: mission 2 went from 19 to 7 by painting paths first and then `generate … keep`, and mission 1 from 6 to 4 with `ground: "none"` on the stamp next to the river. The remaining 4 + 7 cells are real junctions, and they draw as the main terrain's pure tile, which shows a hard notch.
+- Workaround: none (the cells show the fallback tile).
+- Suggested change: draw a 3–4-terrain cell by layering: the lowest-priority terrain's pure tile, then each higher terrain's corner mask over it (a terrain priority/z-order per tileset, like Tiled's or Godot's terrain layering). Or let `path` lay its `edge` terrain under the junction automatically. And reword the hint so it doesn't promise that a repaint can always fix it.
+- Status: open
+
+## FB-050 · Aircraft get a `base` collision (a sliver at the tail wheel), and a declared sprite can't set `collisionHeight`
+- Severity: workaround        Milestone: G4
+- Tried: `POLYGON_War/SM_Veh_Plane_German_01` and `_02` as project sprites (`ssg.assets.json` `plane`, `plane_big`), placed on mission 3 and grenaded at their footprint centre.
+- Wanted: a collision polygon around the fuselage (and wings), like the tank's and truck's `hull`.
+- Got: `collision: {source: "base", cut: 0.444}`. On the Bf 109 that is an 8-point sliver at the tail wheel, 4.2 m behind the anchor, and on the larger plane a 3 × 1.3 m band behind its centre. The Ranger walks through the planes, and a grenade landing on the cockpit does 0 damage. The intact state's per-direction polygon and the map's `collision` property are the same sliver. The README's fix is `--collision-height`, but `sprite apply` refuses `"collisionHeight"` ("unknown key"), and `apply_sprites`, `create_object_sprite` and `set_object_states` don't have it; only the anonymous `export_sprites` does.
+- Workaround: `src/scenes/Field.ts` `WHOLE_HULL` (`// FB-050`) makes `plane` and `plane_big` collide with the export's `canopyPolygon` (the whole hull).
+- Suggested change: accept `collisionHeight` (and maybe `collision: "hull" | "base"`) on declared and app sprites; don't use `base` for vehicles (a model whose slice below the cut is only wheels or skids); and warn when the base polygon doesn't contain the anchor.
+- Status: open
+
+## FB-051 · Path objects report `skipped` with no reason
+- Severity: polish        Milestone: G4
+- Tried: mission 1 trench 2, a `path` with `objects: [{sprite: "wire", every: 7, facing: "parallel"}]`.
+- Wanted: like scatter, why a spot was skipped (overlap with what, off the map, terrain).
+- Got: `"placed": {"wire": 1}, "skipped": 1` and nothing else.
+- Workaround: none.
+- Suggested change: `rejected` by cause (and the spot) for path objects, as scatter reports.
+- Status: open
+
+## FB-052 · Map and tileset lifecycle nits: MCP wording in CLI errors, `--if-missing` ignores the size, deleted ids are reused
+- Severity: polish        Milestone: G4
+- Tried: `ssg map create probe …` on a taken name; `map create mission1 --if-missing --size 40x40` (the map is 48x40); deleting a scratch map (id 6) and a scratch tileset (id 3), then creating mission 3 and the arctic tileset.
+- Wanted: CLI flags in CLI errors; a warning when `--if-missing` finds a map that differs from what was asked; ids that aren't reused.
+- Got: the CLI error says "pass replace: true … or ifMissing: true" (the MCP spelling). `--if-missing` silently returns the 48x40 map. The new mission 3 map got id 6 again, and the arctic tileset got id 3. Previews and exports came out right (they're keyed by revision as well), but anything else caching by id (Tiled firstgids, the app's per-browser view settings, a game's saved `mapId`) can mix up a deleted map with its successor.
+- Workaround: build-maps.mjs compares the returned size itself.
+- Suggested change: say `--replace` / `--if-missing` in the CLI; `existed: true, differs: {size: …}` (or refuse) on a mismatch; AUTOINCREMENT ids.
+- Status: open

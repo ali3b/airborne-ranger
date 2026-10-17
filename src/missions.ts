@@ -35,6 +35,16 @@ export const MISSIONS: MissionConfig[] = [
     success: 'The radar array is down. The Ranger made the pickup.',
     seconds: 12 * 60,
   },
+  {
+    map: 'mission3',
+    number: 3,
+    title: 'DISABLE ENEMY AIRCRAFT',
+    climate: 'arctic',
+    goal: 'destroy the aircraft on the airfield',
+    done: 'AIRCRAFT DESTROYED: get to the extraction zone',
+    success: 'The enemy aircraft are burning. The Ranger made the pickup.',
+    seconds: 12 * 60,
+  },
 ];
 
 /** A mission by map name (or number), defaulting to the first. */

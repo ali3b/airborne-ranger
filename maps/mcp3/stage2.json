@@ -1,0 +1,18 @@
+{"project":"Airborne Ranger","map":"mission3","show":true,"collision":"separate","ops":[
+ {"op":"place","sprite":"hangar","x":39,"y":8,"id":"hangar"},
+ {"op":"place","sprite":"plane_big","x":22,"y":9,"state":"intact","id":"plane_big","properties":{"target":true,"hp":200}},
+ {"op":"place","sprite":"plane","x":26.5,"y":29,"state":"intact","id":"plane_a","properties":{"target":true,"hp":150}},
+ {"op":"place","sprite":"plane","x":35.5,"y":29,"state":"intact","id":"plane_b","properties":{"target":true,"hp":150}},
+ {"op":"place","sprite":"truck","x":32,"y":17,"facing":"SE","state":"intact","id":"fuel_truck"},
+ {"op":"place","sprite":"container","x":41.5,"y":16.5,"facing":"SW","state":"intact"},
+ {"op":"place","sprite":"radio_tower","x":47,"y":16,"state":"intact"},
+ {"op":"place","sprite":"barrel_pile","x":42.5,"y":27,"state":"intact","id":"fuel1"},
+ {"op":"place","sprite":"barrel_pile","x":46.5,"y":27,"state":"intact","id":"fuel2"},
+ {"op":"place","sprite":"tent","x":45.5,"y":32.5,"state":"intact","id":"camp_tent"},
+ {"op":"place","sprite":"crate_pile","x":41.5,"y":31.5,"state":"intact"},
+ {"op":"place","sprite":"guard_tower","x":43.5,"y":37,"id":"tower"},
+ {"op":"place","sprite":"tanktrap","x":18,"y":18},
+ {"op":"place","sprite":"tanktrap","x":18,"y":24},
+ {"op":"path","points":[[28,1],[28,14]],"smooth":false,"jitter":0,"seed":"hangar_wall","objects":[{"sprite":"sandbags","every":4.5,"facing":"parallel","properties":{"kind":"sandbags"}}]},
+ {"op":"path","points":[[23,37.5],[40,37.5]],"smooth":false,"jitter":0,"seed":"apron_wire","objects":[{"sprite":"wire","every":5,"facing":"parallel","properties":{"kind":"wire"}}]}
+]}
