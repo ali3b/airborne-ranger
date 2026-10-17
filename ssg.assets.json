@@ -74,6 +74,35 @@
       "name": "crate",
       "asset": "POLYGON_War/SM_Prop_Crate_02",
       "template": "still"
+    },
+    {
+      "name": "tank",
+      "asset": "POLYGON_War/SM_Veh_German_Tank_01",
+      "states": "auto,destroyed@destroy",
+      "facings": 2
+    },
+    {
+      "name": "bunker_large",
+      "asset": "POLYGON_War/SM_Bld_Bunker_Large_01",
+      "states": "auto,damaged@destroy"
+    },
+    {
+      "name": "smoke",
+      "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
+      "template": "smoke_loop",
+      "dirs": "1"
+    },
+    {
+      "name": "fire",
+      "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
+      "template": "fire_loop",
+      "dirs": "1"
+    },
+    {
+      "name": "explosion",
+      "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
+      "template": "explosion",
+      "dirs": "1"
     }
   ],
   "tilesets": [

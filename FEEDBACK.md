@@ -252,3 +252,66 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `scripts/build-assets.mjs` `buildTileset()` (`// FB-024`) reads `ssg.assets.json` `tilesets`, creates the tileset if missing, adds missing terrains by name and exports `-f tsj`. Changing a declared terrain needs a manual `ssg tileset terrain remove`.
 - Suggested change: a declarative `ssg tileset apply <file>` (MCP `apply_tilesets`).
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
+
+## FB-025 · `ssg props list` doesn't list vehicles, so the intact tank can't be found there (only its wreck)
+- Severity: polish        Milestone: G1
+- Tried: `ssg props list Tank --damaged`, `ssg props list --pack POLYGON_War --damaged --limit 400`, `ssg props list --category vehicle`
+- Wanted: `SM_Veh_German_Tank_01` with `states intact,destroyed`, like `SM_Bld_Barn_01` shows `intact,damaged`.
+- Got: only the wreck `SM_Veh_German_Tank_Destroyed_01` (category `wreck`, states `intact,destroyed`); the intact tank is kind `vehicle` with an empty category (`ssg assets POLYGON_War/SM_Veh_German_Tank_01`) and `--category vehicle` is refused (`category must be one of building, …`). `ssg props states POLYGON_War/SM_Veh_German_Tank_01` does find the pair.
+- Workaround: none needed (named the tank from the brief).
+- Suggested change: include `vehicle` kind models in `props list` (they're the commonest destructibles), or add a `vehicle` category; list the wreck under its intact model instead of as a separate row.
+- Status: open
+
+## FB-026 · Apply entries with `states`: the README example is refused, and a vehicle defaults to 8 directions
+- Severity: polish        Milestone: G1
+- Tried: `{ "name": "tank", "asset": "POLYGON_War/SM_Veh_German_Tank_01", "template": "still", "states": "auto,destroyed@destroy" }` (the README's apply example has `"template": "still", "slice": "columns", "states": "auto"` on the bunker)
+- Wanted: the entry accepted (still + states is what the object is), and one grid-aligned facing like other props (FB-013).
+- Got: `ssg: sprites[7] (tank): states are the sprite's moves; leave out anim, template, set and class (or drop states).` Without `template` it rendered, but in **8 directions**: 152 frames of 442×348, a 9.0 MB + 0.36 MB two-page atlas (the large bunker, kind prop, got one SE facing). With `"facings": 2`: 38 frames, 2.5 MB.
+- Workaround: `ssg.assets.json` drops `template` on state entries and sets `"facings": 2` on the tank.
+- Suggested change: accept (ignore) `template: "still"` next to `states`, and fix the README example; give vehicles exported as objects (with `states`) the same one-facing default as props.
+- Status: open
+
+## FB-027 · `intact_to_destroyed` ends on an empty frame and never shows the wreck; the hull flips over
+- Severity: workaround        Milestone: G1
+- Tried: tank `states: "auto,destroyed@destroy"` (`destroy` defaults), played in game: `intact_to_destroyed_SE` (17 frames at 10 fps, 1.7 s, `impact` event on frame 0) then `destroyed_SE`
+- Wanted: a transition that reads as "the tank blows up and becomes this wreck": parts burst and settle and the last frame matches (or crossfades into) the `destroyed` still, so an engine can switch with no pop.
+- Got: the frame size, pivot and anchor are shared as documented (442×348, every clip), so placement is right. But the intact tank's parts fly apart like a toy: the whole hull rotates upside down (frames 3–12 show its flat underside), both tracks are thrown upright above it and are cropped at the frame top in frames 5–7, the turret tumbles off the front, and from frame 12 everything fades to an empty frame. The rusted wreck (a different model) then pops in. At 1.7 s the first half reads well; the second half is a fading grey slab.
+- Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-027`) draws the `destroyed` frame under the transition and fades it in over the transition's last 40 %.
+- Suggested change: let the destroy template end in the target state: crossfade the target state model in while the parts fade (it's already loaded under the same root), or a `settle` option. Weight the launch by part size so the hull lifts and drops instead of flipping, and clamp rotation of the largest part.
+- Status: open
+
+## FB-028 · No transition for single-mesh models; the War bunkers have no destroyed state, the large one's damaged state is almost identical
+- Severity: workaround        Milestone: G1
+- Tried: `ssg props states POLYGON_War/SM_Bld_Bunker_01` (the game's bunker): `no damaged or destroyed versions found`. Picked `POLYGON_War/SM_Bld_Bunker_Large_01` (`ssg props list --damaged` → `intact,damaged`) with `states: "auto,damaged@destroy"`.
+- Wanted: a destructible bunker: some transition and a clearly broken end state.
+- Got: `validation warn:state_clip_skipped` (`intact_to_damaged: destroy does not apply to SM_Bld_Bunker_Large_01`): only `intact` and `damaged` (608×532, 1 facing). `SM_Bld_Bunker_Large_Damaged_01` differs from the intact model by one chipped corner with rebar on the far side; side by side at tile scale it's hard to tell which is which. Its collision is nearly the same (`sameAsBase: false`, 10.17 vs 10.06 m deep).
+- Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-028`): a dust burst hides the swap and the damaged state is scorched with a tint.
+- Suggested change: a fallback transition for single meshes (`hit_shake` + sink/dust, or `collapse`: shear down and crossfade to the target state) usable as `damaged@hit_shake`; and a generated `burnt` state (charred texture tint) for models without a damaged file, so the plain bunker can be destroyed too.
+- Status: open
+
+## FB-029 · An object's frame pivot is the model origin, not its anchor, so `play()` moves a sprite placed by its anchor
+- Severity: polish        Milestone: G1
+- Tried: placing the tank like the other props (`setOrigin(anchor / frame size)`), then `sprite.play('…/intact_to_destroyed_SE')`
+- Wanted: switching states with `play()` and nothing else (LAYERS.md: "An engine plays `intact_to_destroyed` exactly like any other animation … with no offset to apply").
+- Got: every frame's `pivot` is (221, 230) (= 0.5, 0.661), the model origin, while `object.directions[SE].anchor` is (241.62, 240.31) and `object.anchor` (direction 0) is (200.38, 240.31). Phaser applies the frame pivot as the origin on each animation frame, so the tank jumps ~22 px on the first `play()`. Images placed once with `setOrigin` never noticed this.
+- Workaround: `src/scenes/Field.ts` `showState()` positions the sprite at `at + (pivot − anchor)` and lets the pivot be the origin.
+- Suggested change: for object exports, write each direction's anchor as the frame `pivot`, or document that a Phaser sprite must be offset by (pivot − anchor).
+- Status: open
+
+## FB-030 · Several sprites of one model share one animation prefix
+- Severity: polish        Milestone: G1
+- Tried: three FX sprites from one model, `smoke` / `fire` / `explosion` = `POLYGON_Particle_FX/SM_Particle_Smoke_01` with `template` `smoke_loop` / `fire_loop` / `explosion`
+- Wanted: animation keys unique per sprite (FB-007 made them unique per model).
+- Got: all three export `Particle_Smoke_01.json` and keys `Particle_Smoke_01/<clip>_S`. They only coexist because the clip names differ; two sprites of one model with the same clip (a tank in two liveries, a `smoke` and a `smoke_big`) would collide in Phaser's global animation manager.
+- Workaround: none needed yet.
+- Suggested change: in `sprite apply` / project downloads, prefix keys (and base file names) with the sprite name.
+- Status: open
+
+## FB-031 · `smoke_loop` renders light grey and additive, and barely rises
+- Severity: polish        Milestone: G1
+- Tried: `{ "name": "smoke", "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01", "template": "smoke_loop", "dirs": "1" }` (130×182, 20 frames)
+- Wanted: a dark smoke column for a burning wreck, normal blending (README: "`smoke_puffs` / `smoke_loop` (normal blending)").
+- Got: `meta.blend: "add"`, light grey puffs that stay in one blob across the loop (little visible rise at this size). `fire_loop` (74×118, 7 frames) and `explosion` (284×348, 9 frames, `impact` on frame 0) look right.
+- Workaround: `src/scenes/Field.ts` `smokeAndFire()` draws the smoke with normal blending, scaled 1.6 and tinted dark (marked FB-031).
+- Suggested change: write `blend: normal` for smoke templates, and a `color`/`dark` parameter (wreck smoke vs. steam); more rise per loop.
+- Status: open

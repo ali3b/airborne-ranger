@@ -46,7 +46,45 @@ try {
       ok = false;
       console.log('NO GRENADE (throw move or release event missing?)');
     }
-    await page.waitForTimeout(2500); // let the grenade land and explode for the screenshot
+    await page.waitForTimeout(2500); // let the grenade land and explode
+    // G1: enemies patrol (they moved since the start), and a grenade destroys the tank: put the Ranger 8 m (the
+    // grenade's range) west of the tank's anchor facing east, unhurtable so a patrol can't end the check, and throw.
+    const setup = await page.evaluate(() => {
+      const f = window.game.scene.getScene('field');
+      const tank = f.props.find((p) => p.name === 'tank');
+      if (!tank) return { error: 'no tank on the field (assets?)' };
+      f.god = true;
+      f.busy = false;
+      f.prone = false;
+      f.ranger.setPosition(tank.at.x - 8 * f.ppm, tank.at.y);
+      f.facing = 'E';
+      const moved = f.enemies.filter((e) => Math.hypot(e.sprite.x - e.path[0].x, e.sprite.y - e.path[0].y) > 2).length;
+      return { enemies: f.enemies.length, moved, tank: tank.state, hp: tank.hp };
+    });
+    console.log('before:', JSON.stringify(setup));
+    if (setup.error || setup.enemies < 2 || setup.moved < 1) {
+      ok = false;
+      console.log('ENEMIES:', setup.error ?? 'fewer than 2 enemies, or none patrolled');
+    }
+    if (!setup.error) {
+      await page.waitForTimeout(300);
+      await page.keyboard.press('g');
+      const destroyed = await page
+        .waitForFunction(() => window.game.scene.getScene('field').props.find((p) => p.name === 'tank')?.state === 'destroyed', null, { timeout: 60000 })
+        .then(() => true)
+        .catch(() => false);
+      const after = await page.evaluate(() => {
+        const f = window.game.scene.getScene('field');
+        const t = f.props.find((p) => p.name === 'tank');
+        return { tank: t.state, hp: t.hp, anim: t.sprite.anims.currentAnim?.key, collider: t.world.length, grenades: f.grenadesThrown, alert: f.enemies.filter((e) => e.state === 'alert').length };
+      });
+      console.log('after:', JSON.stringify(after));
+      if (!destroyed) {
+        ok = false;
+        console.log('TANK NOT DESTROYED (grenade, HP or the intact_to_destroyed transition?)');
+      }
+      await page.waitForTimeout(2500); // smoke and fire on the wreck for the screenshot
+    }
   }
 } catch (e) {
   ok = false;

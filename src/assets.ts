@@ -38,6 +38,21 @@ export interface ObjectBlock {
   height: number;
   collision: { source: 'hull' | 'base' | 'bounds'; cut?: number; points: [number, number][] };
   directions: ObjectDirection[];
+  /** Object states (intact, damaged, destroyed…): one animation each, sharing the frame size and anchor. */
+  states?: ObjectState[];
+  /** Transition animations between states (`intact_to_destroyed`), when the template applied to the model. */
+  transitions?: { animation: string; from: string; to: string; asset: string }[];
+}
+
+/** One state of an object: its own model's footprint and per-direction collision polygon (frame pixels). */
+export interface ObjectState {
+  name: string;
+  animation: string;
+  asset: string;
+  footprint: { w: number; d: number };
+  height: number;
+  sameAsBase: boolean;
+  directions: { name: string; polygon: [number, number][]; tiles: { u: number; v: number } }[];
 }
 
 /** The parts of a character's `.meta.json` the game reads: the pivot and per-frame sockets. */
