@@ -224,7 +224,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a layered render: `<base>.json`/`_0.png` (a bald soldier with empty hands), `<base>_head…`, `<base>_weapon…` and `<base>.layers.json`; 3328 frames instead of 832 (~5 min instead of ~50 s on CPU). A game that loads `<base>.json` as before draws soldiers without rifles or helmets and gets no warning. Sizes, clips, events, speeds, `scale` and the `object` blocks were otherwise identical to the export path.
 - Workaround: `ssg.assets.json` sets `"layered": false` on both soldiers; `scripts/build-assets.mjs` warns when a downloaded folder has a `.layers.json`.
 - Suggested change: make an apply entry render what `ssg export` renders for the same keys (bake `with` unless `layered: true`), or say in the apply result that the sprite will be layered and why. The README's apply section should state the default.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-022 · Tileset texture terrains: no way to find a ground texture, and a missing one is accepted silently
 - Severity: polish        Milestone: G2
@@ -233,7 +233,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: no command lists pack textures. `get_asset` only shows the packs' palette atlases (`PolygonWar_Texture_01_A.png`…), which aren't tileable ground. The made-up path was stored with no warning at add or render (README: "drawn in its tint or kind colour, with a warning"); the terrain came out in a flat colour and its wang colour in the .tsj was `#808080`.
 - Workaround: palette terrains (grass, dirt, sand kind colours with noise).
 - Suggested change: `ssg tileset textures [search]` / MCP `search_textures` listing tileable textures in the installed packs (with a thumbnail); fail or warn on `terrain add` when `--texture` resolves to nothing.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-023 · Tilesets: a lone terrain has no tile, and only one blend per terrain
 - Severity: polish        Milestone: G2
@@ -242,7 +242,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `0 tiles` until a blended terrain was added. `--blend` takes one terrain, and there's no command to add a transition pair between two existing terrains, so dirt and sand can never touch.
 - Workaround: `src/scenes/Field.ts` keeps dirt and sand apart in its corner grid; `src/ground.ts` draws a corner set without a tile as grass (`// FB-023`).
 - Suggested change: give every terrain its full tile(s) on add; let `--blend` take a list, plus `ssg tileset blend add <tileset> <a> <b>`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-024 · Tilesets can't be declared like sprites
 - Severity: polish        Milestone: G2
@@ -251,4 +251,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only imperative `create` / `terrain add` / `terrain remove` (and no `tileset delete`). A changed terrain (colour, variants) isn't picked up by a re-run unless it's removed first.
 - Workaround: `scripts/build-assets.mjs` `buildTileset()` (`// FB-024`) reads `ssg.assets.json` `tilesets`, creates the tileset if missing, adds missing terrains by name and exports `-f tsj`. Changing a declared terrain needs a manual `ssg tileset terrain remove`.
 - Suggested change: a declarative `ssg tileset apply <file>` (MCP `apply_tilesets`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
