@@ -1,9 +1,13 @@
 // Smoke check: the game boots to a scene with no page errors, and saves a screenshot.
 //   node scripts/load-check.mjs [url] [scene]
-// Any scene but the title is entered directly with ?scene=<name> (the title honours it).
+// Any scene but the title is entered directly with ?scene=<name> (the title honours it). `mission` is mission 1,
+// `mission2` (any mission<N> / map name) the mission scene with ?mission=<map>; both play to MISSION ACCOMPLISHED.
 import { chromium } from '@playwright/test';
 const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
 const scene = process.argv[3] ?? 'title';
+const isMission = /^mission\d*$/.test(scene);
+const sceneKey = isMission ? 'mission' : scene;
+const missionMap = scene === 'mission' ? 'mission1' : scene;
 const env = { ...process.env };
 delete env.DISPLAY;
 delete env.WAYLAND_DISPLAY;
@@ -12,10 +16,11 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-await page.goto(scene === 'title' ? url : `${url.replace(/\/$/, '')}/?scene=${encodeURIComponent(scene)}`);
+const base = url.replace(/\/$/, '');
+await page.goto(scene === 'title' ? url : isMission ? `${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}` : `${base}/?scene=${encodeURIComponent(scene)}`);
 let ok = true;
 try {
-  await page.waitForFunction((s) => window.game?.scene?.isActive(s), scene, { timeout: 90000 });
+  await page.waitForFunction((s) => window.game?.scene?.isActive(s), sceneKey, { timeout: 90000 });
   await page.waitForTimeout(1500);
   console.log(`${scene} reached`);
   if (scene === 'field') {
@@ -86,7 +91,16 @@ try {
       await page.waitForTimeout(2500); // smoke and fire on the wreck for the screenshot
     }
   }
-  if (scene === 'mission') {
+  if (scene === 'title') {
+    // The mission select lists every mission.
+    const rows = await page.evaluate(() => window.game.scene.getScene('title').rows?.map((t) => t.text) ?? []);
+    console.log('missions:', JSON.stringify(rows));
+    if (rows.length < 2) {
+      ok = false;
+      console.log('NO MISSION SELECT (want at least 2 missions)');
+    }
+  }
+  if (isMission) {
     // G3: the mission comes only from the generator map: tiles drawn, objects spawned from the object layer, the
     // Ranger in the drop zone, enemies from the guard spawns and patrol zones.
     const MIN_OBJECTS = 40;
@@ -98,14 +112,18 @@ try {
       const ys = m.dropArea.map((p) => p[1]);
       const inDrop = c.x >= Math.min(...xs) && c.x <= Math.max(...xs) && c.y >= Math.min(...ys) && c.y <= Math.max(...ys);
       const layers = m.children.list.filter((o) => o.type === 'TilemapLayer').length;
-      return { ...m.report, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
+      return { ...m.report, map: m.mapName, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
     });
     console.log('mission:', JSON.stringify(s));
+    if (s.map !== missionMap) {
+      ok = false;
+      console.log(`WRONG MAP ${s.map} (want ${missionMap})`);
+    }
     if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || !s.targets) {
       ok = false;
       console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets)`);
     }
-    await page.screenshot({ path: 'test-results/mission-drop.png' }).catch(() => undefined);
+    await page.screenshot({ path: `test-results/${scene}-drop.png` }).catch(() => undefined);
     if (!s.error) {
       // Blow up the depot: stand 8 m (the grenade's range) west of each target's anchor facing east, unhurtable, and
       // throw until it's destroyed; then put the Ranger in the extraction zone and expect the end screen.
@@ -128,7 +146,7 @@ try {
         }
         return m.targets.filter((t) => t.hp <= 0).length + '/' + m.targets.length;
       });
-      console.log('depot targets destroyed:', destroyed);
+      console.log('targets destroyed:', destroyed);
       await page.waitForTimeout(1500);
       const end = await page.evaluate(async () => {
         const m = window.game.scene.getScene('mission');
@@ -148,8 +166,8 @@ try {
         console.log('NO MISSION ACCOMPLISHED (depot targets left, or the extraction zone not detected)');
       }
       await page.waitForTimeout(500);
-      await page.screenshot({ path: 'test-results/mission-end.png' }).catch(() => undefined);
-      // test-results/mission.png: the burning depot (the end screen hidden).
+      await page.screenshot({ path: `test-results/${scene}-end.png` }).catch(() => undefined);
+      // test-results/<scene>.png: the burning objective (the end screen hidden).
       await page.evaluate(() => {
         const m = window.game.scene.getScene('mission');
         m.children.list.filter((o) => o.depth >= 1e9 && o !== m.hud).forEach((o) => o.setVisible(false));

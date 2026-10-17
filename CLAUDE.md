@@ -7,7 +7,9 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 ## Rules
 - Use the generator **only** through its interfaces:
   - the CLI: `node /home/andrew/projects/synty-sprite-generator/apps/cli/bin/ssg.mjs …` (`--help` on any command)
-  - the `synty-sprites` MCP tools (`.mcp.json`, which allows writes into this repo)
+  - the `synty-sprites` MCP tools (`.mcp.json`, which allows writes into this repo); from a shell, `node scripts/mcp.mjs
+    tools | schema <tool> | call <tool> '<json>'` talks to the same server (images land in test-results/mcp/).
+    Mission 2 was authored that way: `maps/mcp/stage*.json` are the edit_map batches, `maps/mission2.ops.json` their sum.
 - **Never** edit, import or copy code from the generator repo, and never read its database directly.
   If you can't get something through the CLI or MCP, that's a finding: write it in `FEEDBACK.md`.
 - Every asset the game uses is declared in `ssg.assets.json` and rebuilt by `npm run assets`

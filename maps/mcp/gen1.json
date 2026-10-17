@@ -1,0 +1,6 @@
+{"project":"Airborne Ranger","name":"mission2","width":48,"height":40,"tilesets":["desert"],"biome":"desert","seed":"mission2",
+ "features":["road","track",
+  {"type":"scatter","sprite":"rock_big","count":5,"spacing":8},
+  {"type":"scatter","sprite":"rock","count":12,"spacing":4},
+  {"type":"scatter","sprite":"palm","count":6,"spacing":5,"cluster":0.7},
+  {"type":"scatter","sprite":"bush","density":2,"spacing":3,"cluster":0.5}]}

@@ -1,0 +1,6 @@
+{"project":"Airborne Ranger","map":"mission2","show":true,"ops":[
+ {"op":"scatter","seed":"ridge-rocks","spriteId":35,"count":4,"spacing":5,"region":{"rect":[19,24,34,40]},"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
+ {"op":"scatter","seed":"oasis","spriteId":33,"count":5,"spacing":4,"region":{"rect":[11,5,24,15]},"avoidTerrains":["road"],"avoidZones":["custom"],"avoidMargin":1},
+ {"op":"scatter","seed":"rocks","spriteId":31,"count":12,"spacing":5,"avoidTerrains":["road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
+ {"op":"scatter","seed":"scrub","spriteId":34,"density":1.5,"spacing":4,"cluster":0.5,"avoidTerrains":["road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5}
+]}

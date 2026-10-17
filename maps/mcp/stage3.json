@@ -1,0 +1,17 @@
+{"project":"Airborne Ranger","map":"mission2","show":true,"ops":[
+ {"op":"path","points":[[32,1],[32,12]],"smooth":false,"jitter":0,"seed":"wall_w","objects":[{"spriteId":17,"every":4,"facing":"SE","properties":{"kind":"sandbags"}}]},
+ {"op":"path","points":[[47,17],[42,17]],"smooth":false,"jitter":0,"seed":"wall_s","objects":[{"spriteId":17,"every":4,"facing":"SW","properties":{"kind":"sandbags"}}]},
+ {"op":"place","spriteId":32,"x":31,"y":18},
+ {"op":"place","spriteId":32,"x":34,"y":21},
+ {"op":"addZone","kind":"spawn","id":"drop","name":"drop","points":[[3,29],[10,36]],"properties":{"team":"ranger"}},
+ {"op":"addZone","kind":"objective","id":"radar","name":"Radar array","points":[[33,1],[47,16]],"properties":{"goal":"destroy","targets":"target"}},
+ {"op":"addZone","kind":"extraction","id":"extract","name":"extraction","points":[[39,31],[46,38]]},
+ {"op":"addZone","kind":"spawn","id":"guard_gate","name":"guard","points":[[31.5,14.5]],"properties":{"team":"german","facing":"SW"}},
+ {"op":"addZone","kind":"spawn","id":"guard_tower","name":"guard","points":[[41.5,9.5]],"properties":{"team":"german","facing":"W"}},
+ {"op":"addZone","kind":"patrol","id":"patrol_radar","name":"radar loop","shape":"polyline","points":[[33.5,0.5],[33.5,16.5],[46.5,16.5],[46.5,0.5],[33.5,0.5]],"properties":{"team":"german","count":2,"loop":true}},
+ {"op":"addZone","kind":"patrol","id":"patrol_road","name":"road","shape":"polyline","points":[[6,24],[18,23],[28,20]],"properties":{"team":"german","count":1,"loop":false}},
+ {"op":"addZone","kind":"patrol","id":"patrol_ridge","name":"ridge","shape":"polyline","points":[[32,26],[36,32],[36,38]],"properties":{"team":"german","count":1,"loop":false}},
+ {"op":"addZone","kind":"custom","id":"pod1","name":"supply pod","points":[[13.5,33.5]],"properties":{"pod":true,"grenades":4}},
+ {"op":"addZone","kind":"custom","id":"pod2","name":"supply pod","points":[[17.5,12.5]],"properties":{"pod":true,"grenades":4}},
+ {"op":"addZone","kind":"custom","id":"pod3","name":"supply pod","points":[[27.5,7.5]],"properties":{"pod":true,"grenades":4}}
+]}

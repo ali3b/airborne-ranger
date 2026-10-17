@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, DIRS8, type Dir8 } from '../iso';
 import { Field, type Placed, type Pt } from './Field';
+import { missionByKey, type MissionConfig } from '../missions';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -14,7 +15,6 @@ import { Field, type Placed, type Pt } from './Field';
  * `tileheight` pixels per cell on both axes.
  */
 
-const MISSION_SECONDS = 12 * 60;
 const START_GRENADES = 6;
 const POD_RADIUS = 1.2; // metres
 
@@ -29,7 +29,10 @@ interface Pod {
 type Area = [number, number][];
 
 export class Mission extends Field {
+  /** The mission being played (src/missions.ts), from the scene data or ?mission=. */
+  protected cfg: MissionConfig = missionByKey(null);
   protected mapName = 'mission1';
+  private started = false;
   protected tmj!: TiledMap;
   protected mapW = 0;
   protected mapH = 0;
@@ -40,7 +43,7 @@ export class Mission extends Field {
   protected objectiveArea: Area = [];
   protected extractArea: Area = [];
   protected extractMarker?: Phaser.GameObjects.Graphics;
-  protected timeLeft = MISSION_SECONDS;
+  protected timeLeft = 0;
   protected objectiveDone = false;
   /** 'accomplished' | 'failed' once the mission is over. */
   outcome: string | null = null;
@@ -51,11 +54,19 @@ export class Mission extends Field {
     super('mission');
   }
 
+  init(data: { mission?: string }) {
+    // A restart (R after dying) keeps the mission being played.
+    const key = data?.mission ?? (this.started ? this.cfg.map : new URLSearchParams(window.location.search).get('mission'));
+    this.started = true;
+    this.cfg = missionByKey(key);
+    this.mapName = this.cfg.map;
+  }
+
   create() {
     this.targets = [];
     this.pods = [];
     this.blocked = new Set();
-    this.timeLeft = MISSION_SECONDS;
+    this.timeLeft = this.cfg.seconds;
     this.objectiveDone = false;
     this.outcome = null;
     this.grenadesLeft = START_GRENADES;
@@ -231,8 +242,8 @@ export class Mission extends Field {
     const done = this.targets.filter((t) => (t.hp ?? 0) <= 0).length;
     const t = Math.max(0, Math.ceil(this.timeLeft));
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-    const goal = this.objectiveDone ? 'DEPOT DESTROYED: get to the extraction zone' : `destroy the munitions depot (${done}/${this.targets.length})`;
-    return `MISSION 1 · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}`;
+    const goal = this.objectiveDone ? this.cfg.done : `${this.cfg.goal} (${done}/${this.targets.length})`;
+    return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}`;
   }
 
   update(t: number, dtMs: number) {
@@ -265,14 +276,14 @@ export class Mission extends Field {
     const { width, height } = this.scale;
     const ok = outcome === 'accomplished';
     const kills = this.enemies.filter((e) => e.state === 'dead').length;
-    const used = MISSION_SECONDS - Math.max(0, this.timeLeft);
+    const used = this.cfg.seconds - Math.max(0, this.timeLeft);
     this.add.rectangle(width / 2, height / 2, width, height, 0x10140c, 0.8).setScrollFactor(0).setDepth(1e9);
     this.add
       .text(
         width / 2,
         height / 2,
         `${ok ? 'MISSION ACCOMPLISHED' : 'MISSION FAILED'}\n\n` +
-          `${ok ? 'Munitions depot destroyed. The Ranger made the pickup.' : 'The plane left without you.'}\n` +
+          `${ok ? this.cfg.success : 'The plane left without you.'}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n\n` +
           'press Enter for the title',
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },

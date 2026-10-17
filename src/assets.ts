@@ -20,6 +20,8 @@ export interface SpriteEntry {
   clipInfo: Record<string, { speedMps: number | null; events: { frame: number; name: string }[] }>;
   /** Props: the export's object block (footprint, anchor, collision per direction). */
   object: ObjectBlock | null;
+  /** FX: how the export says to blend the sheet (`add` for fire and explosions, `normal` for smoke). */
+  blend?: string | null;
 }
 
 /** One rendered facing of an object: anchor and collision polygon in untrimmed frame pixels, span in tiles. */

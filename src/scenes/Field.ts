@@ -249,7 +249,7 @@ export class Field extends Phaser.Scene {
 
   /**
    * Ground from the generated tileset (G2): a corner grid of terrains (grass, a dirt track, a sand patch), each tile
-   * the tileset's tile whose four corners match. Dirt and sand only blend with grass, so they never touch (FB-023).
+   * the tileset's tile whose four corners match (the tileset declares a dirt↔sand pair, so they may touch).
    */
   protected drawGround() {
     const ts = this.manifest.tilesets?.temperate;
@@ -308,18 +308,13 @@ export class Field extends Phaser.Scene {
   }
 
   /**
-   * Play one of the object's animations (a state or a transition) with its anchor on `at`. Phaser applies each
-   * frame's pivot as the origin when an animation plays; the pivot is the model origin, not the object anchor
-   * (FB-029), so the sprite is offset by (pivot − anchor) instead of setting the origin.
+   * Play one of the object's animations (a state or a transition) with its anchor on `at`. Every frame's pivot is the
+   * object's anchor for its direction (FB-029, verified), so the sprite simply stands on `at` whatever plays.
    */
   protected showState(p: Placed, anim: string, onDone?: () => void) {
     const s = this.manifest.sprites[p.name];
     p.sprite.play(animKey(s, anim, p.dir));
-    const f = p.sprite.frame;
-    const px = f.customPivot ? f.pivotX * f.realWidth : f.realWidth / 2;
-    const py = f.customPivot ? f.pivotY * f.realHeight : f.realHeight / 2;
-    if (!f.customPivot) p.sprite.setOrigin(0.5, 0.5);
-    p.sprite.setPosition(p.at.x + px - p.anchor.x, p.at.y + py - p.anchor.y);
+    p.sprite.setPosition(p.at.x, p.at.y);
     if (onDone) p.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, onDone);
   }
 
@@ -332,21 +327,19 @@ export class Field extends Phaser.Scene {
   }
 
   /**
-   * Destroy an object with states: play `intact_to_<last>` once, then show the last state (destroyed / damaged)
-   * and swap the collider for that state's polygon; smoke and fire placeholders stay on the wreck.
+   * Destroy an object with states: play `intact_to_<last>` once (it ends on the last state's still: FB-027 verified),
+   * then show the last state (destroyed) and swap the collider for that state's polygon; fire and smoke stay on the
+   * wreck. Models without a destroyed version are exported with a scorched copy and a `collapse` (FB-028 verified).
    */
   protected destroyProp(p: Placed) {
     const s = this.manifest.sprites[p.name];
     const states = s.object?.states ?? [];
     const end = states[states.length - 1];
     if (!end) {
-      // FB-028: a still object with no damaged/destroyed model (the depot's crate piles, barrels, camo tent): blast,
-      // dust and a scorched tint stand in for a destroyed state.
+      // Declared without states: only the game's own blast and fire.
       if (p.state === 'destroyed') return;
       p.state = 'destroyed';
-      this.fx('explosion', p.at, p.sprite.depth + 1000, { once: true, scale: 1.2 });
       this.dustBurst(p.at);
-      p.sprite.setTint(0x4a4038);
       this.smokeAndFire(p, (s.object?.height ?? 1.5) * 0.6);
       return;
     }
@@ -358,29 +351,11 @@ export class Field extends Phaser.Scene {
       this.showState(p, end.animation);
       const poly = end.directions.find((x) => x.name === p.dir)?.polygon;
       if (poly) this.setCollision(p, poly);
-      this.smokeAndFire(p, end.height);
+      this.smokeAndFire(p, Math.max(end.height, 1));
     };
     const tr = s.object?.transitions?.find((t) => t.from === from && t.to === end.name);
-    if (tr && this.anims.exists(animKey(s, tr.animation, p.dir))) {
-      // FB-027: the transition fades the intact model out to an empty frame and never shows the wreck, so the
-      // wreck would pop in at the end. Draw the wreck under it and fade it in over the transition's last 40 %.
-      const after = this.add.sprite(p.sprite.x, p.sprite.y, p.name);
-      after.play(animKey(s, end.animation, p.dir)).setPosition(p.sprite.x, p.sprite.y).setAlpha(0).setDepth(p.sprite.depth - 0.5);
-      const anim = this.anims.get(animKey(s, tr.animation, p.dir));
-      const ms = (anim.frames.length / anim.frameRate) * 1000;
-      this.tweens.add({ targets: after, alpha: 1, delay: ms * 0.6, duration: ms * 0.4 });
-      this.showState(p, tr.animation, () => {
-        after.destroy();
-        finish();
-      });
-    } else {
-      // FB-028: no transition clip for this model (the destroy template skips single-mesh models): a dust burst
-      // hides the swap. The War bunker's damaged model differs from the intact one by a chipped corner, unreadable
-      // at this scale, so the damaged state is also scorched with a tint.
-      this.dustBurst(p.at);
-      finish();
-      p.sprite.setTint(0x8a8274);
-    }
+    if (tr && this.anims.exists(animKey(s, tr.animation, p.dir))) this.showState(p, tr.animation, finish);
+    else finish();
   }
 
   protected dustBurst(at: Pt) {
@@ -398,18 +373,17 @@ export class Field extends Phaser.Scene {
     this.time.delayedCall(1600, () => e.destroy());
   }
 
-  /** Placeholder smoke column and flicker of fire on a wreck (Particle_FX later). */
   /**
    * A looping or one-shot effect sprite from the generator's particle FX templates (`fire`, `smoke`, `explosion` in
    * ssg.assets.json), its pivot on `at`. Returns null when the effect wasn't built.
    */
-  protected fx(name: string, at: Pt, depth: number, opts: { blend?: 'add' | 'normal'; scale?: number; tint?: number; once?: boolean } = {}) {
+  protected fx(name: string, at: Pt, depth: number, opts: { scale?: number; once?: boolean } = {}) {
     const s = this.manifest.sprites[name];
     const key = s && animKey(s, s.clips[0], s.dirs[0]);
     if (!key || !this.anims.exists(key)) return null;
     const spr = this.add.sprite(at.x, at.y, name).setDepth(depth).setScale(opts.scale ?? 1);
-    spr.setBlendMode(opts.blend === 'normal' ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD);
-    if (opts.tint !== undefined) spr.setTint(opts.tint);
+    // The export says how to blend it (smoke normal, fire and explosions additive).
+    spr.setBlendMode(s.blend === 'add' ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL);
     spr.play({ key, startFrame: opts.once ? 0 : Phaser.Math.Between(0, this.anims.get(key).frames.length - 1) });
     if (opts.once) spr.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => spr.destroy());
     return spr;
@@ -418,12 +392,11 @@ export class Field extends Phaser.Scene {
   protected smokeAndFire(p: Placed, height: number) {
     // Two thirds up the wreck (a height h m is h·ppm·cos 30° px on screen in iso8).
     const top = { x: p.at.x, y: p.at.y - height * this.ppm * 0.866 * 0.66 };
-    // Generator FX: flames on the wreck, a dark smoke column above. The smoke sheet comes out light grey and
-    // additive (FB-031), so it's drawn with normal blending and darkened.
+    // Generator FX: flames on the wreck, a dark smoke column above (smoke_loop:dark, normal blending: FB-031 verified).
     const flames = [-0.35, 0.1, 0.4].map((f, k) =>
       this.fx('fire', { x: top.x + f * 60, y: top.y + 10 + k * 6 }, p.sprite.depth + 1, { scale: 1 - k * 0.15 }),
     );
-    const column = this.fx('smoke', { x: top.x + 8, y: top.y - 10 }, p.sprite.depth + 2, { blend: 'normal', scale: 1.6, tint: 0x4a4744 });
+    const column = this.fx('smoke', { x: top.x + 8, y: top.y - 10 }, p.sprite.depth + 2, { scale: 1.3 });
     if (flames.every(Boolean) && column) return;
     // Placeholder particles when the FX sprites weren't built.
     const fire = this.add.particles(top.x, top.y, 'puff', {

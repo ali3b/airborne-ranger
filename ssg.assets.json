@@ -72,39 +72,49 @@
     {
       "name": "crate",
       "asset": "POLYGON_War/SM_Prop_Crate_02",
-      "template": "still"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "template": "still",
+      "maxSeconds": 3
     },
     {
       "name": "tank",
       "asset": "POLYGON_War/SM_Veh_German_Tank_01",
       "states": "auto,destroyed@destroy",
-      "facings": 2
+      "template": "still"
     },
     {
       "name": "bunker_large",
       "asset": "POLYGON_War/SM_Bld_Bunker_Large_01",
-      "states": "auto,damaged@destroy"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "maxSeconds": 3
     },
     {
       "name": "crate_pile",
       "asset": "POLYGON_War/SM_Prop_Crate_Pile_01",
-      "template": "still"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "template": "still",
+      "maxSeconds": 3
     },
     {
       "name": "barrel_pile",
       "asset": "POLYGON_War/SM_Prop_Barrel_Pile_01",
-      "template": "still"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "template": "still",
+      "maxSeconds": 3
     },
     {
       "name": "container",
       "asset": "POLYGON_Apocalypse/SM_Prop_Shipping_Container_01",
-      "states": "auto,damaged@destroy",
-      "facings": 2
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "facings": 2,
+      "maxSeconds": 3
     },
     {
       "name": "tent",
       "asset": "POLYGON_War/SM_Bld_Camonetting_Tent_01",
-      "template": "still"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "template": "still",
+      "maxSeconds": 3
     },
     {
       "name": "tree_small",
@@ -122,57 +132,137 @@
       "template": "still"
     },
     {
+      "name": "palm",
+      "asset": "POLYGON_City/SM_Env_PalmTree_01",
+      "template": "still"
+    },
+    {
+      "name": "bush",
+      "asset": "POLYGON_Palm_City/SM_Env_Bush_01",
+      "template": "still"
+    },
+    {
+      "name": "rock_big",
+      "asset": "POLYGON_BattleRoyale/SM_Env_Rock_02",
+      "template": "still"
+    },
+    {
+      "name": "radar_dish",
+      "asset": "POLYGON_Palm_City/SM_Prop_Satelite_Dish_02",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "maxSeconds": 3
+    },
+    {
+      "name": "radio_tower",
+      "asset": "POLYGON_War/SM_Prop_Radio_Tower_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse",
+      "maxSeconds": 3
+    },
+    {
+      "name": "truck",
+      "asset": "POLYGON_BattleRoyale/SM_Veh_Truck_01",
+      "template": "still",
+      "states": "auto,destroyed@destroy"
+    },
+    {
       "name": "smoke",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
-      "template": "smoke_loop",
-      "dirs": "1"
+      "template": "smoke_loop:dark=0.8",
+      "dirs": "1",
+      "fps": 12
     },
     {
       "name": "fire",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
       "template": "fire_loop",
-      "dirs": "1"
+      "dirs": "1",
+      "fps": 12
     },
     {
       "name": "explosion",
       "asset": "POLYGON_Particle_FX/SM_Particle_Smoke_01",
       "template": "explosion",
-      "dirs": "1"
+      "dirs": "1",
+      "fps": 12
     }
   ],
   "tilesets": [
     {
       "name": "temperate",
+      "noisePeriod": 4,
+      "variants": 2,
       "terrains": [
         {
-          "name": "grass"
+          "name": "grass",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Grass.png",
+          "scale": 4,
+          "variants": 16
+        },
+        "dirt",
+        "sand",
+        "water",
+        "mud",
+        "road"
+      ],
+      "pairs": [
+        [
+          "grass",
+          "dirt"
+        ],
+        [
+          "grass",
+          "sand"
+        ],
+        [
+          "sand",
+          "water"
+        ],
+        [
+          "grass",
+          "mud"
+        ],
+        [
+          "grass",
+          "road"
+        ],
+        [
+          "road",
+          "sand"
+        ],
+        [
+          "dirt",
+          "sand"
+        ]
+      ]
+    },
+    {
+      "name": "desert",
+      "noisePeriod": 4,
+      "variants": 4,
+      "terrains": [
+        {
+          "name": "sand",
+          "texture": "POLYGON_Palm_City_v3/SourceFiles/Textures/Terrain/Sand_01.png",
+          "scale": 4,
+          "variants": 16
         },
         {
           "name": "dirt",
-          "blend": "grass",
-          "variants": 2
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Dirt.png",
+          "scale": 4,
+          "tint": "#b48c5c"
         },
         {
-          "name": "sand",
-          "blend": "grass",
-          "variants": 2
+          "name": "rock",
+          "kind": "custom",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Rock.png",
+          "scale": 2
         },
-        {
-          "name": "water",
-          "blend": "sand",
-          "variants": 2
-        },
-        {
-          "name": "mud",
-          "blend": "grass",
-          "variants": 2
-        },
-        {
-          "name": "road",
-          "blend": "grass",
-          "variants": 2
-        }
-      ]
+        "road"
+      ],
+      "pairs": "all"
     }
   ],
   "maps": [
@@ -199,6 +289,13 @@
       "tileset": "temperate",
       "ops": "maps/mission1.ops.json",
       "export": "public/assets/maps/mission1"
+    },
+    {
+      "name": "mission2",
+      "size": "48x40",
+      "tileset": "desert",
+      "ops": "maps/mission2.ops.json",
+      "export": "public/assets/maps/mission2"
     }
   ]
 }

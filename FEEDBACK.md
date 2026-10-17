@@ -234,7 +234,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: no command lists pack textures. `get_asset` only shows the packs' palette atlases (`PolygonWar_Texture_01_A.png`…), which aren't tileable ground. The made-up path was stored with no warning at add or render (README: "drawn in its tint or kind colour, with a warning"); the terrain came out in a flat colour and its wang colour in the .tsj was `#808080`.
 - Workaround: palette terrains (grass, dirt, sand kind colours with noise).
 - Suggested change: `ssg tileset textures [search]` / MCP `search_textures` listing tileable textures in the installed packs (with a thumbnail); fail or warn on `terrain add` when `--texture` resolves to nothing.
-- Status: fixed (generator wizard 2f13d8d: search via `ssg textures`, validation): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. `ssg textures sand|dirt|rock|grass` lists pack textures with kind and size; the temperate grass is now `POLYGON_Generic_v3/Textures/Generic_Grass.png` at scale 4 and the desert tileset uses Palm City `Sand_01`, Generic `Dirt` (tinted `#b48c5c`) and Generic `Rock`. A made-up path (`Terrain/Grass_99.png`) is refused on apply with the five closest matches. Gap: `ssg tileset apply --dry-run` accepts the made-up path (FB-047).
+- Status: verified
 
 ## FB-023 · Tilesets: a lone terrain has no tile, and only one blend per terrain
 - Severity: polish        Milestone: G2
@@ -244,7 +245,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/scenes/Field.ts` keeps dirt and sand apart in its corner grid; `src/ground.ts` draws a corner set without a tile as grass (`// FB-023`).
 - Suggested change: give every terrain its full tile(s) on add; let `--blend` take a list, plus `ssg tileset blend add <tileset> <a> <b>`.
 - Re-test (G3, maps): it bites maps harder. A river `path` with `edge: sand, edgeWidth: 1` puts water, sand and grass corners in one cell (54 cells drawn as a pure fallback tile); `edgeWidth: 2` fixes the bank. The biome's sand/dirt patches next to roads and trenches give sand|dirt, mud|sand mixes; running a second `generate` after the paths with `keep: [water, sand, road, mud, dirt]` keeps a grass ring and fixed those. Left: 10 cells where the road meets the sand ford (road↔sand has no tiles, road can only blend with grass).
-- Status: fixed (generator wizard 2f13d8d: pure tiles + pairs, `ssg tileset blend`): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. Pure tiles come with every terrain, and the temperate tileset declares `pairs` incl. road↔sand and dirt↔sand; the desert one `pairs: "all"`. The ford's 10 fallback cells are down to 4, all three-terrain mixes (grass|sand|road in one cell) that no corner pair can draw; mission 2 has 19 such cells (rock|sand|dirt). `src/ground.ts`'s FB-023 fallback is now a plain base-terrain fallback, and it picks variants by position (`noisePeriod` + tile `variant`). The three-terrain cells are FB-038's business.
+- Status: verified
 
 ## FB-024 · Tilesets can't be declared like sprites
 - Severity: polish        Milestone: G2
@@ -253,7 +255,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only imperative `create` / `terrain add` / `terrain remove` (and no `tileset delete`). A changed terrain (colour, variants) isn't picked up by a re-run unless it's removed first.
 - Workaround: `scripts/build-assets.mjs` `buildTileset()` (`// FB-024`) reads `ssg.assets.json` `tilesets`, creates the tileset if missing, adds missing terrains by name and exports `-f tsj`. Changing a declared terrain needs a manual `ssg tileset terrain remove`.
 - Suggested change: a declarative `ssg tileset apply <file>` (MCP `apply_tilesets`).
-- Status: fixed (generator wizard 2f13d8d: declared tilesets in apply): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. `ssg.assets.json` `tilesets` (with `noisePeriod`, `variants`, texture terrains, `pairs`) goes through the same `sprite apply - --render --download public/assets` as the sprites, which writes `public/assets/tilesets/<name>/`. `buildTileset()` is gone from `scripts/build-assets.mjs`; changing a terrain (the desert dirt tint) is picked up by a re-run ("updated", 7 s). The temperate atlas redrew once (152 → 1006 tiles).
+- Status: verified
 
 ## FB-025 · `ssg props list` doesn't list vehicles, so the intact tank can't be found there (only its wreck)
 - Severity: polish        Milestone: G1
@@ -262,7 +265,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only the wreck `SM_Veh_German_Tank_Destroyed_01` (category `wreck`, states `intact,destroyed`); the intact tank is kind `vehicle` with an empty category (`ssg assets POLYGON_War/SM_Veh_German_Tank_01`) and `--category vehicle` is refused (`category must be one of building, …`). `ssg props states POLYGON_War/SM_Veh_German_Tank_01` does find the pair.
 - Workaround: none needed (named the tank from the brief).
 - Suggested change: include `vehicle` kind models in `props list` (they're the commonest destructibles), or add a `vehicle` category; list the wreck under its intact model instead of as a separate row.
-- Status: fixed (generator wizard 2f13d8d: vehicles in props list): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. `ssg props list Tank` lists `SM_Veh_German_Tank_01` (category vehicle, states intact,destroyed) and `props list Truck` the trucks; mission 2's truck (`POLYGON_BattleRoyale/SM_Veh_Truck_01`) was found there.
+- Status: verified
 
 ## FB-026 · Apply entries with `states`: the README example is refused, and a vehicle defaults to 8 directions
 - Severity: polish        Milestone: G1
@@ -271,7 +275,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `ssg: sprites[7] (tank): states are the sprite's moves; leave out anim, template, set and class (or drop states).` Without `template` it rendered, but in **8 directions**: 152 frames of 442×348, a 9.0 MB + 0.36 MB two-page atlas (the large bunker, kind prop, got one SE facing). With `"facings": 2`: 38 frames, 2.5 MB.
 - Workaround: `ssg.assets.json` drops `template` on state entries and sets `"facings": 2` on the tank.
 - Suggested change: accept (ignore) `template: "still"` next to `states`, and fix the README example; give vehicles exported as objects (with `states`) the same one-facing default as props.
-- Status: fixed (generator wizard 2f13d8d: still + states accepted): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. The tank entry is `template: "still"` + `states` again (accepted), with no `facings`: it rendered one SE facing (19 frames instead of 38). The truck entry is declared the same way.
+- Status: verified
 
 ## FB-027 · `intact_to_destroyed` ends on an empty frame and never shows the wreck; the hull flips over
 - Severity: workaround        Milestone: G1
@@ -280,7 +285,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the frame size, pivot and anchor are shared as documented (442×348, every clip), so placement is right. But the intact tank's parts fly apart like a toy: the whole hull rotates upside down (frames 3–12 show its flat underside), both tracks are thrown upright above it and are cropped at the frame top in frames 5–7, the turret tumbles off the front, and from frame 12 everything fades to an empty frame. The rusted wreck (a different model) then pops in. At 1.7 s the first half reads well; the second half is a fading grey slab.
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-027`) draws the `destroyed` frame under the transition and fades it in over the transition's last 40 %.
 - Suggested change: let the destroy template end in the target state: crossfade the target state model in while the parts fade (it's already loaded under the same root), or a `settle` option. Weight the launch by part size so the hull lifts and drops instead of flipping, and clamp rotation of the largest part.
-- Status: fixed (generator wizard 2f13d8d: transition ends on the wreck): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. `intact_to_destroyed_SE` (17 frames) ends on the wreck: the last frames are the `destroyed` still, the hull no longer flips (it tilts a little while the tracks and wheels fly), nothing leaves the frame. The crossfade (frames 11–13) is a little ghostly. The wreck fade-in in `destroyProp()` is removed: the game plays the transition and then `destroyed`, with no pop.
+- Status: verified
 
 ## FB-028 · No transition for single-mesh models; the War bunkers have no destroyed state, the large one's damaged state is almost identical
 - Severity: workaround        Milestone: G1
@@ -290,7 +296,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-028`): a dust burst hides the swap and the damaged state is scorched with a tint.
 - Suggested change: a fallback transition for single meshes (`hit_shake` + sink/dust, or `collapse`: shear down and crossfade to the target state) usable as `damaged@hit_shake`; and a generated `burnt` state (charred texture tint) for models without a damaged file, so the plain bunker can be destroyed too.
 - Re-test (G3): the depot's shipping container (`POLYGON_Apocalypse/SM_Prop_Shipping_Container_01`, `states: "auto,damaged@destroy"`) gets `state_clip_skipped` too, and the crate pile, barrel pile and camo-net tent have no damaged model at all. `src/scenes/Field.ts` `destroyProp()` (`// FB-028`) now also blasts stateless objects: explosion, dust, a scorched tint, fire and smoke.
-- Status: fixed (generator wizard 2f13d8d: collapse + @scorch): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works, with polish left (FB-043, FB-044). The container, camo tent, crate, crate pile, barrel pile, the large bunker and mission 2's radar dishes and radio tower are declared `destroyed=@scorch:dark=0.9@collapse:blast=1` (the tower without `blast`) and get `intact`, a scorched `destroyed` and `intact_to_destroyed` (15 frames: shake, dust, flash, crossfade). The game's stateless blast and the scorch tint in `destroyProp()` are removed; every mission target now has states. Load checks destroy mission 1's 8 and mission 2's 4 targets this way.
+- Status: verified
 
 ## FB-029 · An object's frame pivot is the model origin, not its anchor, so `play()` moves a sprite placed by its anchor
 - Severity: polish        Milestone: G1
@@ -299,7 +306,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: every frame's `pivot` is (221, 230) (= 0.5, 0.661), the model origin, while `object.directions[SE].anchor` is (241.62, 240.31) and `object.anchor` (direction 0) is (200.38, 240.31). Phaser applies the frame pivot as the origin on each animation frame, so the tank jumps ~22 px on the first `play()`. Images placed once with `setOrigin` never noticed this.
 - Workaround: `src/scenes/Field.ts` `showState()` positions the sprite at `at + (pivot − anchor)` and lets the pivot be the origin.
 - Suggested change: for object exports, write each direction's anchor as the frame `pivot`, or document that a Phaser sprite must be offset by (pivot − anchor).
-- Status: fixed (generator wizard 2f13d8d: pivot = anchor for objects): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works. In every frame of the tank, container (both facings), radar dish and truck, `pivot × sourceSize` equals `object.directions[].anchor` (0 mismatches). `showState()` now just plays and sets the position; mission 1's placement doesn't move (load check, screenshots).
+- Status: verified
 
 ## FB-030 · Several sprites of one model share one animation prefix
 - Severity: polish        Milestone: G1
@@ -308,7 +316,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: all three export `Particle_Smoke_01.json` and keys `Particle_Smoke_01/<clip>_S`. They only coexist because the clip names differ; two sprites of one model with the same clip (a tank in two liveries, a `smoke` and a `smoke_big`) would collide in Phaser's global animation manager.
 - Workaround: none needed yet.
 - Suggested change: in `sprite apply` / project downloads, prefix keys (and base file names) with the sprite name.
-- Status: fixed (generator wizard 2f13d8d: sprite-name anim prefix): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works for sprites rendered since the fix: `tank/intact_SE`, `smoke/smoke_loop_S`, `fire/…`, `explosion/…` (the FX no longer share `Particle_Smoke_01/`). The game needed no change (the manifest's `animPrefix` comes from the anims file). Sprites not re-rendered keep `<base>/` (`Bld_Bunker_01/still_SE`), so one project mixes both styles until each is re-rendered; nothing marks them outdated (FB-042).
+- Status: verified
 
 ## FB-031 · `smoke_loop` renders light grey and additive, and barely rises
 - Severity: polish        Milestone: G1
@@ -317,7 +326,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `meta.blend: "add"`, light grey puffs that stay in one blob across the loop (little visible rise at this size). `fire_loop` (74×118, 7 frames) and `explosion` (284×348, 9 frames, `impact` on frame 0) look right.
 - Workaround: `src/scenes/Field.ts` `smokeAndFire()` draws the smoke with normal blending, scaled 1.6 and tinted dark (marked FB-031).
 - Suggested change: write `blend: normal` for smoke templates, and a `color`/`dark` parameter (wreck smoke vs. steam); more rise per loop.
-- Status: fixed (generator wizard 2f13d8d: smoke blend/rise): re-test in the next game wave
+- Re-test (G4, 2026-10-17): works after a forced re-render (FB-042: the fix alone didn't make the sprite outdated, and `smoke_loop:dark=0.8` didn't either; `fps: 12` did). `meta.blend` is `normal`, the column is dark grey and rises through a 116×232 frame. The game now takes the blend from the export (manifest `blend`) and draws smoke without the tint and normal-blend override.
+- Status: verified
 
 ## FB-032 · `edit_map` `place`: the schema only takes `spriteId`, so an AI has to look ids up (`sprite` by name works but isn't declared)
 - Severity: polish        Milestone: G3
@@ -326,6 +336,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: it works through the CLI, but the `place` op in the MCP schema lists only `spriteId` (integer) and `assetRef`, so a client that validates arguments (or an AI reading the schema) has to call `list_sprites` and map names to ids first. The map JSON and the generator reports also speak in ids (`"byObject": {"sprite 30": 13}`, legend `tree_small [sprite 30]`).
 - Workaround: none needed (maps/*.ops.json use `sprite`).
 - Suggested change: declare `sprite` (name or id) on `place` and `move`, and name sprites in reports (`"tree_small": 13`).
+- Re-test (G4, 2026-10-17): worse over MCP than through the CLI: `edit_map` `{op: "place", sprite: "radio_tower", …}` fails with `place needs a spriteId or an assetRef` (the undeclared key is stripped by the schema), so an MCP author must call `list_sprites` and use ids. Mission 2 places by `spriteId` (maps/mission2.ops.json).
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-033 · `map create` with a name that exists silently makes a second map; names then resolve to the oldest
@@ -408,3 +419,66 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none needed.
 - Suggested change: a one-paragraph "coordinates" note in the `edit_map` description; `--json` errors as `{"errors": [...]}` on stdout.
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
+
+## FB-042 · Parameter-only changes don't make a sprite outdated, and there is no forced re-render
+- Severity: workaround        Milestone: G4
+- Tried: `smoke` `"template": "smoke_loop"` → `"smoke_loop:dark=0.8"`; the scorched states `destroyed=@scorch@collapse:blast=1` → `destroyed=@scorch:dark=0.9@collapse:blast=1`; then `ssg sprite apply … --render --download`. Also: the FB-030/031 fixes themselves.
+- Wanted: the sprites re-rendered (their spec changed), or at least a way to force it (`sprite render --force`, apply `"force": true`).
+- Got: `smoke: updated · up to date`. `ssg sprite show smoke` says `render now: No changes` while the spec has `params {dark: 0.8}` and the current render `params {}`; same for `look: "scorch:dark=0.9"` vs the rendered `"scorch"`. Generator fixes (smoke blend, anim prefix) don't mark old renders outdated either, so FB-030/031 could only be re-tested by changing something else.
+- Workaround: `ssg.assets.json` `"fps": 12` on smoke/fire/explosion and `"maxSeconds": 3` on the scorched objects (both counted as changes) forced the renders.
+- Suggested change: compare template/state parameters in the outdated check; `ssg sprite render --force` / apply `--force <names>`; optionally mark renders made by an older renderer version as outdated ("renderer changed").
+- Status: open
+
+## FB-043 · `collapse` / `@scorch`: see-through crossfade, a sink that pops back up, and a scorch that barely darkens
+- Severity: polish        Milestone: G4
+- Tried: `destroyed=@scorch:dark=0.9@collapse:blast=1` on the shipping container, camo tent and radar dish (contact sheets of `intact_to_destroyed_SE`, 15 frames)
+- Wanted: a model that shakes, sinks into dust and ends as a clearly burnt version of itself.
+- Got: during the crossfade (frames 10–12) both models are half transparent and draw their back faces: the container is seen inside out (its far walls and floor through the near ones), the dish shows its back. The intact model sinks/squashes (10 %) and then the scorched still (sunk 6 %) fades in taller, so the object pops up at the end. With `dark=0.9` the rust-red container only turns dark red, and the camo tent looks almost the same as intact; the rubble pieces are the main tell.
+- Workaround: none needed (the game adds fire and smoke on the wreck).
+- Suggested change: crossfade with the destination drawn opaque underneath (or dither instead of alpha); sink the scorched still as far as the collapse ends; let `dark` reach charcoal at 1 and desaturate.
+- Status: open
+
+## FB-044 · `collapse:blast=1` on a tall thin model draws the flash as a big rectangular slab
+- Severity: polish        Milestone: G4
+- Tried: `POLYGON_War/SM_Prop_Radio_Tower_01` (1.7×1.7×12.3 m) with `destroyed=@scorch@collapse:blast=1`
+- Wanted: an explosion flash at the tower.
+- Got: frames 1–5 show a white/orange rectangle half the tower's height and wider than its frame column (a clipped billboard), starting with a white disc mid-air. The radar dish's flash with the same parameters looks right.
+- Workaround: the radio tower is declared without `blast` (the game's own grenade explosion plays anyway).
+- Suggested change: size the blast by the footprint and place it at the base, or clip it to a circle.
+- Status: open
+
+## FB-045 · MCP: an author can't see an object sprite's footprint before placing it
+- Severity: polish        Milestone: G4
+- Tried: authoring mission 2 over MCP: `list_sprites` (kind object), `get_sprite radar_dish`, then `edit_map` `place`
+- Wanted: each object sprite's footprint in cells per facing (and its facings and states), so a layout can be planned.
+- Got: `list_sprites` gives a summary line ("Isometric, 8 directions" for objects that render one facing) and `get_sprite` the spec; neither has the export's `object.tiles`. The first compound batch failed on two overlaps (`o1 would overlap radar_tent (tent) at (43.5, 12.5)`) whose sizes I then had to read off the `get_map` picture after the next try (truck 8×4 at SE, container 7×3 at SW, barrel pile 3×3). `search_props` has model-level tiles, but not per facing and not by sprite name.
+- Workaround: trial and error (one failed batch).
+- Suggested change: `list_sprites` / `get_sprite` with `object: {facings: {SE: {u, v}}, states}` from the current export; a `place` error that says the footprint it tried.
+- Status: open
+
+## FB-046 · MCP map authoring: answers are big, every call needs `project`, the picture is buried
+- Severity: polish        Milestone: G4
+- Tried: authoring mission 2 only through `generate_map`, `edit_map`, `get_map`, `map_preview`, `undo_map`, `export_map` (21 calls, `scripts/mcp.mjs`, log in test-results/mcp-calls.jsonl)
+- Wanted: small answers an AI can read in its context, and the map picture as the main thing.
+- Got: (1) `edit_map` with the default `show: true` returns ~20 kB (the full `objectList` with every object's properties, then the picture as a string array at `overview.overview`, inside an object also called `overview`); `generate_map` ~16 kB; `get_map` ~13 kB. (2) `project` defaults to "the first project", which isn't the game's, so every call must repeat `"project": "Airborne Ranger"`. (3) `generate_map` `dryRun` turns seeds into numbers (`"seed": -1421424047`), so the dry-run ops aren't the readable op list one would save; I wrote the ops by hand instead. (4) In `map_preview` labels sit on top of each other (the objective's label under a guard spawn's). (5) Zone digits are still reused (`0` = the drop zone and pod 3) and the ridge's rock terrain shows only as `#` (FB-040). (6) 19 three-terrain cells only show up at `export_map` (FB-038).
+- Workaround: `scripts/mcp-picture.mjs` prints just the picture and legend from a saved answer; `"show": false` on later edits.
+- Suggested change: `show: "picture"` (picture + legend + counts, no objectList) as the default for edit/generate; a session/default project (or the only project with maps); keep seeds as given in dry runs; offset overlapping labels.
+- Status: open
+
+## FB-047 · `ssg tileset apply --dry-run` doesn't check textures, and its tile count reads oddly
+- Severity: polish        Milestone: G4
+- Tried: a tileset with `"texture": "Terrain/Grass_99.png"` through `ssg tileset apply --dry-run`, then without `--dry-run`
+- Wanted: the dry run to fail like the real run.
+- Got: the dry run says `would create · grass · 1 tiles`; the real run refuses it (with good suggestions). The dry run of the temperate update says `152 tiles (+854 −0)` (the old count next to the change, not the result 1006), and its pairs column lists the current pairs, not the declared ones.
+- Workaround: none needed.
+- Suggested change: validate textures in the dry run; show `152 → 1006 tiles` and the declared pairs.
+- Status: open
+
+## FB-048 · `props list` reports some models at 100+ metres
+- Severity: polish        Milestone: G4
+- Tried: `ssg props list Bush`, `ssg props list Palm` looking for desert scenery
+- Wanted: sizes to choose by.
+- Got: `POLYGON_BattleRoyale/SM_Env_Bush_01` 161.7×156.7×145.6 m (162×157 tiles), `POLYGON_Adventure_Pack/SM_Env_Bush_03` 106 m, `POLYGON_Palm_City/SM_Env_Tree_Palm_Sappling_01` 154 m, next to sane 2 m bushes in the same packs. Probably a unit/scale import problem; they'd render enormous.
+- Workaround: picked `POLYGON_Palm_City/SM_Env_Bush_01` (2.1 m) and `POLYGON_City/SM_Env_PalmTree_01`.
+- Suggested change: flag or fix outliers on ingest (a bush over 20 m is a scale bug); show a warning column in `props list`.
+- Status: open

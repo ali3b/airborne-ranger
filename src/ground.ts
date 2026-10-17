@@ -11,6 +11,10 @@ interface Tsj {
   image: string;
   imagewidth: number;
   imageheight: number;
+  /** `noisePeriod` (tiles): the large-scale ground noise repeats every P tiles; variant v is drawn for period cell
+   * (v mod P, ⌊v/P⌋ mod P). */
+  properties?: { name: string; value: number | string | boolean }[];
+  tiles?: { id: number; properties?: { name: string; value: number | string | boolean }[] }[];
   wangsets?: { name: string; type: string; colors: { name: string }[]; wangtiles: { tileid: number; wangid: number[] }[] }[];
 }
 
@@ -18,7 +22,8 @@ interface Tsj {
  * Ground built from a generated corner tileset. `corner(x, y)` names the terrain at grid corner (x, y), for x and y in
  * 0..size; each tile (i, j) takes the tile whose four corners match (Tiled corner wangid: top-right, bottom-right,
  * bottom-left, top-left at indices 1, 3, 5, 7, in map-grid space: i runs down-right, j down-left), picking among
- * variants by position. Returns the layer, drawn so tile (i, j)'s centre is at iso.tileToScreen(i, j).
+ * variants by position: the tileset's `noisePeriod` P and each tile's `variant` property say which variant was drawn
+ * for period cell (i mod P, j mod P), so the large-scale ground noise runs on across tiles (as `ssg map export` does). Returns the layer, drawn so tile (i, j)'s centre is at iso.tileToScreen(i, j).
  * (Maps come from the generator later (G3); until then the terrain layout is code.)
  */
 export function buildGround(scene: Phaser.Scene, ts: TilesetEntry, size: number, corner: (x: number, y: number) => string) {
@@ -31,6 +36,8 @@ export function buildGround(scene: Phaser.Scene, ts: TilesetEntry, size: number,
     const k = [1, 3, 5, 7].map((n) => wt.wangid[n]).join(',');
     byCorners.set(k, [...(byCorners.get(k) ?? []), wt.tileid]);
   }
+  const P = Number(tsj.properties?.find((p) => p.name === 'noisePeriod')?.value ?? 1) || 1;
+  const variantOf = new Map((tsj.tiles ?? []).map((t) => [t.id, Number(t.properties?.find((p) => p.name === 'variant')?.value ?? 0)]));
   const base = colour.get('grass') ?? 1;
   const fallback = byCorners.get([base, base, base, base].join(','))!;
   const c = (x: number, y: number) => colour.get(corner(x, y)) ?? base;
@@ -41,15 +48,17 @@ export function buildGround(scene: Phaser.Scene, ts: TilesetEntry, size: number,
       const key = [c(i + 1, j), c(i + 1, j + 1), c(i, j + 1), c(i, j)].join(',');
       let ids = byCorners.get(key);
       if (!ids) {
-        // FB-023: terrains blend only with the one they were added against (dirt↔sand has no tiles): draw grass.
+        // A corner mix the tileset has no pair for (three terrains in one cell): draw the base terrain.
         missing++;
         ids = fallback;
       }
+      const want = (i % P) + P * (j % P);
+      const exact = ids.find((id) => (variantOf.get(id) ?? 0) === want);
       const h = Math.abs(Math.imul(i * 73856093 ^ j * 19349663, 0x9e3779b1)) >>> 7;
-      data.push(ids[h % ids.length] + 1); // firstgid 1
+      data.push((exact ?? ids[h % ids.length]) + 1); // firstgid 1
     }
   }
-  if (missing) console.warn(`ground: ${missing} tiles had no matching corner tile in ${ts.name} (drawn as grass)`);
+  if (missing) console.warn(`ground: ${missing} tiles had no matching corner tile in ${ts.name} (drawn as the base terrain)`);
 
   // A Tiled isometric map in memory (the tileset embedded from the .tsj), loaded through Phaser's Tiled parser.
   const mapKey = `ground:${ts.name}`;

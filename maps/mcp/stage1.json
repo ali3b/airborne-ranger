@@ -1,0 +1,7 @@
+{"project":"Airborne Ranger","map":"mission2","ops":[
+ {"op":"generate","biome":"desert","seed":"mission2"},
+ {"op":"path","points":[[-1,22],[12,24],[24,21],[36,19],[49,20]],"terrain":"road","width":3,"jitter":1,"seed":"road"},
+ {"op":"path","points":[[14,41],[18,30],[22,22],[30,12],[36,6]],"terrain":"dirt","width":2,"jitter":1.5,"seed":"track"},
+ {"op":"path","points":[[23,41],[25,34],[29,29],[31,25]],"terrain":"rock","width":3,"jitter":1,"seed":"ridge","collision":true},
+ {"op":"rect","x0":33,"y0":2,"x1":46,"y1":15,"terrain":"dirt"}
+]}

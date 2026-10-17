@@ -5,7 +5,7 @@
 //   node scripts/build-assets.mjs --no-maps       skip the mission maps (scripts/build-maps.mjs)
 // Sprites: `ssg sprite apply ssg.assets.json --render --download public/assets` keeps every sprite in the
 // generator project named in the file (visible and editable in the app), renders only what is outdated and writes
-// public/assets/<name>/. Tilesets: `ssg tileset create / terrain add / export` into public/assets/tilesets/.
+// public/assets/<name>/; the declared tilesets go to public/assets/tilesets/<name>/ in the same apply.
 // Then public/assets/manifest.json is written from the downloaded folders.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -103,37 +103,18 @@ function describe(s) {
     clipInfo: Object.fromEntries((meta?.clips ?? []).map((c) => [c.name, { speedMps: c.speedMps ?? null, events: c.events ?? [] }])),
     // Props: footprint, anchor and collision polygon per direction (generator object metadata).
     object: meta?.object ?? null,
+    // FX: how the sheet is meant to be blended (smoke normal, fire/explosion add).
+    blend: meta?.blend ?? null,
     layered,
     validation,
   };
 }
 
-// FB-024: tilesets have no declarative apply like sprites, so this syncs them by hand (missing terrains only).
-/** A ground tileset: created in the project if missing, its missing terrains added, then exported as Tiled .tsj + PNG. */
-async function buildTileset(t) {
+/** Manifest entry for one downloaded tileset public/assets/tilesets/<name>/ (written by `sprite apply --download`). */
+function describeTileset(t) {
   const dir = path.join(out, 'tilesets', t.name);
-  const P = ['--project', spec.project];
-  const listed = await ssg(['tileset', 'list', ...P]);
-  const all = Array.isArray(listed.json) ? listed.json : listed.json?.tilesets ?? [];
-  if (!all.some((x) => x.name === t.name)) {
-    const r = await ssg(['tileset', 'create', t.name, ...P, '--tile', spec.tile, '--metres-per-tile', String(spec.metresPerTile)]);
-    if (r.code !== 0) throw new Error(`tileset create: ${r.stdout.trim()}`);
-  }
-  const shown = await ssg(['tileset', 'show', t.name, ...P]);
-  const have = new Set((shown.json?.terrains ?? shown.json?.tileset?.terrains ?? []).map((x) => x.name));
-  for (const tr of t.terrains) {
-    if (have.has(tr.name)) continue;
-    const a = ['tileset', 'terrain', 'add', t.name, tr.name, ...P];
-    for (const k of ['kind', 'color', 'noise', 'texture', 'tint', 'blend', 'variants']) if (tr[k] != null) a.push(`--${k}`, String(tr[k]));
-    const r = await ssg(a);
-    if (r.code !== 0) throw new Error(`terrain add ${tr.name}: ${r.stdout.trim()}`);
-  }
-  fs.rmSync(dir, { recursive: true, force: true });
-  fs.mkdirSync(dir, { recursive: true });
-  const r = await ssg(['tileset', 'export', t.name, ...P, '-f', 'tsj', '-o', dir]);
-  if (r.code !== 0) throw new Error(`tileset export: ${r.stdout.trim()}`);
-  const tsj = fs.readdirSync(dir).find((f) => f.endsWith('.tsj'));
-  if (!tsj) throw new Error(`tileset export wrote no .tsj (${fs.readdirSync(dir).join(', ')})`);
+  const tsj = fs.existsSync(dir) ? fs.readdirSync(dir).find((f) => f.endsWith('.tsj')) : null;
+  if (!tsj) throw new Error(`no .tsj in ${dir}`);
   const ts = readJson(path.join(dir, tsj));
   return { name: t.name, tsj: `assets/tilesets/${t.name}/${tsj}`, image: `assets/tilesets/${t.name}/${ts.image}`, path: `assets/tilesets/${t.name}/` };
 }
@@ -157,18 +138,22 @@ Object.assign(manifest, { project: spec.project, tile: spec.tile, metresPerTile:
 const t0 = Date.now();
 const failed = [];
 
-// 1. Sprites: one apply for the whole file (a subset goes on stdin). The generator renders only outdated sprites.
+// 1. Sprites and ground tilesets: one declarative apply (FB-024 fixed: `sprite apply` creates/updates the declared
+// tilesets by name too, and --download writes public/assets/tilesets/<name>/). A subset goes on stdin. The generator
+// renders only outdated sprites.
 const sprites = spec.sprites.filter((s) => wanted(s.name));
-if (sprites.length) {
+const tilesets = args.includes('--no-tilesets') ? [] : (spec.tilesets ?? []).filter((t) => wanted(t.name));
+if (sprites.length || tilesets.length) {
   const { tilesets: _t, maps: _m, ...rest } = spec;
-  const subset = only.length ? JSON.stringify({ ...rest, sprites }) : null;
-  console.error(`=== sprites → project "${spec.project}": ${sprites.map((s) => s.name).join(', ')}`);
+  const subset = JSON.stringify({ ...rest, sprites, tilesets });
+  console.error(`=== project "${spec.project}": sprites ${sprites.map((s) => s.name).join(', ') || '-'}; tilesets ${tilesets.map((t) => t.name).join(', ') || '-'}`);
   try {
-    const r = await ssg(['sprite', 'apply', subset ? '-' : 'ssg.assets.json', '--render', '--download', 'public/assets'], { input: subset });
+    const r = await ssg(['sprite', 'apply', '-', '--render', '--download', 'public/assets'], { input: subset });
     fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
     fs.writeFileSync(path.join(root, 'test-results/sprite-apply.json'), r.stdout);
     if (r.code !== 0) console.error(`  ssg sprite apply exited ${r.code}: ${r.json ? '' : r.stdout.trim().slice(0, 400)}`);
     for (const x of r.json?.sprites ?? r.json?.results ?? []) console.error(`  ${x.name}: ${[x.action, x.render?.status ?? x.render, x.download?.status ?? x.download].filter((v) => typeof v === 'string').join(' · ')}`);
+    for (const x of r.json?.tilesets ?? []) console.error(`  tileset ${x.name}: ${[x.action, x.download?.status ?? x.download].filter((v) => typeof v === 'string').join(' · ')}`);
   } catch (e) {
     console.error(`  FAILED: ${String(e.message).split('\n')[0]}`);
   }
@@ -181,17 +166,12 @@ if (sprites.length) {
       console.error(`  ${s.name} FAILED: ${String(e.message).split('\n')[0]}`);
     }
   }
-}
-
-// 2. Ground tilesets.
-if (!args.includes('--no-tilesets')) {
-  for (const t of (spec.tilesets ?? []).filter((t) => wanted(t.name) || !only.length)) {
-    console.error(`=== tileset: ${t.name}`);
+  for (const t of tilesets) {
     try {
-      manifest.tilesets[t.name] = await buildTileset(t);
+      manifest.tilesets[t.name] = describeTileset(t);
     } catch (e) {
       failed.push(t.name);
-      console.error(`  FAILED: ${String(e.message).split('\n')[0]}`);
+      console.error(`  tileset ${t.name} FAILED: ${String(e.message).split('\n')[0]}`);
     }
   }
 }
