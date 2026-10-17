@@ -1,34 +1,29 @@
 import Phaser from 'phaser';
-import { preloadAssets, setupAssets, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
+import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
+import { buildGround } from '../ground';
 
 const MAP = 40; // tiles per side (1 m per tile)
 
 /**
- * Hand-placed props: the top tile (i, j) of the block the prop covers, sprite name, and facing (one of the 4
- * diagonals the props were rendered in, which line them up with the tile grid). The block's size comes from the
- * export's `object.directions[].tiles` (u, v).
+ * Hand-placed props: the top tile (i, j) of the block the prop covers, sprite name, and facing. Objects render
+ * grid-aligned: one facing (SE) by default, SE and SW for walls and wire (`facings: 2`). The block's size comes from
+ * the export's `object.directions[].tiles` (u, v).
  */
 const PROPS: { i: number; j: number; name: string; dir: Dir8 }[] = [
-  { i: 22, j: 6, name: 'bunker', dir: 'SW' },
+  { i: 22, j: 6, name: 'bunker', dir: 'SE' },
   { i: 17, j: 12, name: 'sandbags', dir: 'SE' },
   { i: 19, j: 16, name: 'sandbags', dir: 'SW' },
   { i: 13, j: 22, name: 'wire', dir: 'SE' },
   { i: 17, j: 23, name: 'wire', dir: 'SE' },
   { i: 10, j: 20, name: 'wire', dir: 'SW' },
   { i: 3, j: 13, name: 'tree', dir: 'SE' },
-  { i: 31, j: 2, name: 'tree', dir: 'NE' },
-  { i: 6, j: 31, name: 'tree', dir: 'SW' },
+  { i: 31, j: 2, name: 'tree', dir: 'SE' },
+  { i: 6, j: 31, name: 'tree', dir: 'SE' },
   { i: 22, j: 19, name: 'crate', dir: 'SE' },
-  { i: 24, j: 19, name: 'crate', dir: 'SW' },
-  { i: 27, j: 16, name: 'crate', dir: 'NE' },
+  { i: 24, j: 19, name: 'crate', dir: 'SE' },
+  { i: 27, j: 16, name: 'crate', dir: 'SE' },
 ];
-
-/**
- * FB-017: a tree's collision polygon is the hull of its whole canopy (5 × 5.7 m), so it would block a 6 × 6 tile
- * area. Trees collide with a trunk circle (radius in metres) at the model origin instead.
- */
-const TRUNK: Record<string, number> = { tree: 0.35 };
 
 const RANGER_RADIUS = 0.3; // metres
 const GRENADE_RANGE = 8; // metres
@@ -125,29 +120,23 @@ export class Field extends Phaser.Scene {
       .setDepth(1e9);
   }
 
-  /** Procedural ground (FB-010: the generator has no ground tiles yet). */
+  /**
+   * Ground from the generated tileset (G2): a corner grid of terrains (grass, a dirt track, a sand patch), each tile
+   * the tileset's tile whose four corners match. Dirt and sand only blend with grass, so they never touch (FB-023).
+   */
   private drawGround() {
-    const g = this.add.graphics().setDepth(-1e9);
-    const rnd = new Phaser.Math.RandomDataGenerator(['field']);
-    for (let i = 0; i < MAP; i++) {
-      for (let j = 0; j < MAP; j++) {
-        const c = tileToScreen(i, j);
-        const path = Math.abs(i - j - 3) <= 1 && i > 5;
-        const base = path ? [0x7a, 0x68, 0x48] : [0x4e, 0x66, 0x32];
-        const v = rnd.between(-8, 8);
-        const col = Phaser.Display.Color.GetColor(base[0] + v, base[1] + v, base[2] + v);
-        g.fillStyle(col, 1);
-        g.lineStyle(1, 0x000000, 0.08);
-        const pts = [
-          new Phaser.Math.Vector2(c.x, c.y - TILE_H / 2),
-          new Phaser.Math.Vector2(c.x + TILE_W / 2, c.y),
-          new Phaser.Math.Vector2(c.x, c.y + TILE_H / 2),
-          new Phaser.Math.Vector2(c.x - TILE_W / 2, c.y),
-        ];
-        g.fillPoints(pts, true);
-        g.strokePoints(pts, true);
-      }
+    const ts = this.manifest.tilesets?.temperate;
+    if (!ts || !this.cache.json.exists(`tileset:${ts.name}`)) {
+      this.add.text(20, 60, 'No ground tileset: run `npm run assets`', { fontFamily: 'monospace', fontSize: '14px', color: '#ff8080' }).setScrollFactor(0);
+      return;
     }
+    const noise = (x: number, y: number) => Math.sin(x * 1.7 + y * 0.9) + Math.cos(x * 0.6 - y * 1.3);
+    buildGround(this, ts, MAP, (x, y) => {
+      if (Math.abs(x - y - 3 + 0.6 * noise(x, y)) <= 1.4 && x > 5) return 'dirt';
+      if (Math.hypot(x - 8, y - 30) < 4.5 + noise(x, y)) return 'sand';
+      if (Math.hypot(x - 33, y - 30) < 3.5 + 0.8 * noise(x, y)) return 'sand';
+      return 'grass';
+    });
   }
 
   /**
@@ -157,26 +146,18 @@ export class Field extends Phaser.Scene {
   private placeProp(p: { i: number; j: number; name: string; dir: Dir8 }) {
     const s: SpriteEntry | undefined = this.manifest.sprites[p.name];
     const d: ObjectDirection | undefined = s?.object?.directions.find((x) => x.name === p.dir);
-    const anim = s && this.anims.get(`${p.name}:${s.clips[0]}_${p.dir}`);
+    const anim = s && this.anims.get(animKey(s, s.clips[0], p.dir));
     if (!s || !d || !anim) return;
     const frame = anim.frames[0].frame;
     // Tile (i, j) spans i±0.5 around tileToScreen(i, j), so the block's centre is half its size in from the top tile.
     const at = tileToScreen(p.i - 0.5 + d.tiles.u / 2, p.j - 0.5 + d.tiles.v / 2);
     const img = this.add.image(at.x, at.y, p.name, frame.name);
     img.setOrigin(d.anchor.x / frame.realWidth, d.anchor.y / frame.realHeight);
-    let screen = d.polygon.map(([x, y]) => ({ x: at.x + x - d.anchor.x, y: at.y + y - d.anchor.y }));
-    let depth = at.y;
-    const trunk = TRUNK[p.name];
-    if (trunk) {
-      // FB-017: collide with the trunk at the model origin (the frame pivot) instead of the canopy hull.
-      const c = { x: at.x + frame.pivotX * frame.realWidth - d.anchor.x, y: at.y + frame.pivotY * frame.realHeight - d.anchor.y };
-      screen = Array.from({ length: 8 }, (_, k) => {
-        const o = worldToScreenDelta(Math.cos((k * Math.PI) / 4) * trunk, Math.sin((k * Math.PI) / 4) * trunk, this.ppm);
-        return { x: c.x + o.x, y: c.y + o.y };
-      });
-      depth = c.y;
-    }
-    img.setDepth(depth);
+    // The collision polygon is what stands on the ground: a tree's trunk (`collision.source` "base"), the whole
+    // hull for crates, walls and buildings.
+    const screen = d.polygon.map(([x, y]) => ({ x: at.x + x - d.anchor.x, y: at.y + y - d.anchor.y }));
+    const lowest = Math.max(...screen.map((q) => q.y));
+    img.setDepth(s.object?.collision?.source === 'base' ? lowest : at.y);
     this.props.push({
       sprite: img,
       screen,
@@ -187,7 +168,8 @@ export class Field extends Phaser.Scene {
   }
 
   private play(spr: Phaser.GameObjects.Sprite, name: string, clip: string, dir: Dir8, ignoreIfPlaying = true) {
-    const key = `${name}:${clip}_${dir}`;
+    const s = this.manifest.sprites[name];
+    const key = s ? animKey(s, clip, dir) : '';
     if (!this.anims.exists(key)) return false;
     spr.play(key, ignoreIfPlaying);
     return true;
@@ -195,7 +177,7 @@ export class Field extends Phaser.Scene {
 
   private shoot() {
     const clip = this.prone ? 'rifle_prone_shoot' : 'rifle_shoot';
-    if (!this.ranger || this.busy || !this.anims.exists(`ranger:${clip}_${this.facing}`)) return;
+    if (!this.ranger || this.busy || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     this.busy = true;
     this.play(this.ranger, 'ranger', clip, this.facing, false);
     this.ranger.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -206,7 +188,7 @@ export class Field extends Phaser.Scene {
   /** Throw a grenade: the throw move's `release` event spawns it at the throwing hand's socket on that frame. */
   private throwGrenade() {
     const clip = 'rifle_throw';
-    if (!this.ranger || this.busy || this.prone || !this.anims.exists(`ranger:${clip}_${this.facing}`)) return;
+    if (!this.ranger || this.busy || this.prone || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     const meta = this.cache.json.get('meta:ranger') as CharacterMeta | undefined;
     const release = this.manifest.sprites.ranger.clipInfo[clip]?.events.find((e) => e.name === 'release')?.frame ?? 0;
     const dir = this.facing;

@@ -9,6 +9,8 @@ export interface SpriteEntry {
   atlas: string;
   path: string;
   anims: string;
+  /** Prefix of the exported animation keys (`<base>/`). */
+  animPrefix: string;
   meta: string | null;
   pixelsPerMetre: number | null;
   frameSize: [number, number];
@@ -24,13 +26,17 @@ export interface SpriteEntry {
 export interface ObjectDirection {
   name: string;
   anchor: { x: number; y: number };
+  /** Collision polygon in frame pixels (a tree's trunk: `collision.source` "base"). */
   polygon: [number, number][];
+  /** The whole hull when the collision is only the base (trees). */
+  canopyPolygon?: [number, number][];
   tiles: { u: number; v: number };
 }
 
 export interface ObjectBlock {
   footprint: { w: number; d: number };
   height: number;
+  collision: { source: 'hull' | 'base' | 'bounds'; cut?: number; points: [number, number][] };
   directions: ObjectDirection[];
 }
 
@@ -47,6 +53,15 @@ export interface AssetManifest {
   /** Pixels per metre shared by every sprite (the tile lock). */
   ppm: number;
   sprites: Record<string, SpriteEntry>;
+  /** Ground tilesets (Tiled .tsj + atlas PNG), by name. */
+  tilesets: Record<string, TilesetEntry>;
+}
+
+export interface TilesetEntry {
+  name: string;
+  tsj: string;
+  image: string;
+  path: string;
 }
 
 interface AnimJson {
@@ -64,23 +79,27 @@ export function preloadAssets(scene: Phaser.Scene) {
       // Characters' meta carries the per-frame sockets (grenade hand, muzzle).
       if (s.meta && !s.object) scene.load.json(`meta:${s.name}`, s.meta);
     }
+    for (const t of Object.values(m.tilesets ?? {})) {
+      scene.load.json(`tileset:${t.name}`, t.tsj);
+      scene.load.image(`tileset-img:${t.name}`, t.image);
+    }
   });
 }
 
-/** After loading: fix frame pivots and register animations as `<sprite>:<clip>_<dir>`. Call from create(). */
+/**
+ * After loading: register every sprite's animations under the exported keys (`<base>/<clip>_<dir>`, unique per model),
+ * pointing at the texture loaded under the sprite's own name. Call from create().
+ */
 export function setupAssets(scene: Phaser.Scene): AssetManifest | null {
   const m = scene.cache.json.get('manifest') as AssetManifest | undefined;
   if (!m) return null;
   for (const s of Object.values(m.sprites)) {
     if (!scene.textures.exists(s.name)) continue;
-    fixPivots(scene.textures.get(s.name));
     const aj = scene.cache.json.get(`anims:${s.name}`) as AnimJson | undefined;
     for (const a of aj?.anims ?? []) {
-      // FB-007: anim keys are not namespaced (ranger and german both export "rifle_idle_E"), so prefix them.
-      const key = `${s.name}:${a.key}`;
-      if (scene.anims.exists(key)) continue;
+      if (scene.anims.exists(a.key)) continue;
       scene.anims.create({
-        key,
+        key: a.key,
         frameRate: a.frameRate,
         repeat: a.repeat,
         frames: a.frames.map((f) => ({ key: s.name, frame: f.frame })),
@@ -90,17 +109,7 @@ export function setupAssets(scene: Phaser.Scene): AssetManifest | null {
   return m;
 }
 
-/**
- * FB-001: the phaser3 export writes each frame's pivot relative to the TRIMMED rectangle, but Phaser applies
- * `pivot` as an origin over the untrimmed source size (realWidth/realHeight), which draws a soldier ~30 px too high.
- * Convert once per frame to source-relative.
- */
-function fixPivots(tex: Phaser.Textures.Texture) {
-  for (const name of tex.getFrameNames()) {
-    const f = tex.get(name);
-    if (!f.customPivot || !f.trimmed) continue;
-    const sss = (f as unknown as { data: { spriteSourceSize: { x: number; y: number } } }).data.spriteSourceSize;
-    f.pivotX = (f.pivotX * f.cutWidth + sss.x) / f.realWidth;
-    f.pivotY = (f.pivotY * f.cutHeight + sss.y) / f.realHeight;
-  }
+/** The animation key of a sprite's clip in one direction. */
+export function animKey(s: SpriteEntry, clip: string, dir: string) {
+  return `${s.animPrefix}${clip}_${dir}`;
 }

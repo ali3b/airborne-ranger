@@ -24,7 +24,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/assets.ts` `fixPivots()` rewrites every frame to `(pivot*cut + spriteSourceSize)/real`
 - Suggested change: in the phaser3 (and pixi, if it has the same code) writer, emit `pivot = pivotPx / sourceSize`. Add a test that loads the atlas into Phaser's parser and checks the feet land on the pivot.
 - Re-test (G1, 2026-10-17): unchanged. A tile-locked crate frame still has `spriteSourceSize {x:3,y:4,w:84,h:76}`, `sourceSize {w:90,h:84}`, `pivot.y 0.72368` (= 55/76 of the trimmed rect). `fixPivots()` stays for the soldiers; props no longer depend on it (they're placed by the `object` anchor with `setOrigin`).
-- Status: triaged (TODO: Inbox / Phase A–B, generator 2026-10-17)
+- Re-test (G2, 2026-10-17): works. Every phaser3 frame's `pivot` × `sourceSize` is the ground point (ranger 89,124 = the meta pivot in all 832 frames; crate 45,59). `fixPivots()` is removed; sprites stand on their feet.
+- Status: verified
 
 ## FB-002 · No tile lock: "iso8 = 64×32 tiles" is only a hint, the scale has to be worked out by hand
 - Severity: workaround        Milestone: G0
@@ -84,7 +85,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/assets.ts` creates the anims itself as `<sprite>:<clip>_<dir>` and points them at a per-sprite texture key.
 - Suggested change: prefix keys with the base or texture key (`Character_German_Soldier_01/rifle_idle_E`), or add an option (`--anim-prefix`). Keep frame `key` and the atlas key consistent.
 - Re-test (G1, 2026-10-17): unchanged (still open): both soldiers export `rifle_idle_E`…, so the `<sprite>:` prefix stays.
-- Status: fixed (generator 43fccdd, wizard): re-test in the next game wave
+- Re-test (G2, 2026-10-17): works. Keys are `Character_American_Soldier_01/rifle_idle_E`, `Character_German_Soldier_01/rifle_idle_E`. The game registers them as exported (`animKey()` = manifest `animPrefix` + clip + dir); the `<sprite>:` prefix is gone.
+- Status: verified
 
 ## FB-008 · `speedMps` is missing for the walk and wrong for the run and death
 - Severity: workaround        Milestone: G0
@@ -113,7 +115,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: none.
 - Workaround: `src/scenes/Field.ts` `drawGround()` draws procedural diamonds.
 - Suggested change: Phase B tilesets. The tile size should come from the same tile lock (FB-002).
-- Status: triaged (TODO: Inbox / Phase A–B, generator 2026-10-17)
+- Re-test (G2, 2026-10-17): works. `ssg tileset create temperate` + terrains grass, dirt (`--blend grass --variants 2`), sand (same) → 62 seamless corner tiles, exported with `-f tsj` into `public/assets/tilesets/temperate/`. `drawGround()` now builds a Phaser isometric tilemap from the corner wangset (`src/ground.ts`); the procedural diamonds are gone. Gaps: FB-022, FB-023, FB-024.
+- Status: verified
 
 ## FB-011 · An 8.6 s idle clip and no way to cap or trim frames per export
 - Severity: polish        Milestone: G0
@@ -142,7 +145,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: direction `S` (world 270°): the bunker's faces are square to the screen and its edges cross the diamonds. `--dirs 4d` gives the four aligned facings (NE/NW/SW/SE), which is what an iso game needs. That's not documented, and `--dirs 1` is the default the example consumer script uses for props.
 - Workaround: `ssg.assets.json` uses `"dirs": "4d"` for every prop.
 - Suggested change: for iso views, default prop stills to `4d`, or make `--dirs 1` render the NE (grid-aligned) facing. Say so in the README.
-- Status: fixed (generator d33fd04, wizard: `--facings`, default 1 grid-aligned facing for iso objects): re-test in the next game wave
+- Re-test (G2, 2026-10-17): works. Without `dirs`, bunker, tree and crate export one `SE` facing (`facing: +u`); sandbags and wire with `facings: 2` export `SE` and `SW` (1×4 and 4×1 tiles). `dirs: "4d"` is removed from every prop.
+- Status: verified
 
 ## FB-014 · `ssg resolve` reads "isometric" as top-down and picks generic gear for an American soldier
 - Severity: polish        Milestone: G0
@@ -170,7 +174,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `[batch 154] running · CPU 0% exporting Character_American_Soldier_01 (1/1)` for the whole ~40 s render, then straight to `95% … writing files`. `ssg batch list` at the same moment showed `progress: 0.95`, so the server knows more than the CLI prints.
 - Workaround: `scripts/build-assets.mjs` stops an export only after 4 minutes with no new progress line. A long software render (a big moveset in 8 directions) could trip that while still working.
 - Suggested change: print the item's progress (and frames done/total) in the CLI's progress line every few seconds while rendering.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Re-test (G2, 2026-10-17): works. The progress line moves every few seconds: `[batch 174] running · CPU 22% 616/3328 frames, ~7:28 left …: rendered 616/3328 frames (measuring)`. The 4-minute stall limit stays as a safety net.
+- Status: verified
 
 ## FB-017 · A tree's collision polygon is its whole canopy
 - Severity: workaround        Milestone: G1
@@ -179,7 +184,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `footprint 5.02 × 5.677 m`, `tiles 6×6`, and `collision` = the convex hull of the whole mesh seen from above, so the tree blocks an area about 5 m wide. The footprint and tiles are fine for placement; the collider isn't.
 - Workaround: `src/scenes/Field.ts` `TRUNK` (`// FB-017`): trees collide with a 0.35 m circle at the model origin (the frame pivot) and sort by it.
 - Suggested change: build `collision` from the vertices near the ground (e.g. below 0.5–1 m, or the lowest 10 % of the height) for vegetation and anything with an overhang, or offer `--collision base|hull`. Keep `footprint`/`tiles` from the full hull.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Re-test (G2, 2026-10-17): works. The tree's `object.collision` is `{source: "base", cut: 0.5}` (a ~0.65 m trunk hull), the whole hull is `object.canopy`, and `directions[].polygon` follows the trunk. The `TRUNK` circle is removed; trees collide with `polygon` and sort by its lowest point.
+- Status: verified
 
 ## FB-018 · Idle, walk and run clips carry a `shoot` event
 - Severity: polish        Milestone: G1
@@ -188,7 +194,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `rifle_idle` `{frame 2, shoot}`, `rifle_walk` `{frame 3, shoot}` and `rifle_run` `{frame 5, shoot}`, besides the footsteps. (The idle event moved from frame 44 to frame 2 with `--max-seconds`.) A game that fires on every `shoot` event would shoot while standing still.
 - Workaround: none (the game fires from the shoot moves themselves and ignores events on loops).
 - Suggested change: put the automatic key event only on attack/shoot/cast clips, never on locomotion and idles.
-- Status: fixed (generator 43fccdd, wizard): re-test in the next game wave
+- Re-test (G2, 2026-10-17): works. Events are now only footsteps on walk/run/crawl, `shoot` on the shoot moves, `release` on throw, `dead` on death; idle has none.
+- Status: verified
 
 ## FB-019 · A character's meta has no tile-lock record
 - Severity: polish        Milestone: G1
@@ -197,7 +204,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only `pixelsPerMetre: 45.2548`. Props have it inside `object.tiles` (`tilePx 64, metresPerTile 1`); characters have nothing.
 - Workaround: `scripts/build-assets.mjs` checks that every sprite reports the same `pixelsPerMetre` and writes the tile from `ssg.assets.json` into the manifest.
 - Suggested change: write a top-level `tile` block into every meta.json, generic JSON and layers manifest under a tile lock.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Re-test (G2, 2026-10-17): works. Every meta (characters and props) has `scale: {mode: "tile", pixelsPerMetre: 45.2548, tilePx: 64, tileHeightPx: 32, metresPerTile: 1, shape: "diamond"}`. `build-assets.mjs` checks every sprite's `scale` against `ssg.assets.json` and copies it into the manifest.
+- Status: verified
 
 ## FB-020 · Assets built with `ssg export` don't show up in the generator app
 - Severity: blocks (visibility)        Milestone: G1
@@ -206,5 +214,41 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: anonymous batches only; no "Airborne Ranger" project, nothing in the gallery (raised by the user)
 - Workaround: none
 - Suggested change: declarative sprites in a project, kept in sync by the build script
-- Status: fixed (generator 86845b4, wizard: `ssg sprite apply ssg.assets.json --render --download public/assets`, `ssg export --project`): re-test in the next game wave
+- Re-test (G2, 2026-10-17): works. `ssg.assets.json` has `"project": "Airborne Ranger"`; `npm run assets` runs `ssg sprite apply ssg.assets.json --render --download public/assets`. `ssg sprites --project "Airborne Ranger"` lists ranger, german, bunker, sandbags, wire, tree, crate (project 4, "Isometric, 8 directions · tile lock 64×32 (1 m) · Phaser 3"); the tileset `temperate` is in the same project. A second run prints `unchanged · up to date` for all seven, renders nothing and leaves the PNGs byte-identical (5.6 s). One difference from `ssg export`: FB-021.
+- Status: verified
 
+## FB-021 · `sprite apply` renders `with` equipment as separate layers, so the base sheet has no rifle or helmet
+- Severity: workaround        Milestone: G2
+- Tried: `ssg sprite apply ssg.assets.json --render --download public/assets` with the same ranger/german entries `ssg export` rendered before (`class rifle`, `with: [rifle, helmet]`, no `layered` key)
+- Wanted: the same output as `ssg export` with those keys: one sheet with the rifle and helmet baked in.
+- Got: a layered render: `<base>.json`/`_0.png` (a bald soldier with empty hands), `<base>_head…`, `<base>_weapon…` and `<base>.layers.json`; 3328 frames instead of 832 (~5 min instead of ~50 s on CPU). A game that loads `<base>.json` as before draws soldiers without rifles or helmets and gets no warning. Sizes, clips, events, speeds, `scale` and the `object` blocks were otherwise identical to the export path.
+- Workaround: `ssg.assets.json` sets `"layered": false` on both soldiers; `scripts/build-assets.mjs` warns when a downloaded folder has a `.layers.json`.
+- Suggested change: make an apply entry render what `ssg export` renders for the same keys (bake `with` unless `layered: true`), or say in the apply result that the sprite will be layered and why. The README's apply section should state the default.
+- Status: open
+
+## FB-022 · Tileset texture terrains: no way to find a ground texture, and a missing one is accepted silently
+- Severity: polish        Milestone: G2
+- Tried: `ssg tileset terrain add temperate grass --texture Terrain/Grass_01.png` (the README's example path), then `ssg tileset render`. To find a real one: `ssg assets Ground|Grass|Dirt|Sand|Terrain`, MCP `get_asset` on POLYGON_War `SM_Env_Dirt_Mound_01` and POLYGON_Apocalypse `SM_Generic_Ground_01`
+- Wanted: a Synty ground texture (grass, dirt) for the temperate terrain, found through the CLI/MCP; a warning if the path doesn't exist.
+- Got: no command lists pack textures. `get_asset` only shows the packs' palette atlases (`PolygonWar_Texture_01_A.png`…), which aren't tileable ground. The made-up path was stored with no warning at add or render (README: "drawn in its tint or kind colour, with a warning"); the terrain came out in a flat colour and its wang colour in the .tsj was `#808080`.
+- Workaround: palette terrains (grass, dirt, sand kind colours with noise).
+- Suggested change: `ssg tileset textures [search]` / MCP `search_textures` listing tileable textures in the installed packs (with a thumbnail); fail or warn on `terrain add` when `--texture` resolves to nothing.
+- Status: open
+
+## FB-023 · Tilesets: a lone terrain has no tile, and only one blend per terrain
+- Severity: polish        Milestone: G2
+- Tried: `ssg tileset terrain add temperate grass` (alone), then `dirt --blend grass`, `sand --blend grass`
+- Wanted: a grass tile as soon as grass exists, and dirt↔sand transitions (so a map can run a dirt road through sand).
+- Got: `0 tiles` until a blended terrain was added. `--blend` takes one terrain, and there's no command to add a transition pair between two existing terrains, so dirt and sand can never touch.
+- Workaround: `src/scenes/Field.ts` keeps dirt and sand apart in its corner grid; `src/ground.ts` draws a corner set without a tile as grass (`// FB-023`).
+- Suggested change: give every terrain its full tile(s) on add; let `--blend` take a list, plus `ssg tileset blend add <tileset> <a> <b>`.
+- Status: open
+
+## FB-024 · Tilesets can't be declared like sprites
+- Severity: polish        Milestone: G2
+- Tried: keeping the ground tileset in `ssg.assets.json` next to the sprites, rebuilt by `npm run assets`
+- Wanted: `ssg tileset apply` (or a `tilesets` section that `ssg sprite apply` understands) that creates/updates a tileset and its terrains by name and exports it, with the same "unchanged" semantics as `sprite apply`.
+- Got: only imperative `create` / `terrain add` / `terrain remove` (and no `tileset delete`). A changed terrain (colour, variants) isn't picked up by a re-run unless it's removed first.
+- Workaround: `scripts/build-assets.mjs` `buildTileset()` (`// FB-024`) reads `ssg.assets.json` `tilesets`, creates the tileset if missing, adds missing terrains by name and exports `-f tsj`. Changing a declared terrain needs a manual `ssg tileset terrain remove`.
+- Suggested change: a declarative `ssg tileset apply <file>` (MCP `apply_tilesets`).
+- Status: open

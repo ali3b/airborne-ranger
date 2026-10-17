@@ -1,4 +1,5 @@
 {
+  "project": "Airborne Ranger",
   "tile": "64x32",
   "metresPerTile": 1,
   "view": "iso8",
@@ -10,26 +11,90 @@
       "name": "ranger",
       "asset": "POLYGON_War/Character_American_Soldier_01",
       "class": "rifle",
-      "anim": ["idle", "walk", "run", "shoot", "prone_idle", "crawl", "prone_shoot", "throw", "death"],
-      "with": ["POLYGON_War/SM_Wep_American_Rifle_01", "POLYGON_War/SM_Char_Attach_American_Helmet_01"],
+      "anim": [
+        "idle",
+        "walk",
+        "run",
+        "shoot",
+        "prone_idle",
+        "crawl",
+        "prone_shoot",
+        "throw",
+        "death"
+      ],
+      "with": [
+        "POLYGON_War/SM_Wep_American_Rifle_01",
+        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
+      ],
       "dirs": "8",
-      "uniform": true
+      "uniform": true,
+      "layered": false
     },
     {
       "name": "german",
       "asset": "POLYGON_War/Character_German_Soldier_01",
       "class": "rifle",
-      "anim": ["idle", "walk", "shoot", "death"],
-      "with": ["POLYGON_War/SM_Wep_German_Rifle_01", "POLYGON_War/SM_Char_Attach_German_Helmet_01"],
+      "anim": [
+        "idle",
+        "walk",
+        "shoot",
+        "death"
+      ],
+      "with": [
+        "POLYGON_War/SM_Wep_German_Rifle_01",
+        "POLYGON_War/SM_Char_Attach_German_Helmet_01"
+      ],
       "dirs": "8",
-      "uniform": true
+      "uniform": true,
+      "layered": false
     },
-    { "name": "bunker", "asset": "POLYGON_War/SM_Bld_Bunker_01", "template": "still", "dirs": "4d" },
-    { "name": "sandbags", "asset": "POLYGON_War/SM_Env_Sandbag_Wall_01", "template": "still", "dirs": "4d" },
-    { "name": "wire", "asset": "POLYGON_War/SM_Prop_Wire_01", "template": "still", "dirs": "4d" },
-    { "name": "tree", "asset": "POLYGON_War/SM_Env_Tree_01", "template": "still", "dirs": "4d" },
-    { "name": "crate", "asset": "POLYGON_War/SM_Prop_Crate_02", "template": "still", "dirs": "4d" }
+    {
+      "name": "bunker",
+      "asset": "POLYGON_War/SM_Bld_Bunker_01",
+      "template": "still"
+    },
+    {
+      "name": "sandbags",
+      "asset": "POLYGON_War/SM_Env_Sandbag_Wall_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "wire",
+      "asset": "POLYGON_War/SM_Prop_Wire_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "tree",
+      "asset": "POLYGON_War/SM_Env_Tree_01",
+      "template": "still"
+    },
+    {
+      "name": "crate",
+      "asset": "POLYGON_War/SM_Prop_Crate_02",
+      "template": "still"
+    }
   ],
-  "tilesets": [],
+  "tilesets": [
+    {
+      "name": "temperate",
+      "terrains": [
+        {
+          "name": "grass"
+        },
+        {
+          "name": "dirt",
+          "blend": "grass",
+          "variants": 2
+        },
+        {
+          "name": "sand",
+          "blend": "grass",
+          "variants": 2
+        }
+      ]
+    }
+  ],
   "maps": []
 }
