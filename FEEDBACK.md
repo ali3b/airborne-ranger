@@ -13,7 +13,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: …
 - Workaround: <file in this repo, or none>
 - Suggested change: …
-- Status: open
+- Status: fixed (generator 43fccdd, wizard): re-test in the next game wave
 -->
 
 ## FB-001 · phaser3 export: frame pivots are relative to the trimmed rect, Phaser reads them over the source size
@@ -84,7 +84,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/assets.ts` creates the anims itself as `<sprite>:<clip>_<dir>` and points them at a per-sprite texture key.
 - Suggested change: prefix keys with the base or texture key (`Character_German_Soldier_01/rifle_idle_E`), or add an option (`--anim-prefix`). Keep frame `key` and the atlas key consistent.
 - Re-test (G1, 2026-10-17): unchanged (still open): both soldiers export `rifle_idle_E`…, so the `<sprite>:` prefix stays.
-- Status: triaged (TODO: Inbox / Phase A–B, generator 2026-10-17)
+- Status: fixed (generator 43fccdd, wizard): re-test in the next game wave
 
 ## FB-008 · `speedMps` is missing for the walk and wrong for the run and death
 - Severity: workaround        Milestone: G0
@@ -170,7 +170,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `[batch 154] running · CPU 0% exporting Character_American_Soldier_01 (1/1)` for the whole ~40 s render, then straight to `95% … writing files`. `ssg batch list` at the same moment showed `progress: 0.95`, so the server knows more than the CLI prints.
 - Workaround: `scripts/build-assets.mjs` stops an export only after 4 minutes with no new progress line. A long software render (a big moveset in 8 directions) could trip that while still working.
 - Suggested change: print the item's progress (and frames done/total) in the CLI's progress line every few seconds while rendering.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-017 · A tree's collision polygon is its whole canopy
 - Severity: workaround        Milestone: G1
@@ -179,7 +179,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `footprint 5.02 × 5.677 m`, `tiles 6×6`, and `collision` = the convex hull of the whole mesh seen from above, so the tree blocks an area about 5 m wide. The footprint and tiles are fine for placement; the collider isn't.
 - Workaround: `src/scenes/Field.ts` `TRUNK` (`// FB-017`): trees collide with a 0.35 m circle at the model origin (the frame pivot) and sort by it.
 - Suggested change: build `collision` from the vertices near the ground (e.g. below 0.5–1 m, or the lowest 10 % of the height) for vegetation and anything with an overhang, or offer `--collision base|hull`. Keep `footprint`/`tiles` from the full hull.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-018 · Idle, walk and run clips carry a `shoot` event
 - Severity: polish        Milestone: G1
@@ -188,7 +188,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `rifle_idle` `{frame 2, shoot}`, `rifle_walk` `{frame 3, shoot}` and `rifle_run` `{frame 5, shoot}`, besides the footsteps. (The idle event moved from frame 44 to frame 2 with `--max-seconds`.) A game that fires on every `shoot` event would shoot while standing still.
 - Workaround: none (the game fires from the shoot moves themselves and ignores events on loops).
 - Suggested change: put the automatic key event only on attack/shoot/cast clips, never on locomotion and idles.
-- Status: open
+- Status: fixed (generator 43fccdd, wizard): re-test in the next game wave
 
 ## FB-019 · A character's meta has no tile-lock record
 - Severity: polish        Milestone: G1
@@ -197,4 +197,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only `pixelsPerMetre: 45.2548`. Props have it inside `object.tiles` (`tilePx 64, metresPerTile 1`); characters have nothing.
 - Workaround: `scripts/build-assets.mjs` checks that every sprite reports the same `pixelsPerMetre` and writes the tile from `ssg.assets.json` into the manifest.
 - Suggested change: write a top-level `tile` block into every meta.json, generic JSON and layers manifest under a tile lock.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
