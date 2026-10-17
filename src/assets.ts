@@ -70,6 +70,61 @@ export interface AssetManifest {
   sprites: Record<string, SpriteEntry>;
   /** Ground tilesets (Tiled .tsj + atlas PNG), by name. */
   tilesets: Record<string, TilesetEntry>;
+  /** Mission maps (Tiled .tmj with embedded tilesets, from `ssg map export --embed`), by name. */
+  maps?: Record<string, MapEntry>;
+}
+
+export interface MapEntry {
+  name: string;
+  /** The generator's map id. */
+  id: number;
+  size: string;
+  tmj: string;
+  path: string;
+  preview?: string;
+  minimap?: string;
+}
+
+/** The parts of a Tiled .tmj the mission scene reads. */
+export interface TiledProperty {
+  name: string;
+  type: string;
+  value: string | number | boolean;
+}
+export interface TiledObject {
+  id: number;
+  name: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  point?: boolean;
+  polygon?: { x: number; y: number }[];
+  polyline?: { x: number; y: number }[];
+  properties?: TiledProperty[];
+}
+export interface TiledLayer {
+  name: string;
+  type: 'tilelayer' | 'objectgroup';
+  class?: string;
+  data?: number[];
+  objects?: TiledObject[];
+}
+export interface TiledMap {
+  width: number;
+  height: number;
+  tilewidth: number;
+  tileheight: number;
+  orientation: string;
+  layers: TiledLayer[];
+  tilesets: { firstgid: number; name: string; image: string }[];
+  properties?: TiledProperty[];
+}
+
+/** A Tiled object's custom properties as a plain record. */
+export function props(o: { properties?: TiledProperty[] }): Record<string, string | number | boolean> {
+  return Object.fromEntries((o.properties ?? []).map((p) => [p.name, p.value]));
 }
 
 export interface TilesetEntry {
@@ -97,6 +152,13 @@ export function preloadAssets(scene: Phaser.Scene) {
     for (const t of Object.values(m.tilesets ?? {})) {
       scene.load.json(`tileset:${t.name}`, t.tsj);
       scene.load.image(`tileset-img:${t.name}`, t.image);
+    }
+    // Maps: the .tmj, then (once it arrives) each embedded tileset's atlas next to it.
+    for (const mp of Object.values(m.maps ?? {})) {
+      scene.load.once(`filecomplete-json-tmj:${mp.name}`, (_k: string, _t: string, tmj: TiledMap) => {
+        for (const ts of tmj.tilesets) scene.load.image(`map-img:${mp.name}:${ts.name}`, `${mp.path}${ts.image}`);
+      });
+      scene.load.json(`tmj:${mp.name}`, mp.tmj);
     }
   });
 }

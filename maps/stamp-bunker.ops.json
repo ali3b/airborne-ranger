@@ -1,0 +1,7 @@
+[
+  { "op": "rect", "x0": 0, "y0": 1, "x1": 9, "y1": 8, "terrain": "dirt" },
+  { "op": "place", "sprite": "bunker", "x": 5, "y": 5, "facing": "SE", "properties": { "hp": 200, "kind": "bunker" } },
+  { "op": "place", "sprite": "sandbags", "x": 10.5, "y": 2, "facing": "SE" },
+  { "op": "place", "sprite": "sandbags", "x": 10.5, "y": 8, "facing": "SE" },
+  { "op": "addZone", "kind": "spawn", "points": [[10.5, 5]], "name": "guard", "properties": { "team": "german", "behaviour": "guard", "facing": "SE" } }
+]

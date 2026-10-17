@@ -2,6 +2,7 @@
 //   npm run assets                           build everything
 //   node scripts/build-assets.mjs ranger     apply/render/download a subset by name (the manifest keeps the rest)
 //   node scripts/build-assets.mjs --no-tilesets   skip the ground tilesets
+//   node scripts/build-assets.mjs --no-maps       skip the mission maps (scripts/build-maps.mjs)
 // Sprites: `ssg sprite apply ssg.assets.json --render --download public/assets` keeps every sprite in the
 // generator project named in the file (visible and editable in the app), renders only what is outdated and writes
 // public/assets/<name>/. Tilesets: `ssg tileset create / terrain add / export` into public/assets/tilesets/.
@@ -80,7 +81,7 @@ function describe(s) {
   const clips = [...new Set(anims.map((a) => bare(a.key).slice(0, bare(a.key).lastIndexOf('_'))))];
   const frame0 = atlas.textures[0].frames[0];
   const validation = meta?.validation ?? [];
-  // FB-021: apply renders `with` items as layers unless the entry says `layered: false` (ssg.assets.json does).
+  // A layered render's base sheet lacks the `with` items (FB-021, verified fixed: apply bakes them by default).
   if (layered) console.error(`  ${s.name}: WARNING: layered render (the base sheet lacks the --with items); the game draws only the base`);
   if (validation.length) console.error(`  ${s.name}: validation ${validation.map((v) => `${v.level}:${v.code}`).join(', ')}`);
   return {
@@ -209,4 +210,10 @@ fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 console.error(
   `\n${Object.keys(manifest.sprites).length} sprites, ${Object.keys(manifest.tilesets).length} tilesets in the manifest, built in ${((Date.now() - t0) / 1000).toFixed(1)} s${failed.length ? `; FAILED: ${failed.join(', ')}` : ''}`,
 );
+// 3. Maps (after the sprites and tilesets they use): scripts/build-maps.mjs rebuilds each declared map from its op
+// list through `ssg map edit` and exports it. Skipped for a subset build or with --no-maps.
+if ((spec.maps ?? []).length && !only.length && !args.includes('--no-maps')) {
+  const code = await new Promise((resolve) => spawn(process.execPath, [path.join(root, 'scripts/build-maps.mjs')], { cwd: root, stdio: 'inherit' }).on('close', resolve));
+  if (code !== 0) failed.push('maps');
+}
 process.exit(failed.length ? 1 : 0);

@@ -27,8 +27,7 @@
         "POLYGON_War/SM_Char_Attach_American_Helmet_01"
       ],
       "dirs": "8",
-      "uniform": true,
-      "layered": false
+      "uniform": true
     },
     {
       "name": "german",
@@ -45,19 +44,19 @@
         "POLYGON_War/SM_Char_Attach_German_Helmet_01"
       ],
       "dirs": "8",
-      "uniform": true,
-      "layered": false
+      "uniform": true
     },
     {
       "name": "bunker",
       "asset": "POLYGON_War/SM_Bld_Bunker_01",
-      "template": "still"
+      "template": "still",
+      "facings": 4
     },
     {
       "name": "sandbags",
       "asset": "POLYGON_War/SM_Env_Sandbag_Wall_01",
       "template": "still",
-      "facings": 2
+      "facings": 4
     },
     {
       "name": "wire",
@@ -85,6 +84,42 @@
       "name": "bunker_large",
       "asset": "POLYGON_War/SM_Bld_Bunker_Large_01",
       "states": "auto,damaged@destroy"
+    },
+    {
+      "name": "crate_pile",
+      "asset": "POLYGON_War/SM_Prop_Crate_Pile_01",
+      "template": "still"
+    },
+    {
+      "name": "barrel_pile",
+      "asset": "POLYGON_War/SM_Prop_Barrel_Pile_01",
+      "template": "still"
+    },
+    {
+      "name": "container",
+      "asset": "POLYGON_Apocalypse/SM_Prop_Shipping_Container_01",
+      "states": "auto,damaged@destroy",
+      "facings": 2
+    },
+    {
+      "name": "tent",
+      "asset": "POLYGON_War/SM_Bld_Camonetting_Tent_01",
+      "template": "still"
+    },
+    {
+      "name": "tree_small",
+      "asset": "POLYGON_War/SM_Env_Tree_03",
+      "template": "still"
+    },
+    {
+      "name": "rock",
+      "asset": "POLYGON_BattleRoyale/SM_Env_Rock_01",
+      "template": "still"
+    },
+    {
+      "name": "tanktrap",
+      "asset": "POLYGON_War/SM_Prop_TankTrap_01",
+      "template": "still"
     },
     {
       "name": "smoke",
@@ -121,9 +156,49 @@
           "name": "sand",
           "blend": "grass",
           "variants": 2
+        },
+        {
+          "name": "water",
+          "blend": "sand",
+          "variants": 2
+        },
+        {
+          "name": "mud",
+          "blend": "grass",
+          "variants": 2
+        },
+        {
+          "name": "road",
+          "blend": "grass",
+          "variants": 2
         }
       ]
     }
   ],
-  "maps": []
+  "maps": [
+    {
+      "name": "stamp-src-bunker",
+      "size": "12x10",
+      "tileset": "temperate",
+      "ops": "maps/stamp-bunker.ops.json",
+      "stamps": [
+        {
+          "name": "bunker_nest",
+          "rect": [
+            0,
+            0,
+            11,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mission1",
+      "size": "48x40",
+      "tileset": "temperate",
+      "ops": "maps/mission1.ops.json",
+      "export": "public/assets/maps/mission1"
+    }
+  ]
 }

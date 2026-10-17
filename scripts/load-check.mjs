@@ -86,6 +86,81 @@ try {
       await page.waitForTimeout(2500); // smoke and fire on the wreck for the screenshot
     }
   }
+  if (scene === 'mission') {
+    // G3: the mission comes only from the generator map: tiles drawn, objects spawned from the object layer, the
+    // Ranger in the drop zone, enemies from the guard spawns and patrol zones.
+    const MIN_OBJECTS = 40;
+    const s = await page.evaluate(() => {
+      const m = window.game.scene.getScene('mission');
+      if (!m?.ranger) return { error: 'no ranger (assets or map missing? run npm run assets)' };
+      const c = m.rangerCell();
+      const xs = m.dropArea.map((p) => p[0]);
+      const ys = m.dropArea.map((p) => p[1]);
+      const inDrop = c.x >= Math.min(...xs) && c.x <= Math.max(...xs) && c.y >= Math.min(...ys) && c.y <= Math.max(...ys);
+      const layers = m.children.list.filter((o) => o.type === 'TilemapLayer').length;
+      return { ...m.report, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
+    });
+    console.log('mission:', JSON.stringify(s));
+    if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || !s.targets) {
+      ok = false;
+      console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets)`);
+    }
+    await page.screenshot({ path: 'test-results/mission-drop.png' }).catch(() => undefined);
+    if (!s.error) {
+      // Blow up the depot: stand 8 m (the grenade's range) west of each target's anchor facing east, unhurtable, and
+      // throw until it's destroyed; then put the Ranger in the extraction zone and expect the end screen.
+      const destroyed = await page.evaluate(async () => {
+        const m = window.game.scene.getScene('mission');
+        m.god = true;
+        m.grenadesLeft = 99;
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        for (const t of m.targets) {
+          for (let tries = 0; tries < 4 && t.hp > 0; tries++) {
+            m.busy = false;
+            m.prone = false;
+            m.ranger.setPosition(t.at.x - 8 * m.ppm, t.at.y);
+            m.facing = 'E';
+            m.throwGrenade();
+            const t0 = performance.now();
+            await wait(200);
+            while (performance.now() - t0 < 20000 && (m.grenades.length || m.busy)) await wait(100);
+          }
+        }
+        return m.targets.filter((t) => t.hp <= 0).length + '/' + m.targets.length;
+      });
+      console.log('depot targets destroyed:', destroyed);
+      await page.waitForTimeout(1500);
+      const end = await page.evaluate(async () => {
+        const m = window.game.scene.getScene('mission');
+        const xs = m.extractArea.map((p) => p[0]);
+        const ys = m.extractArea.map((p) => p[1]);
+        const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+        const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+        // The zone centre in map cells → screen (iso projection, origin at the map's top corner).
+        m.ranger.setPosition((cx - cy) * 32, (cx + cy) * 16);
+        const t0 = performance.now();
+        while (performance.now() - t0 < 10000 && !m.outcome) await new Promise((r) => setTimeout(r, 100));
+        return { outcome: m.outcome, objectiveDone: m.objectiveDone };
+      });
+      console.log('end:', JSON.stringify(end));
+      if (end.outcome !== 'accomplished') {
+        ok = false;
+        console.log('NO MISSION ACCOMPLISHED (depot targets left, or the extraction zone not detected)');
+      }
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: 'test-results/mission-end.png' }).catch(() => undefined);
+      // test-results/mission.png: the burning depot (the end screen hidden).
+      await page.evaluate(() => {
+        const m = window.game.scene.getScene('mission');
+        m.children.list.filter((o) => o.depth >= 1e9 && o !== m.hud).forEach((o) => o.setVisible(false));
+        const t = m.targets[0];
+        m.cameras.main.stopFollow();
+        m.ranger.setPosition(t.at.x - 5 * m.ppm, t.at.y + 2 * m.ppm);
+        m.cameras.main.centerOn(t.at.x - 60, t.at.y - 40);
+      });
+      await page.waitForTimeout(800);
+    }
+  }
 } catch (e) {
   ok = false;
   console.log('NOT LOADED:', e.message.split('\n')[0]);
