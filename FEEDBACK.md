@@ -142,7 +142,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: direction `S` (world 270°): the bunker's faces are square to the screen and its edges cross the diamonds. `--dirs 4d` gives the four aligned facings (NE/NW/SW/SE), which is what an iso game needs. That's not documented, and `--dirs 1` is the default the example consumer script uses for props.
 - Workaround: `ssg.assets.json` uses `"dirs": "4d"` for every prop.
 - Suggested change: for iso views, default prop stills to `4d`, or make `--dirs 1` render the NE (grid-aligned) facing. Say so in the README.
-- Status: triaged (TODO: Inbox / Phase A–B, generator 2026-10-17)
+- Status: fixed (generator d33fd04, wizard: `--facings`, default 1 grid-aligned facing for iso objects): re-test in the next game wave
 
 ## FB-014 · `ssg resolve` reads "isometric" as top-down and picks generic gear for an American soldier
 - Severity: polish        Milestone: G0
