@@ -1,0 +1,6 @@
+node_modules/
+dist/
+test-results/
+# The original 1988 game and its decoded data stay local (copyrighted); docs/DESIGN.md summarises what matters.
+Airborne Ranger (1988)/
+decoded/

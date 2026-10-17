@@ -1,0 +1,47 @@
+# Airborne Ranger remake: design
+
+This design comes from the original (MicroProse, 1988, IBM PC). Reverse-engineering notes are in the local, git-ignored
+`decoded/ANALYSIS.md`, and the rendered originals are in `decoded/images/` (terrain blocks, sprite sheets and menus).
+Use them as reference for layout and feel. Never ship them.
+
+## The game in one paragraph
+You choose a mission. A plane drops one Ranger and three supply pods behind enemy lines. The Ranger crosses a
+scrolling terrain of enemy soldiers, bunkers, pillboxes, wire, mines, trenches, huts and rivers. He picks up pods to
+restock, completes the objective, and reaches the extraction point before the timer runs out and the plane leaves.
+He can run, crawl (prone) and shoot. His weapons are a carbine, grenades, LAW rockets, time bombs and a knife.
+Merit points earn promotions and medals for a persistent roster of Rangers.
+
+## Content from the original
+- **Missions (12 + campaign):** Destroy a Munitions Depot, Steal a Code Book, Disable Enemy Aircraft, Capture an Enemy
+  Officer, Cut a Pipeline, Knock Out Enemy Radar Array, Disable SAM Site, Liberate a P.O.W. Camp, Photograph an
+  Experimental Aircraft, Free the Hostages, Create a Diversion, Delayed Sabotage. Each is tied to one terrain.
+- **Terrains:** desert, temperate, arctic. They share tile shapes with per-terrain colour remaps, the same idea as
+  palette-tinted Synty textures.
+- **Terrain building blocks:** each 64×64-pixel cell is a whole feature (tent, bunker, hut, river piece, tree, sandbag
+  wall), with a matching black/white collision mask. In the remake this becomes object sprites with footprints and
+  collision polygons on an iso tilemap.
+- **Supply pod loadout:** carbine magazines, grenades, first-aid kits, LAW rockets and time bombs, limited by weight
+  and a 21-item capacity. Three pods per mission.
+- **Scoring:** merit for the objective, troops and installations, minus a penalty for an early alert.
+- **Ranks:** PFC → COL (12 ranks).
+- **Medals:** COM1, COM2, Bronze Star, Silver Star, DSC, CMH. Death gives a posthumous promotion. Capture is tracked.
+- **Roster:** six Rangers are saved, with name, rank, score and medals.
+
+## The remake
+- **Engine:** Phaser 3, in isometric 2:1 with 64×32 tiles. Sprites come from the generator's `iso8` view under tile
+  lock, so characters and props share one scale.
+- **Synty sources (to try first):**
+  - POLYGON_War: American and German soldiers, weapons, helmets, bunkers, sandbags, wire, tanks and wrecks.
+  - BattleRoyale and Apocalypse: huts, tents, containers.
+  - Generic: rocks and trees.
+  - Particle_FX: explosions and smoke.
+- **Arctic:** no snow pack exists, so tinted textures stand in for it (expected to be a generator feature request).
+
+## Milestones (they mirror the generator's TODO "Phase G")
+| | Needs from the generator | Delivers |
+|---|---|---|
+| G0 | what exists today | asset pipeline (`ssg.assets.json` → `npm run assets`), Ranger moving in 8 directions on a hand-made iso field, depth sorting, first FEEDBACK |
+| G1 | objects & props (Phase A) | enemy soldiers, props with states (intact/destroyed), shooting, grenades, destructible bunkers |
+| G2 | tilesets (Phase B) | generated ground tilesets for the three terrains |
+| G3 | maps (Phase C) | missions built only through MCP map tools: drop, 3 pods, objective, patrols, timer, extraction |
+| G4 | — | mission select, roster with ranks and medals (saved in localStorage), sound |
