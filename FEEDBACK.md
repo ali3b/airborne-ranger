@@ -234,7 +234,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: no command lists pack textures. `get_asset` only shows the packs' palette atlases (`PolygonWar_Texture_01_A.png`…), which aren't tileable ground. The made-up path was stored with no warning at add or render (README: "drawn in its tint or kind colour, with a warning"); the terrain came out in a flat colour and its wang colour in the .tsj was `#808080`.
 - Workaround: palette terrains (grass, dirt, sand kind colours with noise).
 - Suggested change: `ssg tileset textures [search]` / MCP `search_textures` listing tileable textures in the installed packs (with a thumbnail); fail or warn on `terrain add` when `--texture` resolves to nothing.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: search via `ssg textures`, validation): re-test in the next game wave
 
 ## FB-023 · Tilesets: a lone terrain has no tile, and only one blend per terrain
 - Severity: polish        Milestone: G2
@@ -244,7 +244,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/scenes/Field.ts` keeps dirt and sand apart in its corner grid; `src/ground.ts` draws a corner set without a tile as grass (`// FB-023`).
 - Suggested change: give every terrain its full tile(s) on add; let `--blend` take a list, plus `ssg tileset blend add <tileset> <a> <b>`.
 - Re-test (G3, maps): it bites maps harder. A river `path` with `edge: sand, edgeWidth: 1` puts water, sand and grass corners in one cell (54 cells drawn as a pure fallback tile); `edgeWidth: 2` fixes the bank. The biome's sand/dirt patches next to roads and trenches give sand|dirt, mud|sand mixes; running a second `generate` after the paths with `keep: [water, sand, road, mud, dirt]` keeps a grass ring and fixed those. Left: 10 cells where the road meets the sand ford (road↔sand has no tiles, road can only blend with grass).
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: pure tiles + pairs, `ssg tileset blend`): re-test in the next game wave
 
 ## FB-024 · Tilesets can't be declared like sprites
 - Severity: polish        Milestone: G2
@@ -253,7 +253,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only imperative `create` / `terrain add` / `terrain remove` (and no `tileset delete`). A changed terrain (colour, variants) isn't picked up by a re-run unless it's removed first.
 - Workaround: `scripts/build-assets.mjs` `buildTileset()` (`// FB-024`) reads `ssg.assets.json` `tilesets`, creates the tileset if missing, adds missing terrains by name and exports `-f tsj`. Changing a declared terrain needs a manual `ssg tileset terrain remove`.
 - Suggested change: a declarative `ssg tileset apply <file>` (MCP `apply_tilesets`).
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: declared tilesets in apply): re-test in the next game wave
 
 ## FB-025 · `ssg props list` doesn't list vehicles, so the intact tank can't be found there (only its wreck)
 - Severity: polish        Milestone: G1
@@ -262,7 +262,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only the wreck `SM_Veh_German_Tank_Destroyed_01` (category `wreck`, states `intact,destroyed`); the intact tank is kind `vehicle` with an empty category (`ssg assets POLYGON_War/SM_Veh_German_Tank_01`) and `--category vehicle` is refused (`category must be one of building, …`). `ssg props states POLYGON_War/SM_Veh_German_Tank_01` does find the pair.
 - Workaround: none needed (named the tank from the brief).
 - Suggested change: include `vehicle` kind models in `props list` (they're the commonest destructibles), or add a `vehicle` category; list the wreck under its intact model instead of as a separate row.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: vehicles in props list): re-test in the next game wave
 
 ## FB-026 · Apply entries with `states`: the README example is refused, and a vehicle defaults to 8 directions
 - Severity: polish        Milestone: G1
@@ -271,7 +271,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `ssg: sprites[7] (tank): states are the sprite's moves; leave out anim, template, set and class (or drop states).` Without `template` it rendered, but in **8 directions**: 152 frames of 442×348, a 9.0 MB + 0.36 MB two-page atlas (the large bunker, kind prop, got one SE facing). With `"facings": 2`: 38 frames, 2.5 MB.
 - Workaround: `ssg.assets.json` drops `template` on state entries and sets `"facings": 2` on the tank.
 - Suggested change: accept (ignore) `template: "still"` next to `states`, and fix the README example; give vehicles exported as objects (with `states`) the same one-facing default as props.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: still + states accepted): re-test in the next game wave
 
 ## FB-027 · `intact_to_destroyed` ends on an empty frame and never shows the wreck; the hull flips over
 - Severity: workaround        Milestone: G1
@@ -280,7 +280,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the frame size, pivot and anchor are shared as documented (442×348, every clip), so placement is right. But the intact tank's parts fly apart like a toy: the whole hull rotates upside down (frames 3–12 show its flat underside), both tracks are thrown upright above it and are cropped at the frame top in frames 5–7, the turret tumbles off the front, and from frame 12 everything fades to an empty frame. The rusted wreck (a different model) then pops in. At 1.7 s the first half reads well; the second half is a fading grey slab.
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-027`) draws the `destroyed` frame under the transition and fades it in over the transition's last 40 %.
 - Suggested change: let the destroy template end in the target state: crossfade the target state model in while the parts fade (it's already loaded under the same root), or a `settle` option. Weight the launch by part size so the hull lifts and drops instead of flipping, and clamp rotation of the largest part.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: transition ends on the wreck): re-test in the next game wave
 
 ## FB-028 · No transition for single-mesh models; the War bunkers have no destroyed state, the large one's damaged state is almost identical
 - Severity: workaround        Milestone: G1
@@ -290,7 +290,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/scenes/Field.ts` `destroyProp()` (`// FB-028`): a dust burst hides the swap and the damaged state is scorched with a tint.
 - Suggested change: a fallback transition for single meshes (`hit_shake` + sink/dust, or `collapse`: shear down and crossfade to the target state) usable as `damaged@hit_shake`; and a generated `burnt` state (charred texture tint) for models without a damaged file, so the plain bunker can be destroyed too.
 - Re-test (G3): the depot's shipping container (`POLYGON_Apocalypse/SM_Prop_Shipping_Container_01`, `states: "auto,damaged@destroy"`) gets `state_clip_skipped` too, and the crate pile, barrel pile and camo-net tent have no damaged model at all. `src/scenes/Field.ts` `destroyProp()` (`// FB-028`) now also blasts stateless objects: explosion, dust, a scorched tint, fire and smoke.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: collapse + @scorch): re-test in the next game wave
 
 ## FB-029 · An object's frame pivot is the model origin, not its anchor, so `play()` moves a sprite placed by its anchor
 - Severity: polish        Milestone: G1
@@ -299,7 +299,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: every frame's `pivot` is (221, 230) (= 0.5, 0.661), the model origin, while `object.directions[SE].anchor` is (241.62, 240.31) and `object.anchor` (direction 0) is (200.38, 240.31). Phaser applies the frame pivot as the origin on each animation frame, so the tank jumps ~22 px on the first `play()`. Images placed once with `setOrigin` never noticed this.
 - Workaround: `src/scenes/Field.ts` `showState()` positions the sprite at `at + (pivot − anchor)` and lets the pivot be the origin.
 - Suggested change: for object exports, write each direction's anchor as the frame `pivot`, or document that a Phaser sprite must be offset by (pivot − anchor).
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: pivot = anchor for objects): re-test in the next game wave
 
 ## FB-030 · Several sprites of one model share one animation prefix
 - Severity: polish        Milestone: G1
@@ -308,7 +308,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: all three export `Particle_Smoke_01.json` and keys `Particle_Smoke_01/<clip>_S`. They only coexist because the clip names differ; two sprites of one model with the same clip (a tank in two liveries, a `smoke` and a `smoke_big`) would collide in Phaser's global animation manager.
 - Workaround: none needed yet.
 - Suggested change: in `sprite apply` / project downloads, prefix keys (and base file names) with the sprite name.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: sprite-name anim prefix): re-test in the next game wave
 
 ## FB-031 · `smoke_loop` renders light grey and additive, and barely rises
 - Severity: polish        Milestone: G1
@@ -317,7 +317,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `meta.blend: "add"`, light grey puffs that stay in one blob across the loop (little visible rise at this size). `fire_loop` (74×118, 7 frames) and `explosion` (284×348, 9 frames, `impact` on frame 0) look right.
 - Workaround: `src/scenes/Field.ts` `smokeAndFire()` draws the smoke with normal blending, scaled 1.6 and tinted dark (marked FB-031).
 - Suggested change: write `blend: normal` for smoke templates, and a `color`/`dark` parameter (wreck smoke vs. steam); more rise per loop.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wizard 2f13d8d: smoke blend/rise): re-test in the next game wave
 
 ## FB-032 · `edit_map` `place`: the schema only takes `spriteId`, so an AI has to look ids up (`sprite` by name works but isn't declared)
 - Severity: polish        Milestone: G3
@@ -326,7 +326,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: it works through the CLI, but the `place` op in the MCP schema lists only `spriteId` (integer) and `assetRef`, so a client that validates arguments (or an AI reading the schema) has to call `list_sprites` and map names to ids first. The map JSON and the generator reports also speak in ids (`"byObject": {"sprite 30": 13}`, legend `tree_small [sprite 30]`).
 - Workaround: none needed (maps/*.ops.json use `sprite`).
 - Suggested change: declare `sprite` (name or id) on `place` and `move`, and name sprites in reports (`"tree_small": 13`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-033 · `map create` with a name that exists silently makes a second map; names then resolve to the oldest
 - Severity: workaround        Milestone: G3
@@ -335,7 +335,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `created map 3 "probe"` next to map 1 "probe"; `ssg map show probe` then shows map 1. A build script that creates its map when missing would fork the map on a race or a typo-free re-run after a failed lookup.
 - Workaround: `scripts/build-maps.mjs` `findMap()` (`// FB-033`) looks the map up by name in `map list`, warns on duplicates and uses the oldest.
 - Suggested change: unique map names per project (like sprites in `sprite apply`), or a clear error.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-034 · No way to delete or reset a map from the CLI or MCP, so "rebuild from scratch" means removing everything with ops
 - Severity: workaround        Milestone: G3
@@ -344,7 +344,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: no delete or reset (HTTP has `DELETE /api/maps/:id`, but the game only uses the CLI/MCP). The two `probe` maps (ids 1 and 3) and nothing else from these tests are left in the "Airborne Ranger" project.
 - Workaround: `scripts/build-maps.mjs` `wipeOps()` (`// FB-034`) prepends `remove` / `removeZone` for every object and zone and a whole-map `rect value:false` to the op list, in the same atomic batch; the first op (`generate` over the whole map) repaints the ground.
 - Suggested change: `map delete` + MCP `delete_map`, and a `clear` op (or `edit_map {reset: true}`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-035 · Path objects: `facing: "across"` on a path down the y axis gives the same facing as `along`; the README's "wire along a trench" lays it across
 - Severity: workaround        Milestone: G3
@@ -353,7 +353,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: path along x: `along` → SE (wire across the path), `across` → SW (along the path). Path along y: `along` → SW (across), `across` → **SW** too. So "along" means "the object's front points along the path" (right for a soldier, wrong for a wall or wire), and "across" on a y path picks a facing the 2-facing export doesn't have and falls back to SW.
 - Workaround: `maps/mission1.ops.json` trench 1 (down y) gives `facing: "SE"` explicitly, trench 2 (along x) `across`.
 - Suggested change: fix `across` for 2-facing sprites (pick the export's facing whose axis is perpendicular, SE↔NW and SW↔NE being the same line); say in the docs that along/across name where the front points, and add `"parallel"` / `"perpendicular"` for walls, wire and sandbags (their long side) — or make walls use their long axis.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-036 · Scatter under-delivers without saying why, and the result depends on op order
 - Severity: workaround        Milestone: G3
@@ -362,7 +362,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `{"placed": 13, "target": 39}`, `{"placed": 2, "target": 6}`; rocks after the trees `{"placed": 2, "target": 10}` but before them 10/10; a second tree pass (other seed, density 1, no clusters) `{"placed": 0, "target": 13}`. On an empty 20×16 map the same ops place their full count. The report has no reasons, so the only way to tune it is trial and error.
 - Workaround: `maps/mission1.ops.json` scatters the big trees first, then rocks, then small trees.
 - Suggested change: retry darts until `count` is met or the allowed area is exhausted; report rejections by reason (`"skipped": {"spacing": 40, "terrain": 12, "overlap": 5}`); name sprites in `byObject`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-037 · Stamps: rotating needs every facing in the export, and a stamp's ground overwrites everything in its rectangle
 - Severity: polish        Milestone: G3
@@ -371,7 +371,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite 16 has no facing "SW" (facings: SE)` for the bunker (props default to one facing, FB-013); it needed `"facings": 4` on bunker and sandbags in `ssg.assets.json` (both re-rendered in ~5 s). The stamp then worked well (facings and footprints turn, zone ids renumbered). But its ground is the whole rectangle, so its grass border painted over the river bank where a stamp touched it (water|grass mixes, FB-023); there is no way to stamp only the non-base terrain.
 - Workaround: `ssg.assets.json` `facings: 4` on bunker and sandbags; stamp A moved a cell off the river.
 - Suggested change: say "render it with --facings 4" in the error (or offer the mirrored facing for objects with a 180° symmetric footprint); a stamp `ground: "painted"` option that keeps only cells/corners that differ from the source map's base terrain.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-038 · Map ops don't warn about corner mixes the tileset can't draw; it only shows up at export
 - Severity: polish        Milestone: G3
@@ -380,7 +380,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the edit reports `corners` only; `ssg map export` prints `54 cells have a corner mix the tileset has no tile for (…)`, with no positions. The preview draws them as fallback tiles, which is easy to miss at 1568 px.
 - Workaround: `scripts/build-maps.mjs` prints the export warnings; the op list was tuned by hand (FB-023 re-test).
 - Suggested change: count and list (a few cells each) unsupported mixes in the edit result and `get_map`; optionally a `path` option that adds a ring of a blendable terrain automatically.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-039 · The exported object layer is thin for a game: no `facing` on one-facing sprites, ids the game can't map, no collision shapes
 - Severity: polish        Milestone: G3
@@ -389,7 +389,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `name` (the sprite name, which happens to match `ssg.assets.json`), `spriteId` (the generator's id: not in the downloaded sprite files or the game's manifest), `facing` only when the sprite has more than one facing (the tent, crate piles and trees have none), `state` only for sprites with states, `footprintW/H`, `anchor: "footprint-centre"`. Collision is only the map's blocked-cell rectangles; the objects' polygons have to come from each sprite's export `object` block. In Tiled the objects are bare points (no images), so a human can't check the layout there either.
 - Workaround: `src/scenes/Mission.ts` maps objects by `name`, defaults a missing facing to SE and takes collision from the manifest's object blocks.
 - Suggested change: always write `sprite` (name), `facing` and `state`; optionally a `collision` polygon per object (cells or Tiled pixels) and an image-collection tileset so Tiled shows the objects as tile objects.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-040 · `get_map` / `ssg map show` hide what an AI author needs: zone extents, paths and the terrain under collision
 - Severity: polish        Milestone: G3
@@ -398,7 +398,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: each zone is one digit at one cell (the drop rect 3..10 × 4..10 shows as a single `3`, a 5-point patrol loop as one `6`); digits are reused when there are more than ten zones (`0  spawn z1 "guard"; custom pod2 "supply pod"`); blocked cells print `#` over their terrain, so the river reads as `###` and the ford only shows as a gap. A 1.5 m trench paints corners, not whole cells, so trench 1 doesn't show in the picture at all (only its wire `W`). The `objectList` in `--json` has positions, but zones have no points there (`{"id","kind","name","shape"}` only).
 - Workaround: none (looked at the preview PNG).
 - Suggested change: draw rect/polygon zone outlines and polyline paths into the picture (or a second "zones" picture), unique zone symbols (letters after 9), collision as a separate picture or lower-case terrain symbols, and the zones' points in the JSON.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
 
 ## FB-041 · Coordinate conventions differ between ops, and `--json` errors aren't JSON
 - Severity: polish        Milestone: G3
@@ -407,4 +407,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `rect` / `stamp save --rect` are inclusive **cells** (`x0..x1`), `addZone` rect points are **grid coordinates** (the drop zone `[[3,4],[10,10]]` exports as 7×6 cells, 224×192 px), `place` x,y is the **footprint centre** snapped (odd spans on cell centres, even on edges), `stamp` x,y the **top-left cell**, and Tiled objects are in `tileheight` px per cell on both axes. All documented somewhere, but an AI mixing `rect` and `addZone` gets off-by-one zones. Separately, `ssg --json map edit` with a failing op prints the errors as text on stderr and nothing on stdout.
 - Workaround: none needed.
 - Suggested change: a one-paragraph "coordinates" note in the `edit_map` description; `--json` errors as `{"errors": [...]}` on stdout.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-17)
