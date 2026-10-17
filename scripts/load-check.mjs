@@ -27,16 +27,26 @@ try {
     await page.waitForTimeout(500);
     await page.keyboard.up('d');
     await page.waitForTimeout(400);
+    // Throw a grenade: the throw move's release event must spawn one.
+    // Headless software GL runs a few fps and Phaser clamps the frame delta, so game time is slow here: poll.
+    await page.keyboard.press('g');
+    await page
+      .waitForFunction(() => window.game.scene.getScene('field')?.grenadesThrown > 0, null, { timeout: 15000 })
+      .catch(() => undefined);
     const state = await page.evaluate(() => {
       const f = window.game.scene.getScene('field');
       const r = f?.children?.list?.filter((o) => o.texture?.key === 'ranger')[0];
-      return r ? { x: Math.round(r.x), y: Math.round(r.y), anim: r.anims?.currentAnim?.key ?? null, sprites: f.children.list.length } : null;
+      return r ? { x: Math.round(r.x), y: Math.round(r.y), anim: r.anims?.currentAnim?.key ?? null, sprites: f.children.list.length, grenades: f.grenadesThrown } : null;
     });
     console.log('ranger:', JSON.stringify(state));
     if (!state || !state.anim) {
       ok = false;
       console.log('NO RANGER (assets missing? run npm run assets)');
+    } else if (!state.grenades) {
+      ok = false;
+      console.log('NO GRENADE (throw move or release event missing?)');
     }
+    await page.waitForTimeout(2500); // let the grenade land and explode for the screenshot
   }
 } catch (e) {
   ok = false;

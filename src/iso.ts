@@ -1,6 +1,7 @@
 // Isometric 2:1 maths. The generator's iso8 view looks along world north with a 30° pitch, so a metre east is
 // `ppm` px right and a metre north is ppm/2 px up. Tiles are 64×32 diamonds whose edges run along the world
-// diagonals: with ppm 32 one tile edge is √2 m (FB-002: there is no tile lock, the ppm is worked out by hand).
+// diagonals. Every sprite is exported under the generator's tile lock (`--tile 64x32 --metres-per-tile 1`, see
+// ssg.assets.json): one tile edge is 1 m, so ppm = 64/√2 ≈ 45.25. The game reads ppm from the asset manifest.
 export const TILE_W = 64;
 export const TILE_H = 32;
 

@@ -29,7 +29,9 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
 
 ## The remake
 - **Engine:** Phaser 3, in isometric 2:1 with 64×32 tiles. Sprites come from the generator's `iso8` view under tile
-  lock, so characters and props share one scale.
+  lock (`--tile 64x32 --metres-per-tile 1`, 45.25 px/m), so characters and props share one scale. At 1 m per tile a
+  soldier is ~80 px tall, about 1/9 of a 720 px view: close to the original, where a ~20 px soldier filled about 1/10
+  of the 200-line screen.
 - **Synty sources (to try first):**
   - POLYGON_War: American and German soldiers, weapons, helmets, bunkers, sandbags, wire, tanks and wrecks.
   - BattleRoyale and Apocalypse: huts, tents, containers.

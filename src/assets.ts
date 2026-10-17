@@ -4,23 +4,47 @@ import Phaser from 'phaser';
 export interface SpriteEntry {
   name: string;
   asset: string;
-  pack: string;
-  kind: string;
+  pack: string | null;
   textureKey: string;
   atlas: string;
   path: string;
   anims: string;
   meta: string | null;
-  /** Model size in metres [x, y (up), z]. */
-  size: [number, number, number] | null;
+  pixelsPerMetre: number | null;
   frameSize: [number, number];
   dirs: string[];
   clips: string[];
+  /** Per clip: measured ground speed (locomotion only) and named events by frame. */
+  clipInfo: Record<string, { speedMps: number | null; events: { frame: number; name: string }[] }>;
+  /** Props: the export's object block (footprint, anchor, collision per direction). */
+  object: ObjectBlock | null;
+}
+
+/** One rendered facing of an object: anchor and collision polygon in untrimmed frame pixels, span in tiles. */
+export interface ObjectDirection {
+  name: string;
+  anchor: { x: number; y: number };
+  polygon: [number, number][];
+  tiles: { u: number; v: number };
+}
+
+export interface ObjectBlock {
+  footprint: { w: number; d: number };
+  height: number;
+  directions: ObjectDirection[];
+}
+
+/** The parts of a character's `.meta.json` the game reads: the pivot and per-frame sockets. */
+export interface CharacterMeta {
+  pivot: { x: number; y: number };
+  animations: { clip: string; direction: string; flipX: boolean; sockets: Record<string, { x: number; y: number }>[] }[];
 }
 
 export interface AssetManifest {
-  tileSize: [number, number];
+  tile: string;
+  metresPerTile: number;
   view: string;
+  /** Pixels per metre shared by every sprite (the tile lock). */
   ppm: number;
   sprites: Record<string, SpriteEntry>;
 }
@@ -37,6 +61,8 @@ export function preloadAssets(scene: Phaser.Scene) {
       // The sprite's own name is the texture key: the generator's base names collide between packs.
       scene.load.multiatlas(s.name, s.atlas, s.path);
       scene.load.json(`anims:${s.name}`, s.anims);
+      // Characters' meta carries the per-frame sockets (grenade hand, muzzle).
+      if (s.meta && !s.object) scene.load.json(`meta:${s.name}`, s.meta);
     }
   });
 }
