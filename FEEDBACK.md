@@ -198,3 +198,13 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `scripts/build-assets.mjs` checks that every sprite reports the same `pixelsPerMetre` and writes the tile from `ssg.assets.json` into the manifest.
 - Suggested change: write a top-level `tile` block into every meta.json, generic JSON and layers manifest under a tile lock.
 - Status: triaged (TODO: Inbox, generator 2026-10-17)
+
+## FB-020 · Assets built with `ssg export` don't show up in the generator app
+- Severity: blocks (visibility)        Milestone: G1
+- Tried: `scripts/build-assets.mjs` → `ssg export` per asset
+- Wanted: the game's sprites visible and editable in the app (Projects → Sprites), like a user would use it
+- Got: anonymous batches only; no "Airborne Ranger" project, nothing in the gallery (raised by the user)
+- Workaround: none
+- Suggested change: declarative sprites in a project, kept in sync by the build script
+- Status: fixed (generator 86845b4, wizard: `ssg sprite apply ssg.assets.json --render --download public/assets`, `ssg export --project`): re-test in the next game wave
+
