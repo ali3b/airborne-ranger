@@ -509,7 +509,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: wherever three areas meet (grass | road | sand bank, or sand | road | dirt track), some cell has corners from all three. No repaint removes that, because it is a T-junction, and a buffer ring only moves the junction somewhere else. Reordering helped where the third terrain was incidental: mission 2 went from 19 to 7 by painting paths first and then `generate … keep`, and mission 1 from 6 to 4 with `ground: "none"` on the stamp next to the river. The remaining 4 + 7 cells are real junctions, and they draw as the main terrain's pure tile, which shows a hard notch.
 - Workaround: none (the cells show the fallback tile).
 - Suggested change: draw a 3–4-terrain cell by layering: the lowest-priority terrain's pure tile, then each higher terrain's corner mask over it (a terrain priority/z-order per tileset, like Tiled's or Godot's terrain layering). Or let `path` lay its `edge` terrain under the junction automatically. And reword the hint so it doesn't promise that a repaint can always fix it.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wave-8: multi-terrain corner tiles, mixes auto/triples, --fix add-mixes): re-test in the next game wave
 
 ## FB-050 · Aircraft get a `base` collision (a sliver at the tail wheel), and a declared sprite can't set `collisionHeight`
 - Severity: workaround        Milestone: G4
@@ -518,7 +518,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `collision: {source: "base", cut: 0.444}`. On the Bf 109 that is an 8-point sliver at the tail wheel, 4.2 m behind the anchor, and on the larger plane a 3 × 1.3 m band behind its centre. The Ranger walks through the planes, and a grenade landing on the cockpit does 0 damage. The intact state's per-direction polygon and the map's `collision` property are the same sliver. The README's fix is `--collision-height`, but `sprite apply` refuses `"collisionHeight"` ("unknown key"), and `apply_sprites`, `create_object_sprite` and `set_object_states` don't have it; only the anonymous `export_sprites` does.
 - Workaround: `src/scenes/Field.ts` `WHOLE_HULL` (`// FB-050`) makes `plane` and `plane_big` collide with the export's `canopyPolygon` (the whole hull).
 - Suggested change: accept `collisionHeight` (and maybe `collision: "hull" | "base"`) on declared and app sprites; don't use `base` for vehicles (a model whose slice below the cut is only wheels or skids); and warn when the base polygon doesn't contain the anchor.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wave-8: full hull for vehicles/aircraft/buildings, collision base|full in apply): re-test in the next game wave
 
 ## FB-051 · Path objects report `skipped` with no reason
 - Severity: polish        Milestone: G4
@@ -527,7 +527,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `"placed": {"wire": 1}, "skipped": 1` and nothing else.
 - Workaround: none.
 - Suggested change: `rejected` by cause (and the spot) for path objects, as scatter reports.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wave-8: path reasons + rejectedSpots): re-test in the next game wave
 
 ## FB-052 · Map and tileset lifecycle nits: MCP wording in CLI errors, `--if-missing` ignores the size, deleted ids are reused
 - Severity: polish        Milestone: G4
@@ -536,7 +536,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the CLI error says "pass replace: true … or ifMissing: true" (the MCP spelling). `--if-missing` silently returns the 48x40 map. The new mission 3 map got id 6 again, and the arctic tileset got id 3. Previews and exports came out right (they're keyed by revision as well), but anything else caching by id (Tiled firstgids, the app's per-browser view settings, a game's saved `mapId`) can mix up a deleted map with its successor.
 - Workaround: build-maps.mjs compares the returned size itself.
 - Suggested change: say `--replace` / `--if-missing` in the CLI; `existed: true, differs: {size: …}` (or refuse) on a mismatch; AUTOINCREMENT ids.
-- Status: triaged (TODO: Inbox, generator 2026-10-17)
+- Status: fixed (generator wave-8: CLI flag wording, if-missing mismatch warning, ids never reused): re-test in the next game wave
 
 ## FB-053 · `map_sprites kind: "object"` leaves out vehicles that are placed as objects
 - Severity: polish        Milestone: G4
@@ -545,7 +545,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the planes, the tank and the truck are `kind: "vehicle"`, so they're missing from that list (they appear without the filter, with footprints). An author filtering for scenery to place misses the airfield's main targets.
 - Workaround: call it without `kind`.
 - Suggested change: let `kind: "object"` mean "placeable with a footprint" (objects and vehicles with an `object` block), or add `placeable: true`; or say in the answer that vehicles were filtered out.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18)
 
 ## FB-054 · The text picture still lets zone marks overwrite object cells
 - Severity: polish        Milestone: G4
@@ -554,7 +554,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the spawn digits `1`, `2` replace two of the plane's `P` cells and the patrol's `3` replaces its last column, so the plane looks 8 cells wide. FB-046's labels fix applies to `map_preview`; the text picture is unchanged.
 - Workaround: none (read the object list for sizes).
 - Suggested change: draw objects over zone outlines (zones only on empty cells), or mark shared cells with a combined symbol listed in the legend.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18)
 
 ## FB-055 · An `fps` change is reported as "View or size changed"
 - Severity: polish        Milestone: G4
@@ -563,5 +563,5 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `smoke: would update · render: View or size changed`.
 - Workaround: none needed.
 - Suggested change: a reason of its own for fps (and for each sprite key that marks a render outdated).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18)
 
