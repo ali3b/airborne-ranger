@@ -13,7 +13,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: …
 - Workaround: <file in this repo, or none>
 - Suggested change: …
-- Status: triaged (TODO: Inbox / Phase A–B, generator 2026-10-17)
+- Status: open
 -->
 
 ## FB-001 · phaser3 export: frame pivots are relative to the trimmed rect, Phaser reads them over the source size
