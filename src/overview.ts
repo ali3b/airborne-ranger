@@ -165,17 +165,17 @@ export class Overview {
       if (fill) g.fillStyle(colour, fill).fillPoints(pts, true);
       g.lineStyle(2, colour, alpha).strokePoints(pts, true);
     };
-    const label = (area: Cell[], text: string, colour: string) => {
+    const label = (area: Cell[], text: string, colour: string, below = false) => {
       if (!area.length) return;
       const pts = area.map(at);
       const x = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-      const y = Math.min(...pts.map((p) => p.y)) - 4;
-      add(sc.add.text(x, y, text, { fontFamily: 'monospace', fontSize: '11px', color: colour, backgroundColor: '#10140cbb', padding: { x: 3, y: 1 } }).setOrigin(0.5, 1));
+      const y = below ? Math.max(...pts.map((p) => p.y)) + 4 : Math.min(...pts.map((p) => p.y)) - 4;
+      add(sc.add.text(x, y, text, { fontFamily: 'monospace', fontSize: '11px', color: colour, backgroundColor: '#10140cbb', padding: { x: 3, y: 1 } }).setOrigin(0.5, below ? 0 : 1));
     };
     outline(info.drop, 0x60e080, 0.6);
     outline(info.objective, 0xffd040, 1, info.objectiveDone ? 0 : 0.25);
     outline(info.extraction, 0xff80c0, 1, info.objectiveDone ? 0.35 : 0.15);
-    label(info.drop, 'DROP', '#60e080');
+    label(info.drop, 'DROP', '#60e080', true);
     label(info.objective, info.objectiveDone ? 'OBJECTIVE (DONE)' : 'OBJECTIVE', '#ffd040');
     label(info.extraction, 'EXTRACTION', '#ff80c0');
     for (const p of info.pods) {
@@ -187,7 +187,7 @@ export class Overview {
     const r = at(info.ranger);
     const ang = (DIRS8.indexOf(info.facing) * Math.PI) / 4;
     g.lineStyle(2, 0xffffff, 1).lineBetween(r.x, r.y, r.x + Math.cos(ang) * 12, r.y - Math.sin(ang) * 6);
-    const dot = add(sc.add.circle(r.x, r.y, 5, 0xff4040).setStrokeStyle(2, 0xffffff));
+    const dot = add(sc.add.circle(r.x, r.y, 6, 0xff4040).setStrokeStyle(2, 0xffffff));
     sc.tweens.add({ targets: dot, alpha: 0.25, yoyo: true, repeat: -1, duration: 350 });
     add(sc.add.text(sw / 2, 12, `${info.title} · ${W}×${H} m`, { fontFamily: 'monospace', fontSize: '15px', color: '#e8d27a' }).setOrigin(0.5, 0));
     const close = isTouch ? 'tap or MAP to return' : 'Tab / O to return';

@@ -173,7 +173,35 @@ try {
       console.log('TARGETS WITHOUT A HULL COLLIDER:', hulls.join(', '));
     }
     // G5: vehicles drive their path, looping prop animations play; a grenade wrecks the truck.
+    // G6: the overview map opens and closes (Tab), the compass shows a distance, enemies far from the Ranger sleep.
+    const g6 = await page.evaluate(async () => {
+      const m = window.game.scene.getScene('mission');
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const awake = m.enemies.filter((e) => e.sprite.active).length;
+      const visibleProps = m.props.filter((p) => p.sprite.visible).length;
+      m.toggleMap();
+      await wait(300);
+      const open = !!m.overview?.isOpen;
+      const t0 = m.timeLeft;
+      await wait(1200);
+      const clockRan = m.timeLeft < t0;
+      m.toggleMap();
+      await wait(200);
+      return { size: `${m.mapW}x${m.mapH}`, seconds: m.cfg.seconds, open, clockRan, closed: !m.overview?.isOpen, compass: m.compassText?.text ?? null, awake, enemies: m.enemies.length, visibleProps, props: m.props.length };
+    });
+    console.log('g6:', JSON.stringify(g6));
+    if (!g6.open || !g6.closed || !/\d+ m$/.test(g6.compass ?? '') || g6.awake >= g6.enemies || g6.visibleProps >= g6.props) {
+      ok = false;
+      console.log('G6 CHECK FAILED (want: the overview opens and closes, a compass distance, far enemies asleep, off-screen props hidden)');
+    }
     if (s.vehicles) {
+      // Vehicles far from the Ranger don't drive (G6): stand him 10 m north of the first one.
+      await page.evaluate(() => {
+        const m = window.game.scene.getScene('mission');
+        const v = m.vehicles[0].placed;
+        m.god = true;
+        m.ranger.setPosition(v.at.x, v.at.y - 10 * m.ppm * 0.5);
+      });
       const v0 = await page.evaluate(() => window.game.scene.getScene('mission').vehicles.map((v) => ({ x: v.placed.at.x, y: v.placed.at.y })));
       await page.waitForTimeout(4000);
       const g5 = await page.evaluate(async (v0) => {
