@@ -509,7 +509,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: wherever three areas meet (grass | road | sand bank, or sand | road | dirt track), some cell has corners from all three. No repaint removes that, because it is a T-junction, and a buffer ring only moves the junction somewhere else. Reordering helped where the third terrain was incidental: mission 2 went from 19 to 7 by painting paths first and then `generate … keep`, and mission 1 from 6 to 4 with `ground: "none"` on the stamp next to the river. The remaining 4 + 7 cells are real junctions, and they draw as the main terrain's pure tile, which shows a hard notch.
 - Workaround: none (the cells show the fallback tile).
 - Suggested change: draw a 3–4-terrain cell by layering: the lowest-priority terrain's pure tile, then each higher terrain's corner mask over it (a terrain priority/z-order per tileset, like Tiled's or Godot's terrain layering). Or let `path` lay its `edge` terrain under the junction automatically. And reword the hint so it doesn't promise that a repaint can always fix it.
-- Status: fixed (generator wave-8: multi-terrain corner tiles, mixes auto/triples, --fix add-mixes): re-test in the next game wave
+- Re-test (G5 wave 9, 2026-10-18): works. `"mixes": "triples"` on the temperate and desert tilesets in ssg.assets.json (`sprite apply` created 112 / 168 mix tiles: 1006 → 1118, 868 → 1036). After the rebuild `map show` / `map edit` report no cells without a tile on mission 1 (was 4) and mission 2 (was 7), and none on mission 3 or the new mission 4. Mission 1's ford junction cells (13,21), (24,21), (12,24), (25,24) now draw three-terrain tiles (wangids like grass|road|sand), not the grass fallback. `--fix add-mixes` wasn't needed.
+- Status: verified
 
 ## FB-050 · Aircraft get a `base` collision (a sliver at the tail wheel), and a declared sprite can't set `collisionHeight`
 - Severity: workaround        Milestone: G4
@@ -518,7 +519,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `collision: {source: "base", cut: 0.444}`. On the Bf 109 that is an 8-point sliver at the tail wheel, 4.2 m behind the anchor, and on the larger plane a 3 × 1.3 m band behind its centre. The Ranger walks through the planes, and a grenade landing on the cockpit does 0 damage. The intact state's per-direction polygon and the map's `collision` property are the same sliver. The README's fix is `--collision-height`, but `sprite apply` refuses `"collisionHeight"` ("unknown key"), and `apply_sprites`, `create_object_sprite` and `set_object_states` don't have it; only the anonymous `export_sprites` does.
 - Workaround: `src/scenes/Field.ts` `WHOLE_HULL` (`// FB-050`) makes `plane` and `plane_big` collide with the export's `canopyPolygon` (the whole hull).
 - Suggested change: accept `collisionHeight` (and maybe `collision: "hull" | "base"`) on declared and app sprites; don't use `base` for vehicles (a model whose slice below the cut is only wheels or skids); and warn when the base polygon doesn't contain the anchor.
-- Status: fixed (generator wave-8: full hull for vehicles/aircraft/buildings, collision base|full in apply): re-test in the next game wave
+- Re-test (G5 wave 9, 2026-10-18): works. The old plane renders still said `base` (they were only `outdated (renderer updated)`), so `node scripts/build-assets.mjs plane plane_big --force` re-rendered them: `collision.source "hull"`, `rule "vehicle"`, 18/20-point polygons around the whole aircraft, and mission 3's exported `collision` covers ±143×159 / ±178×223 Tiled px around the anchor (the anchor inside). `WHOLE_HULL` is gone from src/scenes/Field.ts. The declared `"collision": "full"` works too: the radar dish (a pole, so `base` under `auto`) is now a hull target. load-check gained a test that every target's collider contains its anchor (missions 1–4 pass).
+- Status: verified
 
 ## FB-051 · Path objects report `skipped` with no reason
 - Severity: polish        Milestone: G4
@@ -527,7 +529,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `"placed": {"wire": 1}, "skipped": 1` and nothing else.
 - Workaround: none.
 - Suggested change: `rejected` by cause (and the spot) for path objects, as scatter reports.
-- Status: fixed (generator wave-8: path reasons + rejectedSpots): re-test in the next game wave
+- Re-test (G5 wave 9, 2026-10-18): works. Mission 1 trench 2: `"skipped": 1, "rejected": {"bounds": 1}, "rejectedSpots": [{"object": "wire", "x": 48, "y": 29.5, "cause": "bounds"}]` plus a `short` hint ("the path runs off the map or too close to its edge … move the points in or lower offset"). Same for mission 4's pipeline (the 5th pipe at x 46).
+- Status: verified
 
 ## FB-052 · Map and tileset lifecycle nits: MCP wording in CLI errors, `--if-missing` ignores the size, deleted ids are reused
 - Severity: polish        Milestone: G4
@@ -536,7 +539,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the CLI error says "pass replace: true … or ifMissing: true" (the MCP spelling). `--if-missing` silently returns the 48x40 map. The new mission 3 map got id 6 again, and the arctic tileset got id 3. Previews and exports came out right (they're keyed by revision as well), but anything else caching by id (Tiled firstgids, the app's per-browser view settings, a game's saved `mapId`) can mix up a deleted map with its successor.
 - Workaround: build-maps.mjs compares the returned size itself.
 - Suggested change: say `--replace` / `--if-missing` in the CLI; `existed: true, differs: {size: …}` (or refuse) on a mismatch; AUTOINCREMENT ids.
-- Status: fixed (generator wave-8: CLI flag wording, if-missing mismatch warning, ids never reused): re-test in the next game wave
+- Re-test (G5 wave 9, 2026-10-18): works. `map create probe` on a taken name: "pass --replace to delete it and start again, or --if-missing to use it". `map create mission1 --if-missing --size 40x40`: "warning: map 4 "mission1" exists but differs from what was asked: size 40x40 (the map has 48x40); it was left as it is". Creating, deleting and re-creating a scratch map gave ids 7 then 8 (no reuse); mission 4 got id 9. Nit: with `--json` the mismatch is only on stderr (the JSON has `existed: true` but no `differs`), so build-maps.mjs keeps its own size check.
+- Status: verified
 
 ## FB-053 · `map_sprites kind: "object"` leaves out vehicles that are placed as objects
 - Severity: polish        Milestone: G4
@@ -545,6 +549,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the planes, the tank and the truck are `kind: "vehicle"`, so they're missing from that list (they appear without the filter, with footprints). An author filtering for scenery to place misses the airfield's main targets.
 - Workaround: call it without `kind`.
 - Suggested change: let `kind: "object"` mean "placeable with a footprint" (objects and vehicles with an `object` block), or add `placeable: true`; or say in the answer that vehicles were filtered out.
+- Re-test (G5 wave 9, 2026-10-18, not fixed yet): it leaves out more than vehicles. On mission 4, `kind: "object"` lists 10 sprites (bush, fern, guard_tower, hangar, palm, rock, rock_big, tanktrap, tree, tree_small), while the unfiltered list shows `pipe`, `pipe_valve`, `searchlight`, `radar_spin`, `tent`, `crate`… also as `"kind": "object"` with footprints. It looks like the filter keeps only one-state stills.
 - Status: triaged (TODO: Inbox, generator 2026-10-18)
 
 ## FB-054 · The text picture still lets zone marks overwrite object cells
@@ -564,4 +569,67 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none needed.
 - Suggested change: a reason of its own for fps (and for each sprite key that marks a render outdated).
 - Status: triaged (TODO: Inbox, generator 2026-10-18)
+
+## FB-056 · Object states are stills only: a sprite can't both drive (or spin) and be destroyed
+- Severity: workaround        Milestone: G5
+- Tried: an enemy truck that drives along a road and can be blown up: `{"asset": "POLYGON_BattleRoyale/SM_Veh_Truck_01", "template": ["drive"], "states": "auto,destroyed@destroy", "dirs": "8"}`; also a spinning radar dish as a target (`spin` + `destroyed=@scorch@collapse`).
+- Wanted: one sprite (one sheet, one anchor) with a looping `intact` (or an extra `drive` move) next to `destroyed` and `intact_to_destroyed`.
+- Got: `sprite apply --help`: "states … (no anim/template/set/class)"; README: "With `states` the states are the sprite's moves: `"template": "still"` … other moves are refused". Each state is one still frame per direction.
+- Workaround: two sprites of the same model, `truck_drive` (template `drive`, 8 directions) and `truck_wreck` (`auto,destroyed@destroy`, `dirs: 8`, `facings: 0`). Their anchors per direction are identical, so `src/scenes/Mission.ts` (`// FB-056`) plays `truck_drive/drive_<dir>` while it moves and swaps to `truck_wreck/intact_to_destroyed_<dir>` on the same sprite when a grenade kills it. The spinning dish (`radar_spin`) is scenery only.
+- Suggested change: let a state carry its own moves (`"intact": {"template": "drive"}` or `"intact": "@spin"`), or allow `template`/`anim` next to `states` and render them on the same sheet with the shared framing (transitions start from the state's first frame).
+- Status: open
+
+## FB-057 · `flag_wave` can't wave a single-mesh flag, and POLYGON_War's flags are all single meshes
+- Severity: polish        Milestone: G5
+- Tried: `preview_sprite {asset: "POLYGON_War/SM_Env_Flag_Pole_Germany_01", templates: ["flag_wave"]}` (also the `_Long_Germany_A` banners) for a flag over the pump station.
+- Wanted: a flag that waves.
+- Got: `Error: none of the set applies to this asset`. `get_asset` shows no parts, so `set_part_role` can't mark one as `flag`. The only models with a `flag` part are POLYGON_Dark_Fortress banners (9.6 m wide).
+- Workaround: none (no flag in mission 4).
+- Suggested change: a vertex-bend `flag_wave` for single meshes (bend the vertices beyond the pole's bounding box, or the thin plane part of the mesh, by distance from the pole), or let `set_part_role` take a vertex region / material as a part.
+- Status: open
+
+## FB-058 · `set_part_role` accepts an unknown part name silently
+- Severity: polish        Milestone: G5
+- Tried: `set_part_role {asset: 931, part: "SM_Prop_Searchlight_Base_01_Head_01", role: "turret"}` (a guess at the name) for a sweeping searchlight.
+- Wanted: an error naming the parts.
+- Got: `isError: false` and the parts list back with `role: null` unchanged; only reading it showed that the part is `SM_Prop_Searchlight_Head_01`. The retry worked and `turret_sweep` sweeps the head nicely. Also, `get_asset` gives the head's `bbox_min/max` as ±0.005 m on a 1.46 m model (probably model-local units), which doesn't help to find the part either.
+- Workaround: none needed (re-read and retried).
+- Suggested change: refuse unknown parts (`no part "…": parts are SM_Prop_Searchlight_Head_01`), accept the `local` name (`Head_01`) too, and give part boxes in metres.
+- Status: open
+
+## FB-059 · Vehicle routes: a patrol zone can't say which vehicle drives it
+- Severity: workaround        Milestone: G5
+- Tried: mission 4's truck route over MCP: `addZone kind: "patrol"` along the road.
+- Wanted: a route the generator knows is a vehicle's (sprite checked against the project, drawn by `map_preview` with the vehicle on it, kept off by scatters as a road).
+- Got: patrol zones are generic; `properties: {"vehicle": "truck_drive", "wreck": "truck_wreck", "speed": 3}` are free-form, so a misspelt sprite name only shows when the game runs, and the picture shows just a patrol line. `map_sprites` lists `truck_drive` with per-facing footprints (E 7×7, SE 8×4…), but nothing ties it to the zone.
+- Workaround: `src/scenes/Mission.ts` (`// FB-059`) turns a patrol zone with a `vehicle` property into a driving vehicle instead of a soldier.
+- Suggested change: a `sprite` (or `vehicle`) property on patrol/route zones that is validated like `place`'s `sprite`, exported as `sprite` on the Tiled object, and drawn by `map_preview` (the sprite at the first point, facing along the route).
+- Status: open
+
+## FB-060 · Dusk and night: tilesets can be tinted, sprites can't be lit or tinted
+- Severity: workaround        Milestone: G5
+- Tried: mission 4 at dusk in the jungle. The `jungle` tileset tints its textures (moss `#8aa080`, mud `#6a5848`, water `#6f8f96`), but sprite keys have no `tint`, light colour or ambient setting (`look` is clean/pixel…, `fx.tint` is for glowing FX only).
+- Wanted: soldiers, trees, the truck and props rendered with a dusk light (low warm sun or blue ambient), so a night mission doesn't need a screen-wide filter.
+- Got: nothing in `sprite apply --help`, `list_options` or the project settings.
+- Workaround: `Mission.dusk()` (FB-060 in src/scenes/Mission.ts and src/missions.ts): a blue multiply rectangle over the world under the HUD; additive effects (fire, explosions) are lifted above it so they still glow; searchlights get an additive glow ellipse.
+- Suggested change: a render-time light preset per project or sprite (`"light": "dusk" | {ambient, sun: {colour, elevation, azimuth}}`) applied to every sprite and tileset of the project, as one more variant key (so a game can ship day and night sheets).
+- Status: open
+
+## FB-061 · Re-applying an unchanged tileset with `"pairs": "all"` adds hundreds of mix tiles without saying why
+- Severity: polish        Milestone: G5
+- Tried: `sprite apply ssg.assets.json --dry-run` before changing anything this wave.
+- Wanted: `unchanged` for the desert and arctic tilesets (their declarations didn't change), or a reason.
+- Got: `tileset desert: would update · 868 → 1036 tiles (would create 168)` and `arctic: 1264 → 1744 (would create 480)`. `tileset show arctic` afterwards says `mixes: auto (every 3–4-terrain mix: 5 terrains or fewer), 480 mixed tiles`, so wave 8's `auto` default creates every mix for small tilesets. That is fine, but the dry run reads as if the file changed, and the arctic atlas grew 38 % for a map that has no three-terrain cells.
+- Workaround: none (accepted the larger arctic atlas).
+- Suggested change: give the update a reason (`mixes: auto now adds every mix (5 terrains or fewer)`), and maybe let `auto` add only the mixes the project's maps use.
+- Status: open
+
+## FB-062 · `"dirs": "1"` on an object sprite switches the view to "custom"
+- Severity: polish        Milestone: G5
+- Tried: `{"name": "searchlight", "template": "turret_sweep:…", "dirs": "1"}` (one facing, like the FX sprites) in an iso8 project.
+- Wanted: one grid-aligned iso8 facing (SE), like a `still` object.
+- Got: the dry run said `view custom · dirs 1` (the FX sprites' straight-on single view), not `iso8 · facings 1`.
+- Workaround: left `dirs` out; objects default to one facing.
+- Suggested change: for an object in a view with facings, read `dirs: 1` as `facings: 1`, or warn that it leaves the project's view.
+- Status: open
 

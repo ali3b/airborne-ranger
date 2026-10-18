@@ -4,7 +4,9 @@ export interface MissionConfig {
   map: string;
   number: number;
   title: string;
-  climate: 'temperate' | 'desert' | 'arctic';
+  climate: 'temperate' | 'desert' | 'arctic' | 'jungle';
+  /** Played at dusk: the scene is darkened (FB-060: sprites have no light/tint setting in the generator). */
+  dusk?: boolean;
   /** HUD goal while the targets stand ("destroy the …"). */
   goal: string;
   /** HUD line once every target is down. */
@@ -43,6 +45,17 @@ export const MISSIONS: MissionConfig[] = [
     goal: 'destroy the aircraft on the airfield',
     done: 'AIRCRAFT DESTROYED: get to the extraction zone',
     success: 'The enemy aircraft are burning. The Ranger made the pickup.',
+    seconds: 12 * 60,
+  },
+  {
+    map: 'mission4',
+    number: 4,
+    title: 'CUT A PIPELINE',
+    climate: 'jungle',
+    dusk: true,
+    goal: 'blow the pipeline valves',
+    done: 'PIPELINE CUT: get to the extraction zone',
+    success: 'The pipeline is cut and burning. The Ranger made the pickup at dusk.',
     seconds: 12 * 60,
   },
 ];

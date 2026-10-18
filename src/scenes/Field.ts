@@ -30,12 +30,6 @@ const PROPS: { i: number; j: number; name: string; dir: Dir8 }[] = [
 
 /** Hit points of the props that can be destroyed (sprites exported with `states`). A grenade does up to 100. */
 const DESTRUCTIBLE_HP: Record<string, number> = { tank: 100, bunker_large: 200 };
-/**
- * FB-050: the generator gives aircraft a `base` collision (the hull below 0.5 m: a plane's tail wheel), so the Ranger
- * walks through the fuselage and a grenade on the plane misses it. `collisionHeight` can't be set on a declared
- * sprite, so these sprites collide with their whole hull (the export's `canopyPolygon`) instead.
- */
-const WHOLE_HULL = new Set(['plane', 'plane_big']);
 
 /** German patrols: hard-coded waypoint loops in tile coordinates (maps with zones come in G3). */
 const PATROLS: [number, number][][] = [
@@ -57,7 +51,7 @@ const PATROLS: [number, number][][] = [
   ],
 ];
 
-const RANGER_RADIUS = 0.3; // metres
+export const RANGER_RADIUS = 0.3; // metres
 const RANGER_HP = 100;
 const GRENADE_RANGE = 8; // metres
 const GRENADE_FLIGHT = 0.9; // seconds
@@ -317,8 +311,7 @@ export class Field extends Phaser.Scene {
       placed.hp = opts.hp;
       placed.state = st?.name ?? 'intact';
     }
-    const hull = WHOLE_HULL.has(name) ? d.canopyPolygon : undefined; // FB-050
-    const poly = hull ?? opts.collision?.map(([x, y]): [number, number] => [x + d.anchor.x, y + d.anchor.y]) ?? st?.directions.find((x) => x.name === dir)?.polygon ?? d.polygon;
+    const poly = opts.collision?.map(([x, y]): [number, number] => [x + d.anchor.x, y + d.anchor.y]) ?? st?.directions.find((x) => x.name === dir)?.polygon ?? d.polygon;
     this.setCollision(placed, poly);
     // The collision polygon is what stands on the ground: a tree's trunk (`collision.source` "base"), the whole
     // hull for crates, walls and buildings.
@@ -950,6 +943,6 @@ function distToPolygon(c: Pt, poly: Pt[]) {
 }
 
 /** Does a circle (world metres) touch or lie inside a polygon (world metres)? */
-function circleHitsPolygon(c: Pt, r: number, poly: Pt[]) {
+export function circleHitsPolygon(c: Pt, r: number, poly: Pt[]) {
   return pointInPolygon(c, poly) || distToPolygon(c, poly) < r;
 }

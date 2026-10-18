@@ -144,7 +144,8 @@
       "name": "radar_dish",
       "asset": "POLYGON_Palm_City/SM_Prop_Satelite_Dish_02",
       "template": "still",
-      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "collision": "full"
     },
     {
       "name": "radio_tower",
@@ -212,6 +213,51 @@
       "name": "rock_snow",
       "asset": "POLYGON_Adventure_Pack/SM_Env_Rock_05_Snow",
       "template": "still"
+    },
+    {
+      "name": "truck_drive",
+      "asset": "POLYGON_BattleRoyale/SM_Veh_Truck_01",
+      "template": [
+        "drive"
+      ],
+      "dirs": "8"
+    },
+    {
+      "name": "truck_wreck",
+      "asset": "POLYGON_BattleRoyale/SM_Veh_Truck_01",
+      "states": "auto,destroyed@destroy",
+      "template": "still",
+      "dirs": "8",
+      "facings": 0
+    },
+    {
+      "name": "searchlight",
+      "asset": "POLYGON_War/SM_Prop_Searchlight_Base_01",
+      "template": "turret_sweep:angle=120,duration=4",
+      "maxSeconds": 4
+    },
+    {
+      "name": "radar_spin",
+      "asset": "POLYGON_Palm_City/SM_Prop_Satelite_Dish_02",
+      "template": "spin:duration=3",
+      "maxSeconds": 3
+    },
+    {
+      "name": "pipe",
+      "asset": "POLYGON_Apocalypse/SM_Prop_Pipe_Large_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "pipe_valve",
+      "asset": "POLYGON_Apocalypse/SM_Prop_Pipe_Valve_02",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "fern",
+      "asset": "POLYGON_Generic/SM_Gen_Env_Fern_02",
+      "template": "still"
     }
   ],
   "tilesets": [
@@ -261,7 +307,8 @@
           "dirt",
           "sand"
         ]
-      ]
+      ],
+      "mixes": "triples"
     },
     {
       "name": "desert",
@@ -288,7 +335,8 @@
         },
         "road"
       ],
-      "pairs": "all"
+      "pairs": "all",
+      "mixes": "triples"
     },
     {
       "name": "arctic",
@@ -326,6 +374,35 @@
         "road"
       ],
       "pairs": "all"
+    },
+    {
+      "name": "jungle",
+      "noisePeriod": 4,
+      "variants": 4,
+      "terrains": [
+        {
+          "name": "grass",
+          "texture": "POLYGON_Dark_Fortress_v4/Texture/Env/Moss_01.png",
+          "scale": 4,
+          "tint": "#8aa080",
+          "variants": 16
+        },
+        {
+          "name": "mud",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Dirt.png",
+          "scale": 4,
+          "tint": "#6a5848"
+        },
+        {
+          "name": "water",
+          "texture": "POLYGON_Generic_v3/Textures/Generic_Water.png",
+          "scale": 4,
+          "tint": "#6f8f96"
+        },
+        "road"
+      ],
+      "pairs": "all",
+      "mixes": "triples"
     }
   ],
   "maps": [
@@ -366,6 +443,13 @@
       "tileset": "arctic",
       "ops": "maps/mission3.ops.json",
       "export": "public/assets/maps/mission3"
+    },
+    {
+      "name": "mission4",
+      "size": "48x40",
+      "tileset": "jungle",
+      "ops": "maps/mission4.ops.json",
+      "export": "public/assets/maps/mission4"
     }
   ]
 }

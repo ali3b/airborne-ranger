@@ -27,6 +27,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 ## Checks before you finish a milestone
 - `npm run typecheck`
 - `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>` for `title` (Ranger
-  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3` (each plays to the debriefing). It
+  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4` (each plays to the debriefing; mission 4 also checks the driving
+  truck, its wreck and the animated props). It
   needs no page errors, and it writes `test-results/<scene>.png`.
 - Update `FEEDBACK.md`, and commit in this repo.

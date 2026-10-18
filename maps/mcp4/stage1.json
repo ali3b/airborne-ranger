@@ -1,0 +1,138 @@
+[
+ {
+  "tool": "create_map",
+  "args": {
+   "name": "mission4",
+   "width": 48,
+   "height": 40,
+   "tilesets": [
+    "jungle"
+   ],
+   "ifMissing": true
+  }
+ },
+ {
+  "tool": "edit_map",
+  "args": {
+   "map": "mission4",
+   "show": false,
+   "ops": [
+    {
+     "op": "clear"
+    },
+    {
+     "op": "generate",
+     "biome": {
+      "base": "grass",
+      "layers": []
+     },
+     "seed": "mission4"
+    },
+    {
+     "op": "path",
+     "points": [
+      [
+       14,
+       -1
+      ],
+      [
+       15.5,
+       10
+      ],
+      [
+       13,
+       20
+      ],
+      [
+       14.5,
+       30
+      ],
+      [
+       13.5,
+       41
+      ]
+     ],
+     "terrain": "water",
+     "width": 3,
+     "jitter": 1.2,
+     "seed": "river",
+     "collision": true,
+     "edge": "mud",
+     "edgeWidth": 1.5
+    },
+    {
+     "op": "path",
+     "points": [
+      [
+       -1,
+       24
+      ],
+      [
+       12,
+       25
+      ],
+      [
+       24,
+       24
+      ],
+      [
+       36,
+       23
+      ],
+      [
+       49,
+       24
+      ]
+     ],
+     "terrain": "road",
+     "width": 3,
+     "jitter": 0.8,
+     "seed": "road"
+    },
+    {
+     "op": "path",
+     "points": [
+      [
+       10.5,
+       24
+      ],
+      [
+       18.5,
+       24
+      ]
+     ],
+     "terrain": "mud",
+     "width": 4,
+     "smooth": false,
+     "seed": "ford"
+    },
+    {
+     "op": "rect",
+     "x0": 11,
+     "y0": 22,
+     "x1": 18,
+     "y1": 26,
+     "value": false
+    },
+    {
+     "op": "rect",
+     "x0": 19,
+     "y0": 1,
+     "x1": 46,
+     "y1": 11,
+     "terrain": "mud"
+    },
+    {
+     "op": "generate",
+     "biome": "jungle",
+     "seed": "mission4",
+     "keep": [
+      "water",
+      "road",
+      "mud"
+     ]
+    }
+   ]
+  }
+ }
+]

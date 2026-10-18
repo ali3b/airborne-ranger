@@ -37,7 +37,7 @@ export const MEDAL_NAMES: Record<Medal, string> = {
 export const MEDAL_POINTS: Record<Medal, number> = { COM1: 800, COM2: 950, BSM: 1100, SSM: 1250, DSC: 1400, CMH: 1550 };
 
 export const MERIT = {
-  /** The objective destroyed: × the mission's difficulty (mission 1: 1.0, 2: 1.2, 3: 1.4). */
+  /** The objective destroyed: × the mission's difficulty (mission 1: 1.0, 2: 1.2, 3: 1.4, 4: 1.6). */
   objective: 500,
   /** Reaching the extraction zone with the objective done. */
   extraction: 200,

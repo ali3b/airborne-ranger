@@ -2,6 +2,8 @@
 //   node scripts/load-check.mjs [url] [scene]
 // Any scene but the title is entered directly with ?scene=<name> (the title honours it). `mission` is mission 1,
 // `mission2` (any mission<N> / map name) the mission scene with ?mission=<map>; both play to MISSION ACCOMPLISHED.
+// Every mission checks that each target collides with its whole hull (FB-050); a map with vehicles (mission 4) also
+// checks that one drives, that a grenade wrecks it and that looping props animate (G5).
 import { chromium } from '@playwright/test';
 const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
 const scene = process.argv[3] ?? 'title';
@@ -152,6 +154,58 @@ try {
       console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets)`);
     }
     await page.screenshot({ path: `test-results/${scene}-drop.png` }).catch(() => undefined);
+    // FB-050: every target collides with its whole hull (the anchor, the footprint centre, is inside its collider).
+    const hulls = await page.evaluate(() => {
+      const m = window.game.scene.getScene('mission');
+      const inside = (c, poly) => {
+        let r = false;
+        for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
+          const a = poly[k];
+          const b = poly[j];
+          if (a.y > c.y !== b.y > c.y && c.x < ((b.x - a.x) * (c.y - a.y)) / (b.y - a.y) + a.x) r = !r;
+        }
+        return r;
+      };
+      return (m?.targets ?? []).filter((t) => !inside(m.worldOf(t.at), t.world)).map((t) => t.name);
+    });
+    if (hulls.length) {
+      ok = false;
+      console.log('TARGETS WITHOUT A HULL COLLIDER:', hulls.join(', '));
+    }
+    // G5: vehicles drive their path, looping prop animations play; a grenade wrecks the truck.
+    if (s.vehicles) {
+      const v0 = await page.evaluate(() => window.game.scene.getScene('mission').vehicles.map((v) => ({ x: v.placed.at.x, y: v.placed.at.y })));
+      await page.waitForTimeout(4000);
+      const g5 = await page.evaluate(async (v0) => {
+        const m = window.game.scene.getScene('mission');
+        const moved = m.vehicles.filter((v, k) => Math.hypot(v.placed.at.x - v0[k].x, v.placed.at.y - v0[k].y) > 4).length;
+        const anim = m.vehicles[0].placed.sprite.anims.currentAnim?.key ?? null;
+        // Park the Ranger 8 m west of the truck, facing east, and throw until it's wrecked.
+        m.god = true;
+        m.grenadesLeft = 99;
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const v = m.vehicles[0];
+        for (let tries = 0; tries < 4 && v.placed.state === 'intact'; tries++) {
+          m.busy = false;
+          m.prone = false;
+          m.ranger.setPosition(v.placed.at.x - 8 * m.ppm, v.placed.at.y);
+          m.facing = 'E';
+          m.throwGrenade();
+          const t0 = performance.now();
+          await wait(200);
+          while (performance.now() - t0 < 20000 && (m.grenades.length || m.busy)) await wait(100);
+        }
+        const t0 = performance.now();
+        while (performance.now() - t0 < 15000 && v.placed.state !== 'destroyed') await wait(100);
+        return { moved, of: m.vehicles.length, anim, wreck: v.placed.state, wreckAnim: v.placed.sprite.anims.currentAnim?.key ?? null, animatedProps: m.report.animatedProps };
+      }, v0);
+      console.log('g5:', JSON.stringify(g5));
+      if (g5.moved < 1 || g5.wreck !== 'destroyed' || g5.animatedProps < 2) {
+        ok = false;
+        console.log('G5 CHECK FAILED (want a moving vehicle that a grenade wrecks, >= 2 animated props)');
+      }
+      await page.screenshot({ path: `test-results/${scene}-truck.png` }).catch(() => undefined);
+    }
     if (!s.error) {
       // Blow up the depot: stand 8 m (the grenade's range) west of each target's anchor facing east, unhurtable, and
       // throw until it's destroyed; then put the Ranger in the extraction zone and expect the end screen.

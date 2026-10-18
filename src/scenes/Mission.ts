@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
-import { tileToScreen, screenToTile, type Dir8 } from '../iso';
-import { Field, type Placed, type Pt } from './Field';
+import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
+import { Field, circleHitsPolygon, RANGER_RADIUS, type Placed, type Pt } from './Field';
 import { missionByKey, type MissionConfig } from '../missions';
 import { award, selected, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
@@ -27,6 +27,22 @@ interface Pod {
   taken: boolean;
 }
 
+/**
+ * An enemy vehicle driving a patrol path (G5): the `drive` sprite (8 directions, its own hull collision per
+ * direction) while it moves; when a blast destroys it the `wreck` sprite's `intact_to_destroyed` plays in the same
+ * facing. Both sprites are the same model, so their anchors per direction match. // FB-056: one sprite can't hold both a
+ * looping drive and object states, hence the pair.
+ */
+interface Vehicle {
+  placed: Placed;
+  drive: string;
+  path: Pt[];
+  next: number;
+  speed: number;
+  /** Seconds the vehicle has been held up by the Ranger in its way. */
+  blocked: number;
+}
+
 /** A zone as a polygon in cell coordinates. */
 type Area = [number, number][];
 
@@ -45,6 +61,7 @@ export class Mission extends Field {
   protected objectiveArea: Area = [];
   protected extractArea: Area = [];
   protected extractMarker?: Phaser.GameObjects.Graphics;
+  protected vehicles: Vehicle[] = [];
   protected timeLeft = 0;
   protected objectiveDone = false;
   /** 'accomplished' | 'failed' | 'kia' once the mission is over. */
@@ -58,7 +75,7 @@ export class Mission extends Field {
   result: MissionResult | null = null;
   award: Award | null = null;
   /** For scripts/load-check.mjs: how the map turned into the scene. */
-  report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0 };
+  report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
 
   constructor() {
     super('mission');
@@ -75,6 +92,7 @@ export class Mission extends Field {
   create() {
     this.targets = [];
     this.pods = [];
+    this.vehicles = [];
     this.blocked = new Set();
     this.timeLeft = this.cfg.seconds;
     this.objectiveDone = false;
@@ -85,8 +103,9 @@ export class Mission extends Field {
     this.objectiveAt = null;
     this.restartOnR = false;
     this.grenadesLeft = START_GRENADES;
-    this.report = { tiles: 0, objects: 0, missingSprites: [], blockedCells: 0, enemies: 0, pods: 0, targets: 0 };
+    this.report = { tiles: 0, objects: 0, missingSprites: [], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
     super.create();
+    if (this.cfg.dusk && this.ranger) this.dusk();
     this.input.keyboard?.on('keydown-ENTER', () => this.toDebrief());
   }
 
@@ -179,6 +198,9 @@ export class Mission extends Field {
       return;
     }
     this.report.objects++;
+    // Looping prop animations (searchlight sweep, radar spin) come from the sprite's own template.
+    const anim = placed.sprite.anims.currentAnim;
+    if (anim && anim.frames.length > 1 && anim.repeat === -1) this.report.animatedProps++;
     if (target) this.targets.push(placed);
   }
 
@@ -198,6 +220,12 @@ export class Mission extends Field {
       if (p.team === 'ranger') continue;
       const [x, y] = this.cell(z.x, z.y);
       const facing = (typeof p.facing === 'string' ? p.facing : 'SW') as Dir8;
+      // FB-059: a vehicle route is a patrol zone with the game's own `vehicle` / `wreck` / `speed` properties.
+      if (z.type === 'patrol' && typeof p.vehicle === 'string' && z.polyline?.length) {
+        const pts = z.polyline.map((q): [number, number] => [x + q.x / this.tmj.tileheight, y + q.y / this.tmj.tileheight]);
+        this.spawnVehicle(p.vehicle, String(p.wreck ?? p.vehicle), pts, Number(p.speed ?? 3), Number(p.hp ?? 100));
+        continue;
+      }
       if (z.type === 'spawn') {
         this.spawnEnemy([[x, y]], facing);
       } else if (z.type === 'patrol' && z.polyline?.length) {
@@ -211,6 +239,92 @@ export class Mission extends Field {
       }
     }
     this.report.enemies = this.enemies.length;
+    this.report.vehicles = this.vehicles.length;
+  }
+
+  /**
+   * A vehicle on a path (cell coordinates), driven there and back. Its collider is the drive sprite's hull for the
+   * current direction, so bullets stop on it, the Ranger can't walk through it and a grenade damages it.
+   */
+  protected spawnVehicle(drive: string, wreck: string, cells: [number, number][], speed: number, hp: number) {
+    const s = this.manifest.sprites[drive];
+    if (!s?.object || !this.manifest.sprites[wreck]) {
+      if (!this.report.missingSprites.includes(drive)) this.report.missingSprites.push(drive);
+      return;
+    }
+    const path = [...cells, ...cells.slice(1, -1).reverse()].map(([i, j]) => tileToScreen(i, j));
+    const w = screenToWorldDelta(path[1].x - path[0].x, path[1].y - path[0].y, this.ppm);
+    const dir = dirFromWorld(w.x, w.y);
+    const d = s.object.directions.find((x) => x.name === dir) ?? s.object.directions[0];
+    const spr = this.add.sprite(path[0].x, path[0].y, drive);
+    const placed: Placed = { sprite: spr, name: wreck, dir: d.name as Dir8, at: { ...path[0] }, anchor: d.anchor, world: [], screen: [], minX: 0, maxX: 0, hp, state: 'intact' };
+    spr.play(animKey(s, s.clips[0], placed.dir));
+    this.setCollision(placed, d.polygon);
+    spr.setDepth(placed.at.y);
+    this.props.push(placed);
+    this.vehicles.push({ placed, drive, path, next: 1, speed, blocked: 0 });
+  }
+
+  protected updateVehicles(dt: number) {
+    for (const v of this.vehicles) {
+      const p = v.placed;
+      if (p.state !== 'intact') continue;
+      const goal = v.path[v.next];
+      const w = screenToWorldDelta(goal.x - p.at.x, goal.y - p.at.y, this.ppm);
+      const dist = Math.hypot(w.x, w.y);
+      if (dist < 0.15) {
+        v.next = (v.next + 1) % v.path.length;
+        continue;
+      }
+      const dir = dirFromWorld(w.x, w.y);
+      const s = this.manifest.sprites[v.drive];
+      const d = s.object!.directions.find((x) => x.name === dir) ?? s.object!.directions[0];
+      const step = Math.min(dist, v.speed * dt);
+      const sd = worldToScreenDelta((w.x / dist) * step, (w.y / dist) * step, this.ppm);
+      const before = { at: { ...p.at }, dir: p.dir, anchor: p.anchor };
+      p.at = { x: p.at.x + sd.x, y: p.at.y + sd.y };
+      p.dir = dir;
+      p.anchor = d.anchor;
+      this.setCollision(p, d.polygon);
+      // The Ranger in the way: the truck waits (and he takes a knock if he stays right against it).
+      if (this.ranger && !this.dead && circleHitsPolygon(this.worldOf(this.ranger), RANGER_RADIUS, p.world)) {
+        p.at = before.at;
+        p.dir = before.dir;
+        p.anchor = before.anchor;
+        const back = s.object!.directions.find((x) => x.name === p.dir) ?? d;
+        this.setCollision(p, back.polygon);
+        p.sprite.anims.pause();
+        if ((v.blocked += dt) > 1.5) {
+          v.blocked = 0;
+          this.hurtRanger(20);
+        }
+        continue;
+      }
+      v.blocked = 0;
+      p.sprite.setPosition(p.at.x, p.at.y).setDepth(p.at.y);
+      const key = animKey(s, s.clips[0], p.dir);
+      if (p.sprite.anims.currentAnim?.key !== key) p.sprite.play(key);
+      else if (p.sprite.anims.isPaused) p.sprite.anims.resume();
+    }
+  }
+
+  /** At dusk, additive effects (fire, explosions) glow over the wash instead of being dimmed blue by it. */
+  protected fx(name: string, at: Pt, depth: number, opts: { scale?: number; once?: boolean } = {}) {
+    const spr = super.fx(name, at, depth, opts);
+    if (spr && this.cfg.dusk && spr.blendMode === Phaser.BlendModes.ADD) spr.setDepth(9e8 + 2 + depth / 1e6);
+    return spr;
+  }
+
+  /** Dusk: the world under a blue multiply wash, the HUD stays bright (FB-060). */
+  protected dusk() {
+    const { width, height } = this.scale;
+    this.add.rectangle(width / 2, height / 2, width * 2, height * 2, 0x6a74a8).setBlendMode(Phaser.BlendModes.MULTIPLY).setScrollFactor(0).setDepth(9e8);
+    // Searchlights: a soft additive glow in front of each lamp.
+    for (const p of this.props) {
+      if (p.name !== 'searchlight') continue;
+      const glow = this.add.ellipse(p.at.x + 30, p.at.y + 20, 150, 70, 0xfff2c0, 0.22).setBlendMode(Phaser.BlendModes.ADD).setDepth(9e8 + 1);
+      this.tweens.add({ targets: glow, x: p.at.x - 30, yoyo: true, repeat: -1, duration: 2000, ease: 'Sine.inOut' });
+    }
   }
 
   /** A supply pod: the crate sprite, tinted, no collider; walking over it restocks grenades. */
@@ -266,6 +380,7 @@ export class Mission extends Field {
     if (!this.ranger || this.outcome) return;
     super.update(t, dtMs);
     const dt = dtMs / 1000;
+    this.updateVehicles(dt);
     this.timeLeft -= dt;
     // Supply pods.
     for (const p of this.pods) {

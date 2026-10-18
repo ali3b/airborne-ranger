@@ -41,6 +41,18 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
   `Sand_01` tinted `#eef4ff` (Fantasy Village's own `Snow_01` reads green-grey), its ice is `Generic_Water` tinted pale
   blue and its rock is a grey-tinted `Generic_Rock`. Snow-covered pines and rocks come from POLYGON_Adventure_Pack.
 
+## Living battlefield (G5)
+- **Mission 4, Cut a Pipeline (jungle, dusk):** authored over MCP (`maps/mcp4/stage*.json`, their sum `maps/mission4.ops.json`) on
+  the `jungle` tileset (tinted moss, mud, water, road). A river with a mud ford, a road, a pipeline of
+  POLYGON_Apocalypse pipes (a `path` with objects every 6 m) and three destructible valves (the targets), a guard
+  tower, searchlights, a comm post with a spinning dish, palms, ferns and bushes. Dusk is a game-side wash (FB-060).
+- **Vehicles:** a patrol zone with a `vehicle` property (FB-059) is driven there and back by that sprite (`truck_drive`,
+  the `drive` template in 8 directions) at `speed` m/s; its hull for the current direction is its collider. It waits
+  when the Ranger is in its way (and knocks him after 1.5 s). A grenade swaps it to `truck_wreck`'s
+  `intact_to_destroyed` in the same facing (FB-056), then fire and smoke.
+- **Animated props:** sprites whose only move is a looping template (`searchlight`: `turret_sweep` after its head part
+  was given the `turret` role; `radar_spin`: `spin`) loop wherever the map places them.
+
 ## Roster, merit, promotions and medals (G4)
 The rules live in `src/roster.ts` (constants `RANK_POINTS`, `MERIT`, `MEDAL_POINTS`); this is what they say.
 
@@ -53,7 +65,7 @@ can fly. A mission entered by URL (`?scene=mission&mission=…`) is flown by an 
 **Mission merit** (never below 0):
 | | points |
 |---|---|
-| objective destroyed | 500 × difficulty (mission 1: 1.0, 2: 1.2, 3: 1.4) |
+| objective destroyed | 500 × difficulty (mission 1: 1.0, 2: 1.2, 3: 1.4, 4: 1.6) |
 | extraction (objective done, reached the zone) | +200 |
 | each enemy soldier killed | +25 |
 | each installation destroyed (targets and any other destructible) | +50 |
@@ -87,3 +99,4 @@ a promotion fanfare, and a 16-step march drum loop on the title. M or the corner
 | G2 | tilesets (Phase B) | generated ground tilesets for the three terrains |
 | G3 | maps (Phase C) | missions built only through MCP map tools: drop, 3 pods, objective, patrols, timer, extraction |
 | G4 | — | mission select, roster with ranks and medals (saved in localStorage), sound |
+| G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |

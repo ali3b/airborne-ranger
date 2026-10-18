@@ -1,0 +1,14 @@
+[
+  {"tool": "edit_map", "args": {"map": "mission4", "show": false, "ops": [
+    {"op": "path", "points": [[19, 5], [47, 5]], "smooth": false, "jitter": 0, "seed": "pipeline", "objects": [{"sprite": "pipe", "every": 6, "facing": "parallel", "properties": {"kind": "pipeline"}}]},
+    {"op": "place", "sprite": "pipe_valve", "x": 23, "y": 6.5, "state": "intact", "id": "valve1", "properties": {"target": true, "hp": 100}},
+    {"op": "place", "sprite": "pipe_valve", "x": 32, "y": 6.5, "state": "intact", "id": "valve2", "properties": {"target": true, "hp": 100}},
+    {"op": "place", "sprite": "pipe_valve", "x": 41, "y": 6.5, "state": "intact", "id": "valve3", "properties": {"target": true, "hp": 100}},
+    {"op": "place", "sprite": "searchlight", "x": 20.5, "y": 10, "id": "light_w"},
+    {"op": "place", "sprite": "searchlight", "x": 45.5, "y": 10, "id": "light_e"},
+    {"op": "place", "sprite": "radar_spin", "x": 37.5, "y": 16.5, "id": "comm_dish"},
+    {"op": "place", "sprite": "tent", "x": 29.5, "y": 15.5, "id": "camp_tent"},
+    {"op": "place", "sprite": "guard_tower", "x": 45, "y": 15, "id": "tower"},
+    {"op": "place", "sprite": "crate_pile", "x": 33.5, "y": 14.5}
+  ]}}
+]
