@@ -1,0 +1,11 @@
+[
+  {"op": "clear", "terrain": "grass"},
+  {"op": "rect", "x0": 1, "y0": 1, "x1": 10, "y1": 10, "terrain": "dirt"},
+  {"op": "place", "sprite": "tent", "x": 4.5, "y": 4.5},
+  {"op": "place", "sprite": "crate_pile", "x": 9.5, "y": 2.5},
+  {"op": "place", "sprite": "barrel_pile", "x": 8.5, "y": 8},
+  {"op": "place", "sprite": "sandbags", "x": 11.5, "y": 3, "facing": "SE", "properties": {"kind": "sandbags"}},
+  {"op": "place", "sprite": "sandbags", "x": 4, "y": 11.5, "facing": "SW", "properties": {"kind": "sandbags"}},
+  {"op": "addZone", "kind": "spawn", "points": [[2.5, 9.5]], "name": "guard", "properties": {"team": "german", "behaviour": "guard", "facing": "SW"}},
+  {"op": "addZone", "kind": "spawn", "points": [[10.5, 5.5]], "name": "guard", "properties": {"team": "german", "behaviour": "guard", "facing": "SE"}}
+]

@@ -140,8 +140,14 @@ interface AnimJson {
   anims: { key: string; frameRate: number; repeat: number; frames: { key: string; frame: string }[] }[];
 }
 
-/** Queue the manifest; once it arrives, queue every sprite's atlas and animations. Call from preload(). */
-export function preloadAssets(scene: Phaser.Scene) {
+/**
+ * Queue the manifest; once it arrives, queue every sprite's atlas and animations. Call from preload(). `maps` names
+ * the mission maps to load (G6: a 128×256 map is ~2 MB of .tmj and its own ground atlas, so only the one played).
+ */
+export function preloadAssets(scene: Phaser.Scene, maps: string[] = []) {
+  // A later scene start finds the manifest cached (the loader skips it, so its filecomplete never fires).
+  const cached = scene.cache.json.get('manifest') as AssetManifest | undefined;
+  if (cached) return queueMaps(scene, cached, maps);
   scene.load.json('manifest', 'assets/manifest.json');
   scene.load.once('filecomplete-json-manifest', (_key: string, _type: string, m: AssetManifest) => {
     for (const s of Object.values(m.sprites)) {
@@ -155,14 +161,19 @@ export function preloadAssets(scene: Phaser.Scene) {
       scene.load.json(`tileset:${t.name}`, t.tsj);
       scene.load.image(`tileset-img:${t.name}`, t.image);
     }
-    // Maps: the .tmj, then (once it arrives) each embedded tileset's atlas next to it.
-    for (const mp of Object.values(m.maps ?? {})) {
-      scene.load.once(`filecomplete-json-tmj:${mp.name}`, (_k: string, _t: string, tmj: TiledMap) => {
-        for (const ts of tmj.tilesets) scene.load.image(`map-img:${mp.name}:${ts.name}`, `${mp.path}${ts.image}`);
-      });
-      scene.load.json(`tmj:${mp.name}`, mp.tmj);
-    }
+    queueMaps(scene, m, maps);
   });
+}
+
+/** Maps: the .tmj, then (once it arrives) each embedded tileset's atlas next to it. */
+function queueMaps(scene: Phaser.Scene, m: AssetManifest, maps: string[]) {
+  for (const mp of Object.values(m.maps ?? {})) {
+    if (!maps.includes(mp.name) || scene.cache.json.exists(`tmj:${mp.name}`)) continue;
+    scene.load.once(`filecomplete-json-tmj:${mp.name}`, (_k: string, _t: string, tmj: TiledMap) => {
+      for (const ts of tmj.tilesets) scene.load.image(`map-img:${mp.name}:${ts.name}`, `${mp.path}${ts.image}`);
+    });
+    scene.load.json(`tmj:${mp.name}`, mp.tmj);
+  }
 }
 
 /**

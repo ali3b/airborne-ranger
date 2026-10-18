@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { isTouch } from '../touch';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
-import { Field, circleHitsPolygon, RANGER_RADIUS, type Placed, type Pt } from './Field';
+import { Field, circleHitsPolygon, distW, RANGER_RADIUS, type Placed, type Pt } from './Field';
+import { isoCull } from '../world';
+import { Overview } from '../overview';
 import { missionByKey, type MissionConfig } from '../missions';
 import { award, selected, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
@@ -20,6 +22,8 @@ import { sfx } from '../sound';
 
 const START_GRENADES = 6;
 const POD_RADIUS = 1.2; // metres
+/** G6: vehicles this far from the Ranger stop driving until he comes nearer. */
+const VEHICLE_SLEEP = 45; // metres
 
 interface Pod {
   sprite: Phaser.GameObjects.Sprite;
@@ -83,6 +87,15 @@ export class Mission extends Field {
     super('mission');
   }
 
+  /** The overview map (Tab / O / the MAP button), while open the action pauses and the clock runs. */
+  protected overview?: Overview;
+  protected compass?: Phaser.GameObjects.Graphics;
+  protected compassText?: Phaser.GameObjects.Text;
+
+  protected mapsToLoad() {
+    return [this.mapName];
+  }
+
   init(data: { mission?: string; ranger?: string }) {
     const key = data?.mission ?? (this.started ? this.cfg.map : new URLSearchParams(window.location.search).get('mission'));
     this.started = true;
@@ -108,6 +121,18 @@ export class Mission extends Field {
     this.report = { tiles: 0, objects: 0, missingSprites: [], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
     super.create();
     if (this.cfg.dusk && this.ranger) this.dusk();
+    if (this.ranger) {
+      this.overview = new Overview(this, this.tmj, this.mapName);
+      const kb = this.input.keyboard!;
+      kb.addKey('TAB').on('down', () => this.toggleMap());
+      kb.addKey('O').on('down', () => this.toggleMap());
+      this.compass = this.add.graphics().setScrollFactor(0).setDepth(1e9);
+      this.compassText = this.add
+        .text(0, 0, '', { fontFamily: 'monospace', fontSize: '12px', color: '#e8d27a', backgroundColor: '#10140ccc', padding: { x: 4, y: 2 } })
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0)
+        .setDepth(1e9);
+    }
     this.input.keyboard?.on('keydown-ENTER', () => this.toDebrief());
     // A tap continues too, once the end screen has been up a moment (not the tap that was firing).
     this.input.on('pointerdown', () => this.time.now - this.finishedAt > 1000 && this.toDebrief());
@@ -164,6 +189,8 @@ export class Mission extends Field {
       .filter((t): t is Phaser.Tilemaps.Tileset => !!t);
     for (const l of this.tmj.layers) {
       if (l.type !== 'tilelayer') continue;
+      // An empty layer (the decoration layer, usually) isn't drawn at all.
+      if (!(l.data ?? []).some((g) => g > 0)) continue;
       // The generator's README: create the layer at x = (rows − 1) · tileWidth / 2 to match its picture, whose left
       // edge is the map's left corner. Here the world origin is the map's top corner, rows · tileWidth / 2 to the
       // right of that edge, so the layer goes at −tileWidth / 2: tile (i, j)'s diamond centre lands on
@@ -171,7 +198,8 @@ export class Mission extends Field {
       const layer = map.createLayer(l.name, sets, -this.tmj.tilewidth / 2, 0);
       if (!layer) continue;
       layer.setDepth(-1e9 + (l.name === 'ground' ? 0 : 1));
-      layer.setSkipCull(true);
+      // G6: only the tiles under the camera (Phaser's own iso cull tests all 32 768 tiles of a layer every frame).
+      isoCull(layer);
       this.report.tiles += (l.data ?? []).filter((g) => g > 0).length;
     }
   }
@@ -270,9 +298,11 @@ export class Mission extends Field {
   }
 
   protected updateVehicles(dt: number) {
+    const rw = this.worldOf(this.ranger);
     for (const v of this.vehicles) {
       const p = v.placed;
       if (p.state !== 'intact') continue;
+      if (distW(this.worldOf(p.at), rw) > VEHICLE_SLEEP) continue;
       const goal = v.path[v.next];
       const w = screenToWorldDelta(goal.x - p.at.x, goal.y - p.at.y, this.ppm);
       const dist = Math.hypot(w.x, w.y);
@@ -377,13 +407,81 @@ export class Mission extends Field {
     const t = Math.max(0, Math.ceil(this.timeLeft));
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
     const goal = this.objectiveDone ? this.cfg.done : `${this.cfg.goal} (${done}/${this.targets.length})`;
-    return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}`;
+    return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}${isTouch ? '' : '   Tab map'}`;
+  }
+
+  /** Open or close the overview map. While it's open the action pauses (the mission clock runs on). */
+  toggleMap() {
+    if (!this.overview || this.outcome || this.dead) return;
+    if (this.overview.isOpen) {
+      this.overview.close();
+      this.anims.resumeAll();
+      this.busy = this.busyBeforeMap;
+      return;
+    }
+    this.busyBeforeMap = this.busy;
+    this.busy = true;
+    this.anims.pauseAll();
+    const c = this.rangerCell();
+    this.overview.open({
+      ranger: [c.x, c.y],
+      facing: this.facing,
+      objective: this.objectiveArea,
+      objectiveDone: this.objectiveDone,
+      extraction: this.extractArea,
+      drop: this.dropArea,
+      pods: this.pods.filter((p) => !p.taken).map((p) => {
+        const q = screenToTile(p.at.x, p.at.y);
+        return [q.i, q.j] as [number, number];
+      }),
+      title: `MISSION ${this.cfg.number} · ${this.cfg.title}`,
+    });
+  }
+  private busyBeforeMap = false;
+
+  /** Where the Ranger should head now: the objective, then the extraction zone (cell coordinates). */
+  protected goalCell(): [number, number] | null {
+    const a = this.objectiveDone ? this.extractArea : this.objectiveArea;
+    return a.length ? centroid(a) : null;
+  }
+
+  /** The HUD compass: north up (screen up is world north in iso8), an arrow to the goal and its distance. */
+  protected drawCompass() {
+    const g = this.compass;
+    const goal = this.goalCell();
+    if (!g || !this.compassText || !goal) return;
+    const cx = 34;
+    const cy = this.hud.y + this.hud.height + 34;
+    g.clear();
+    g.fillStyle(0x10140c, 0.8).fillCircle(cx, cy, 24);
+    g.lineStyle(1, 0xe8d27a, 0.7).strokeCircle(cx, cy, 24);
+    // North tick.
+    g.fillStyle(0xe8d27a, 0.8).fillTriangle(cx, cy - 23, cx - 4, cy - 15, cx + 4, cy - 15);
+    const at = tileToScreen(goal[0], goal[1]);
+    const a = Math.atan2(at.y - this.ranger.y, at.x - this.ranger.x);
+    const dx = Math.cos(a);
+    const dy = Math.sin(a);
+    const col = this.objectiveDone ? 0xff80c0 : 0xffd040;
+    g.fillStyle(col, 1).fillTriangle(cx + dx * 20, cy + dy * 20, cx - dx * 6 - dy * 7, cy - dy * 6 + dx * 7, cx - dx * 6 + dy * 7, cy - dy * 6 - dx * 7);
+    const w = screenToWorldDelta(at.x - this.ranger.x, at.y - this.ranger.y, this.ppm);
+    const m = Math.round(Math.hypot(w.x, w.y) / 5) * 5;
+    this.compassText.setPosition(cx + 30, cy).setText(`${this.objectiveDone ? 'EXTRACTION' : 'OBJECTIVE'} ${m} m`).setColor(this.objectiveDone ? '#ff80c0' : '#ffd040');
   }
 
   update(t: number, dtMs: number) {
     if (!this.ranger || this.outcome) return;
-    super.update(t, dtMs);
     const dt = dtMs / 1000;
+    if (this.overview?.isOpen) {
+      this.timeLeft -= dt;
+      this.hud.setText(`${this.hudLine()}\nMAP: Tab / O${isTouch ? ' / MAP' : ''} to return`);
+      if (this.timeLeft <= 0) {
+        this.toggleMap();
+        this.finish('failed');
+      }
+      return;
+    }
+    super.update(t, dtMs);
+    this.drawCompass();
     this.updateVehicles(dt);
     this.timeLeft -= dt;
     // Supply pods.
@@ -450,7 +548,7 @@ export class Mission extends Field {
         height / 2,
         `${head}\n\n${line}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n\n` +
-          isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing',
+          (isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing'),
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )
       .setOrigin(0.5)

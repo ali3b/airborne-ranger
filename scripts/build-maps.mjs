@@ -1,6 +1,7 @@
 // Builds the mission maps from scratch through the Synty Sprite Generator CLI's map ops (never its code).
 //   node scripts/build-maps.mjs              every map in ssg.assets.json `maps`
 //   node scripts/build-maps.mjs mission1     one map (and the stamp maps it needs are not rebuilt)
+//   --resize                                 a map whose size differs from its entry is made again at that size
 // Each entry of `maps` names a map in the project, its size and tileset, and a JSON op list (maps/*.ops.json: the
 // same ops as the MCP's edit_map, applied in one atomic `ssg map edit`). A `clear` op goes first, so the result depends
 // only on the op list and its seeds. An entry can then save stamps cut from
@@ -48,8 +49,13 @@ async function buildMap(def) {
   const t0 = Date.now();
   console.error(`=== map: ${def.name} (${def.size}, ${def.ops})`);
   // Map names are unique per project: create it, or use the one that exists (FB-033 verified).
-  const map = (await must(['map', 'create', def.name, ...P, '--size', def.size, '--tileset', def.tileset, '--if-missing'], 'map create')).json;
-  if (map.size !== def.size) throw new Error(`map ${def.name} is ${map.size}, the definition says ${def.size} (resize it in the app or rename the entry)`);
+  let map = (await must(['map', 'create', def.name, ...P, '--size', def.size, '--tileset', def.tileset, '--if-missing'], 'map create')).json;
+  if (map.size !== def.size) {
+    // There is no resize (FB-063): --resize makes the map again under its name (the op list rebuilds all of it).
+    if (!process.argv.includes('--resize')) throw new Error(`map ${def.name} is ${map.size}, the definition says ${def.size} (pass --resize to make it again at that size)`);
+    map = (await must(['map', 'create', def.name, ...P, '--size', def.size, '--tileset', def.tileset, '--replace'], 'map create --replace')).json;
+    console.error(`  made again at ${map.size} (id ${map.id})`);
+  }
   // `clear` empties every layer first, in the same atomic batch, so the op list alone defines the map (FB-034 verified).
   const list = readJson(def.ops);
   const ops = list[0]?.op === 'clear' ? list : [{ op: 'clear' }, ...list];

@@ -424,29 +424,46 @@
       ]
     },
     {
+      "name": "stamp-src-outpost",
+      "size": "12x12",
+      "tileset": "temperate",
+      "ops": "maps/stamp-outpost.ops.json",
+      "stamps": [
+        {
+          "name": "outpost",
+          "rect": [
+            0,
+            0,
+            11,
+            11
+          ]
+        }
+      ]
+    },
+    {
       "name": "mission1",
-      "size": "48x40",
+      "size": "128x256",
       "tileset": "temperate",
       "ops": "maps/mission1.ops.json",
       "export": "public/assets/maps/mission1"
     },
     {
       "name": "mission2",
-      "size": "48x40",
+      "size": "128x256",
       "tileset": "desert",
       "ops": "maps/mission2.ops.json",
       "export": "public/assets/maps/mission2"
     },
     {
       "name": "mission3",
-      "size": "48x40",
+      "size": "128x256",
       "tileset": "arctic",
       "ops": "maps/mission3.ops.json",
       "export": "public/assets/maps/mission3"
     },
     {
       "name": "mission4",
-      "size": "48x40",
+      "size": "128x256",
       "tileset": "jungle",
       "ops": "maps/mission4.ops.json",
       "export": "public/assets/maps/mission4"

@@ -11,6 +11,8 @@ export interface TouchActions {
   shoot(): void;
   grenade(): void;
   prone(): void;
+  /** The overview map (missions only): a MAP button top centre when given. */
+  map?(): void;
 }
 
 /** The stick: x right, y down (screen), each -1..1; run when pushed to the edge. */
@@ -18,6 +20,7 @@ const stick = { x: 0, y: 0, run: false };
 let actions: TouchActions | null = null;
 let root: HTMLDivElement | null = null;
 let proneBtn: HTMLButtonElement | null = null;
+let mapBtn: HTMLButtonElement | null = null;
 
 /** The stick's world direction (x east, y north) snapped to 8 directions, or null when centred; and whether to run. */
 export function touchMove(): { dx: number; dy: number; run: boolean } | null {
@@ -33,6 +36,7 @@ export function showFieldControls(a: TouchActions): () => void {
   actions = a;
   build();
   root!.style.display = 'block';
+  mapBtn!.style.display = a.map ? 'block' : 'none';
   return () => {
     if (actions === a) actions = null;
     stick.x = stick.y = 0;
@@ -66,12 +70,15 @@ function build() {
     #touch button.fire { width: 96px; height: 96px; font-size: 14px; background: #5a1c14cc; grid-row: span 2; }
     #touch button.down, #touch button.on { background: #e8d27a; color: #10140c; }
     #touch button.fire.down { background: #ff7060; color: #10140c; }
+    #touch button.map { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 50%; margin-left: -34px; width: 68px; height: 40px;
+      border-radius: 8px; pointer-events: auto; font-size: 13px; }
   `;
   document.head.appendChild(css);
   root = document.createElement('div');
   root.id = 'touch';
   root.innerHTML = `<div class="pad"><div class="hint">drag to move · push to the edge to run</div><div class="base"><div class="knob"></div></div></div>
-    <div class="btns"><button class="grenade">GRENADE</button><button class="fire">FIRE</button><button class="prone">PRONE</button></div>`;
+    <div class="btns"><button class="grenade">GRENADE</button><button class="fire">FIRE</button><button class="prone">PRONE</button></div>
+    <button class="map">MAP</button>`;
   document.body.appendChild(root);
 
   const pad = root.querySelector('.pad') as HTMLDivElement;
@@ -148,6 +155,7 @@ function build() {
   bind('.fire', () => actions?.shoot(), 180);
   bind('.grenade', () => actions?.grenade());
   proneBtn = bind('.prone', () => actions?.prone());
+  mapBtn = bind('.map', () => actions?.map?.());
 }
 
 /**

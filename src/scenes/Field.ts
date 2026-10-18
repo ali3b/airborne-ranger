@@ -3,6 +3,7 @@ import { isTouch, setProneLit, showFieldControls, touchMove } from '../touch';
 import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
 import { buildGround } from '../ground';
+import { PropGrid, type Rect } from '../world';
 import { sfx } from '../sound';
 
 const MAP = 40; // tiles per side (1 m per tile)
@@ -68,6 +69,9 @@ const ENEMY_LOSE_AFTER = 4; // seconds without sight before resuming the patrol
 const ENEMY_HIT_DAMAGE = 25;
 const NOISE_SHOT = 14; // metres: a rifle shot alerts enemies this close
 const NOISE_BLAST = 20;
+/** G6: enemies farther than this from the Ranger sleep (no AI, no animation); they wake again inside WAKE_AT. */
+const SLEEP_AT = 36; // metres
+const WAKE_AT = 32;
 
 export type Pt = { x: number; y: number };
 
@@ -86,6 +90,8 @@ export interface Placed {
   hp?: number;
   /** Current state for objects exported with states. */
   state?: string;
+  /** Screen rectangle of its sprite and collider (the grid and view culling use it). */
+  bounds?: Rect;
 }
 
 interface Grenade {
@@ -130,6 +136,10 @@ export class Field extends Phaser.Scene {
   protected keys!: Record<string, Phaser.Input.Keyboard.Key>;
   protected cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   protected props: Placed[] = [];
+  /** The props by screen area (G6): collision, sight, bullets and depth look only at the ones nearby. */
+  protected grid = new PropGrid<Placed>();
+  /** Scratch list for grid queries. */
+  protected near: Placed[] = [];
   protected grenades: Grenade[] = [];
   protected bullets: Bullet[] = [];
   protected enemies: Enemy[] = [];
@@ -150,8 +160,16 @@ export class Field extends Phaser.Scene {
     super(key);
   }
 
+  /** The overview map, in scenes that have one (Mission). */
+  toggleMap?(): void;
+
+  /** Mission maps this scene needs loaded (the test field has none). */
+  protected mapsToLoad(): string[] {
+    return [];
+  }
+
   preload() {
-    preloadAssets(this);
+    preloadAssets(this, this.mapsToLoad());
     // The first load of the sprites takes a few seconds: say so (and how far it got) instead of a blank screen.
     const { width, height } = this.scale;
     const t = this.add.text(width / 2, height / 2, 'AIRBORNE DROP IN PROGRESS', { fontFamily: 'monospace', fontSize: '22px', color: '#e8d27a' }).setOrigin(0.5);
@@ -166,6 +184,7 @@ export class Field extends Phaser.Scene {
   create() {
     // A restart reuses this scene object: reset everything the class initialisers set.
     this.props = [];
+    this.grid.clear();
     this.grenades = [];
     this.bullets = [];
     this.enemies = [];
@@ -213,6 +232,7 @@ export class Field extends Phaser.Scene {
       prone: () => {
         if (!this.busy && !this.dead) this.prone = !this.prone;
       },
+      map: this.toggleMap ? () => this.toggleMap?.() : undefined,
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, hideTouch);
     this.input.on('pointerdown', () => {
@@ -223,6 +243,10 @@ export class Field extends Phaser.Scene {
     this.cameras.main.setBounds(b.x, b.y, b.width, b.height);
     this.cameras.main.startFollow(this.ranger, true, 0.15, 0.15);
     this.cameras.main.setRoundPixels(true);
+
+    // Off-screen props are hidden and paused, after each update (G6).
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.cullWorld, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.cullWorld, this));
 
     this.hud = this.add
       .text(10, 10, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8d27a', backgroundColor: '#10140ccc', padding: { x: 6, y: 4 } })
@@ -352,6 +376,49 @@ export class Field extends Phaser.Scene {
     p.world = p.screen.map((q) => screenToWorldDelta(q.x, q.y, this.ppm));
     p.minX = Math.min(...p.screen.map((q) => q.x));
     p.maxX = Math.max(...p.screen.map((q) => q.x));
+    const b = p.sprite.getBounds();
+    const ys = p.screen.map((q) => q.y);
+    p.bounds = { left: Math.min(b.left, p.minX), right: Math.max(b.right, p.maxX), top: Math.min(b.top, ...ys), bottom: Math.max(b.bottom, ...ys) };
+    this.grid.update(p);
+  }
+
+  /** The prop whose collider holds a world point, if any. */
+  protected propAt(w: Pt): Placed | undefined {
+    const s = worldToScreenDelta(w.x, w.y, this.ppm);
+    return this.grid.at(s.x, s.y).find((p) => pointInPolygon(w, p.world));
+  }
+
+  private cullTick = 0;
+  /**
+   * G6: hide props and characters outside the camera (with a margin) and pause the props there, so a map of ~1 000
+   * props draws and animates only the hundred or so on screen. Every third frame.
+   */
+  protected cullWorld() {
+    if (this.cullTick++ % 3) return;
+    const v = this.cameras.main.worldView;
+    const m = 160;
+    const l = v.x - m;
+    const r = v.right + m;
+    const t = v.y - m;
+    const bt = v.bottom + m;
+    for (const p of this.props) {
+      const b = p.bounds;
+      const on = !b || (b.right > l && b.left < r && b.bottom > t && b.top < bt);
+      if (p.sprite.visible !== on) p.sprite.setVisible(on).setActive(on);
+    }
+    for (const e of this.enemies) {
+      const x = e.sprite.x;
+      const y = e.sprite.y;
+      e.sprite.setVisible(x > l && x < r && y > t && y - 120 < bt);
+    }
+  }
+
+  /** G6: is the enemy near enough to the Ranger to think and animate? Far ones sleep (inactive: no anim, no events). */
+  protected awake(e: Enemy, ranger: Pt) {
+    const d = distW(this.worldOf(e.sprite), ranger);
+    const on = d < (e.sprite.active ? SLEEP_AT : WAKE_AT);
+    if (on !== e.sprite.active) e.sprite.setActive(on);
+    return on;
   }
 
   /**
@@ -582,7 +649,7 @@ export class Field extends Phaser.Scene {
       for (let k = 0; k < n && b.left > 0; k++) {
         b.pos = { x: b.pos.x + (b.dir.x * step) / n, y: b.pos.y + (b.dir.y * step) / n };
         b.left -= step / n;
-        if (this.props.some((p) => pointInPolygon(b.pos, p.world))) {
+        if (this.propAt(b.pos)) {
           b.left = 0;
           this.spark(b);
           break;
@@ -681,14 +748,16 @@ export class Field extends Phaser.Scene {
     if (Math.abs(Phaser.Math.Angle.Wrap(ang - e.angle)) > ENEMY_VIEW_HALF_ANGLE) return false;
     for (let t = 0.6; t < d - 0.4; t += 0.3) {
       const q = { x: a.x + ((b.x - a.x) * t) / d, y: a.y + ((b.y - a.y) * t) / d };
-      if (this.props.some((p) => pointInPolygon(q, p.world))) return false;
+      if (this.propAt(q)) return false;
     }
     return true;
   }
 
   protected updateEnemies(dt: number) {
     const walk = this.manifest.sprites.german?.clipInfo.rifle_walk?.speedMps ?? 1.2;
+    const rw = this.worldOf(this.ranger);
     for (const e of this.enemies) {
+      if (!this.awake(e, rw)) continue;
       e.sprite.setDepth(this.depthAt(e.sprite));
       if (e.state === 'dead') continue;
       const seen = this.sees(e);
@@ -902,8 +971,8 @@ export class Field extends Phaser.Scene {
   protected depthAt(spr: Phaser.GameObjects.Sprite) {
     let depth = spr.y;
     const half = spr.displayWidth / 4;
-    for (const p of this.props) {
-      const b = p.sprite.getBounds();
+    for (const p of this.grid.query(spr.x - half, spr.y - spr.displayHeight, spr.x + half, spr.y, this.near)) {
+      const b = p.bounds!;
       if (spr.x + half < b.left || spr.x - half > b.right || spr.y < b.top || spr.y - spr.displayHeight > b.bottom) continue;
       if (spr.x < p.minX || spr.x > p.maxX) continue;
       const front = frontEdgeAt(p.screen, spr.x);
@@ -917,7 +986,8 @@ export class Field extends Phaser.Scene {
     const nx = this.ranger.x + sx;
     const ny = this.ranger.y + sy;
     const w = screenToWorldDelta(nx, ny, this.ppm);
-    for (const p of this.props) if (circleHitsPolygon(w, RANGER_RADIUS, p.world)) return;
+    const r = RANGER_RADIUS * this.ppm + 2;
+    for (const p of this.grid.query(nx - r, ny - r, nx + r, ny + r, this.near)) if (circleHitsPolygon(w, RANGER_RADIUS, p.world)) return;
     if (!this.canStand(nx, ny)) return;
     this.ranger.setPosition(nx, ny);
   }
