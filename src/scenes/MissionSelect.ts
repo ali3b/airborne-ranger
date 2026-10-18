@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MISSIONS } from '../missions';
 import { loadRoster, selected, RANKS, RANK_NAMES, type Ranger } from '../roster';
 import { sfx } from '../sound';
+import { fitMenu, isTouch } from '../touch';
 
 const FONT = { fontFamily: 'monospace' };
 const GOLD = '#e8d27a';
@@ -25,7 +26,7 @@ export class MissionSelect extends Phaser.Scene {
       return;
     }
     const r = this.ranger;
-    const { width, height } = this.scale;
+    const { width, height } = fitMenu(this, 580, 520);
     const cx = width / 2;
     const top = Math.max(30, height / 2 - 200);
     this.add.text(cx, top, 'AIRBORNE RANGER', { ...FONT, fontSize: '36px', color: GOLD }).setOrigin(0.5);
@@ -39,13 +40,17 @@ export class MissionSelect extends Phaser.Scene {
         .text(cx, top + 150 + k * 38, `${m.number}. ${m.title}  (${m.climate})${done}`, { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 5 } })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
-      t.on('pointerover', () => this.select(k));
-      t.on('pointerdown', () => this.go(k));
+      t.on('pointerover', (p: Phaser.Input.Pointer) => !p.wasTouch && this.select(k));
+      t.on('pointerup', () => this.go(k));
       return t;
     });
     this.add
-      .text(cx, top + 175 + MISSIONS.length * 38, `Up/Down or 1-${MISSIONS.length} to pick · Enter or click to drop in · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
+      .text(cx, top + 175 + MISSIONS.length * 38, isTouch ? 'tap a mission to drop in' : `Up/Down or 1-${MISSIONS.length} to pick · Enter or click to drop in · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
       .setOrigin(0.5);
+    this.add
+      .text(20, 20, '< ROSTER', { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 8 }, backgroundColor: '#1a2014' })
+      .setInteractive({ useHandCursor: true })
+      .on('pointerup', () => this.scene.start('title'));
     this.add.text(cx, top + 200 + MISSIONS.length * 38, `rank ${RANKS[r.rank]}`, { ...FONT, fontSize: '12px', color: DIM }).setOrigin(0.5);
     this.pick = 0;
     this.select(0);

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { loadRoster, saveRoster, newRanger, randomName, selected, RANKS, MEDALS, SLOTS, type Ranger } from '../roster';
 import { sfx, startDrums, stopDrums, muteKeys } from '../sound';
 import { drawRibbon } from './ribbons';
+import { fitMenu, isTouch } from '../touch';
 
 const FONT = { fontFamily: 'monospace' };
 const GOLD = '#e8d27a';
@@ -41,7 +42,7 @@ export class Title extends Phaser.Scene {
     this.typing = null;
     this.retireArmed = -1;
     this.roster = loadRoster();
-    const { width, height } = this.scale;
+    const { width, height } = fitMenu(this, 660, 600);
     const cx = width / 2;
     const top = Math.max(30, height / 2 - 250);
     this.add.text(cx, top, 'AIRBORNE RANGER', { ...FONT, fontSize: '44px', color: GOLD }).setOrigin(0.5);
@@ -54,8 +55,20 @@ export class Title extends Phaser.Scene {
       const t = this.add
         .text(cx - rowW / 2, top + 145 + k * 44, '', { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 8 }, fixedWidth: rowW })
         .setInteractive({ useHandCursor: true });
-      t.on('pointerover', () => this.typing === null && this.select(k));
-      t.on('pointerdown', () => this.typing === null && this.go(k));
+      t.on('pointerover', (p: Phaser.Input.Pointer) => !p.wasTouch && this.typing === null && this.select(k));
+      // A tap or click: choose (or enlist); tapping the new Ranger's row again enlists that name. Holding a row
+      // (touch) or a right click retires its Ranger, like Delete.
+      let downAt = 0;
+      t.on('pointerdown', (p: Phaser.Input.Pointer) => {
+        downAt = this.time.now;
+        if (p.rightButtonDown()) this.retire(k);
+      });
+      t.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.rightButtonReleased()) return;
+        if (this.time.now - downAt > 600) return this.retire(k);
+        if (this.typing !== null) return k === this.pick ? void this.enlist() : undefined;
+        this.go(k);
+      });
       this.rows.push(t);
       this.ribbons.push(this.add.graphics());
     }
@@ -64,6 +77,7 @@ export class Title extends Phaser.Scene {
     this.pick = k0 >= 0 ? k0 : 0;
     this.refresh();
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.key(e));
+    this.input.mouse?.disableContextMenu();
     startDrums();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       stopDrums();
@@ -123,11 +137,17 @@ export class Title extends Phaser.Scene {
     this.colour();
     const r = this.roster[this.pick];
     this.hint.setText(
-      this.typing !== null
-        ? 'type a name · Enter: enlist · Esc: cancel'
-        : this.retireArmed === this.pick
-          ? 'press Delete again to retire this Ranger (the slot is freed)'
-          : `${!r ? 'Enter: enlist a Ranger here' : r.status === 'active' ? 'Enter: choose this Ranger' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: Delete twice to retire, then enlist`}\nUp/Down or 1-6 · Delete: retire · M: sound on/off · F: test field`,
+      isTouch
+        ? this.typing !== null
+          ? 'tap the row again to enlist this Ranger'
+          : this.retireArmed === this.pick
+            ? 'hold again to retire this Ranger (the slot is freed)'
+            : `${!r ? 'tap: enlist a Ranger here' : r.status === 'active' ? 'tap: choose this Ranger' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: hold the row twice to retire`}\ntap a row · hold a row: retire`
+        : this.typing !== null
+          ? 'type a name · Enter: enlist · Esc: cancel'
+          : this.retireArmed === this.pick
+            ? 'press Delete again to retire this Ranger (the slot is freed)'
+            : `${!r ? 'Enter: enlist a Ranger here' : r.status === 'active' ? 'Enter: choose this Ranger' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: Delete twice to retire, then enlist`}\nUp/Down or 1-6 · Delete: retire · M: sound on/off · F: test field`,
     );
   }
 

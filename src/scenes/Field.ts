@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { isTouch, setProneLit, showFieldControls, touchMove } from '../touch';
 import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
 import { buildGround } from '../ground';
@@ -202,6 +203,19 @@ export class Field extends Phaser.Scene {
     this.keys.SPACE.on('down', () => this.shoot());
     this.keys.G.on('down', () => this.throwGrenade());
     this.keys.R.on('down', () => {
+      if (this.dead && this.restartOnR) this.scene.restart();
+    });
+    // Phones and tablets: the stick and buttons (src/touch.ts); a tap on the map restarts the test field when down.
+    document.getElementById('rotate')?.remove();
+    const hideTouch = showFieldControls({
+      shoot: () => this.shoot(),
+      grenade: () => this.throwGrenade(),
+      prone: () => {
+        if (!this.busy && !this.dead) this.prone = !this.prone;
+      },
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, hideTouch);
+    this.input.on('pointerdown', () => {
       if (this.dead && this.restartOnR) this.scene.restart();
     });
 
@@ -627,7 +641,7 @@ export class Field extends Phaser.Scene {
   protected onRangerDown() {
     const { width, height } = this.scale;
     this.add
-      .text(width / 2, height / 2, 'RANGER DOWN\npress R to restart', {
+      .text(width / 2, height / 2, isTouch ? 'RANGER DOWN\ntap to restart' : 'RANGER DOWN\npress R to restart', {
         fontFamily: 'monospace',
         fontSize: '32px',
         color: '#ff7060',
@@ -849,8 +863,14 @@ export class Field extends Phaser.Scene {
     if (k.D.isDown || this.cursors.right.isDown) dx += 1;
     if (k.W.isDown || this.cursors.up.isDown) dy += 1;
     if (k.S.isDown || this.cursors.down.isDown) dy -= 1;
+    const pad = touchMove();
+    if (pad && dx === 0 && dy === 0) {
+      dx = pad.dx;
+      dy = pad.dy;
+    }
     const moving = dx !== 0 || dy !== 0;
-    const running = k.SHIFT.isDown && !this.prone;
+    const running = (k.SHIFT.isDown || (!!pad && pad.run)) && !this.prone;
+    setProneLit(this.prone);
 
     if (this.dead) {
       // the death clip plays out
@@ -872,7 +892,7 @@ export class Field extends Phaser.Scene {
     this.updateBullets(dt);
 
     const g = Number.isFinite(this.grenadesLeft) ? `${this.grenadesLeft} left` : `${this.grenadesThrown}`;
-    this.hud.setText(`${this.hudLine()}\nWASD/arrows move · Shift run · X prone · Space shoot · G grenade (${g}) · M sound`);
+    this.hud.setText(`${this.hudLine()}\n${isTouch ? `grenades: ${g}` : `WASD/arrows move · Shift run · X prone · Space shoot · G grenade (${g}) · M sound`}`);
   }
 
   /**

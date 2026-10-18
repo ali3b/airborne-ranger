@@ -1,3 +1,4 @@
+import { isTouch } from './touch';
 /**
  * Procedural sound effects (WebAudio, no sample files): every sound is synthesised here from noise and oscillators,
  * so there is nothing to download or license. M toggles mute (saved in localStorage).
@@ -240,9 +241,13 @@ export function muteKeys(on: boolean) {
 export function installMuteControls() {
   const b = document.createElement('button');
   b.id = 'mute';
-  b.style.cssText =
-    'position:fixed;right:10px;bottom:10px;z-index:10;font:12px monospace;padding:4px 8px;background:#10140ccc;color:#e8d27a;border:1px solid #e8d27a66;cursor:pointer';
-  const label = () => (b.textContent = muted ? 'SOUND OFF (M)' : 'SOUND ON (M)');
+  // On touch screens the action buttons take the bottom right: the sound button goes top right.
+  const look = `${isTouch ? 'font-size:14px;padding:8px 12px' : 'font-size:12px;padding:4px 8px'};font-family:monospace;background:#10140ccc;color:#e8d27a;border:1px solid #e8d27a66;cursor:pointer`;
+  // The corner buttons sit in one row: bottom right with a keyboard, top right on touch screens.
+  const bar = document.createElement('div');
+  bar.style.cssText = `position:fixed;right:10px;${isTouch ? 'top:10px' : 'bottom:10px'};z-index:10;display:flex;gap:8px`;
+  b.style.cssText = look;
+  const label = () => (b.textContent = muted ? (isTouch ? 'SOUND OFF' : 'SOUND OFF (M)') : isTouch ? 'SOUND ON' : 'SOUND ON (M)');
   label();
   b.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -251,7 +256,24 @@ export function installMuteControls() {
     label();
     b.blur();
   });
-  document.body.appendChild(b);
+  bar.appendChild(b);
+  document.body.appendChild(bar);
+  // Full screen where the browser allows it (Android, iPad; not iPhone Safari).
+  const root = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+  if (isTouch && (root.requestFullscreen || root.webkitRequestFullscreen)) {
+    const f = document.createElement('button');
+    f.id = 'fullscreen';
+    f.textContent = 'FULL SCREEN';
+    f.style.cssText = look;
+    f.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (document.fullscreenElement) void document.exitFullscreen?.();
+      else if (root.requestFullscreen) void root.requestFullscreen().catch(() => undefined);
+      else root.webkitRequestFullscreen?.();
+    });
+    document.addEventListener('fullscreenchange', () => (f.textContent = document.fullscreenElement ? 'EXIT FULL' : 'FULL SCREEN'));
+    bar.prepend(f);
+  }
   window.addEventListener('keydown', (e) => {
     if (!muteKeyOn || e.repeat || (e.key !== 'm' && e.key !== 'M')) return;
     toggleMute();

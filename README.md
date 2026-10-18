@@ -4,7 +4,7 @@ A remake of MicroProse's **Airborne Ranger** (1988) in Phaser 3 with an isometri
 made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator) through its `ssg` CLI and MCP
 tools, from Synty POLYGON 3D models.
 
-**▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop, keyboard) ·
+**▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop keyboard, or touch on phones and tablets) ·
 **[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: gameplay video, screenshots, map previews, every sprite animated live, tilesets.
 
 ![Mission 4: the pump station at dusk](docs/screenshots/mission4-station.png)
@@ -20,6 +20,10 @@ tools, from Synty POLYGON 3D models.
 | Grenade | `G` |
 | Sound on/off | `M` |
 | Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger |
+
+On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
+FIRE, GRENADE and PRONE buttons on the right. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
+retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them off.
 
 ## The game
 

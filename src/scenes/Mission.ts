@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { isTouch } from '../touch';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
 import { Field, circleHitsPolygon, RANGER_RADIUS, type Placed, type Pt } from './Field';
@@ -47,6 +48,7 @@ interface Vehicle {
 type Area = [number, number][];
 
 export class Mission extends Field {
+  private finishedAt = 0;
   /** The mission being played (src/missions.ts), from the scene data or ?mission=. */
   protected cfg: MissionConfig = missionByKey(null);
   protected mapName = 'mission1';
@@ -107,6 +109,8 @@ export class Mission extends Field {
     super.create();
     if (this.cfg.dusk && this.ranger) this.dusk();
     this.input.keyboard?.on('keydown-ENTER', () => this.toDebrief());
+    // A tap continues too, once the end screen has been up a moment (not the tap that was firing).
+    this.input.on('pointerdown', () => this.time.now - this.finishedAt > 1000 && this.toDebrief());
   }
 
   /** Cell coordinates of a Tiled object position (pixels of `tileheight` per cell). */
@@ -416,6 +420,7 @@ export class Mission extends Field {
   protected finish(outcome: MissionResult['outcome']) {
     if (this.outcome) return;
     this.outcome = outcome;
+    this.finishedAt = this.time.now;
     this.busy = true;
     const { width, height } = this.scale;
     const ok = outcome === 'accomplished';
@@ -445,7 +450,7 @@ export class Mission extends Field {
         height / 2,
         `${head}\n\n${line}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n\n` +
-          'press Enter for the debriefing',
+          isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing',
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )
       .setOrigin(0.5)

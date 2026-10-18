@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { RANKS, RANK_NAMES, MEDAL_NAMES, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
 import { drawRibbon } from './ribbons';
+import { fitMenu, isTouch } from '../touch';
 
 const FONT = { fontFamily: 'monospace' };
 const GOLD = '#e8d27a';
@@ -30,7 +31,7 @@ export class Debrief extends Phaser.Scene {
   create() {
     const a = this.award;
     const res = this.result;
-    const { width, height } = this.scale;
+    const { width, height } = fitMenu(this, 620, 680);
     const cx = width / 2;
     const w = Math.min(760, width - 40);
     const left = cx - w / 2;
@@ -101,7 +102,7 @@ export class Debrief extends Phaser.Scene {
     const yh = y + 10;
     steps.push(() => {
       if (status) this.add.text(cx, yh, status, { ...FONT, fontSize: '16px', color: '#ff9080' }).setOrigin(0.5, 0);
-      this.add.text(cx, yh + 34, a.status === 'active' && !a.guest ? 'Enter: mission select · Esc: roster' : 'Enter: roster', { ...FONT, fontSize: '14px', color: DIM }).setOrigin(0.5, 0);
+      this.add.text(cx, yh + 34, isTouch ? 'tap to continue' : a.status === 'active' && !a.guest ? 'Enter: mission select · Esc: roster' : 'Enter: roster', { ...FONT, fontSize: '14px', color: DIM }).setOrigin(0.5, 0);
       this.shown = true;
     });
     // The lines appear one by one; a key shows the rest at once.
@@ -112,6 +113,12 @@ export class Debrief extends Phaser.Scene {
       while (next < steps.length) steps[next++]();
     };
 
+    // A tap: the rest of the lines, then on (like Enter).
+    this.input.on('pointerup', () => {
+      if (!this.shown) return showAll();
+      sfx.click();
+      this.scene.start(a.status === 'active' && !a.guest ? 'missions' : 'title');
+    });
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
       if (e.key !== 'Enter' && e.key !== 'Escape' && e.key !== ' ') return;
       if (!this.shown) {
