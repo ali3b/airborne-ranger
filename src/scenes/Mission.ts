@@ -6,6 +6,7 @@ import { Field, circleHitsPolygon, RANGER_RADIUS, type Placed, type Pt } from '.
 import { missionByKey, type MissionConfig } from '../missions';
 import { award, selected, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
+import { BASIC_CARRY, ITEMS, loadLoadout, sanitize, type Loadout } from '../loadout';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -18,13 +19,18 @@ import { sfx } from '../sound';
  * `tileheight` pixels per cell on both axes.
  */
 
-const START_GRENADES = 6;
 const POD_RADIUS = 1.2; // metres
+/**
+ * G7: hit points of installations that aren't mission targets (any object with a destroyed state gets 150). A LAW
+ * does 300 to what it hits, a time bomb 400 around it, a grenade up to 100.
+ */
+const INSTALLATION_HP: Record<string, number> = { bunker: 300, bunker_large: 300, tank: 300, truck: 200, hangar: 400, guard_tower: 250, radio_tower: 200 };
 
 interface Pod {
   sprite: Phaser.GameObjects.Sprite;
   at: Pt;
-  grenades: number;
+  /** G7: what the pod carries (the loadout screen's pod). */
+  contents: Loadout;
   taken: boolean;
 }
 
@@ -76,6 +82,8 @@ export class Mission extends Field {
   /** The debriefing's data, set when the mission ends. */
   result: MissionResult | null = null;
   award: Award | null = null;
+  /** G7: what each supply pod carries (from the loadout screen; a guest gets the last saved loadout). */
+  loadout: Loadout = loadLoadout();
   /** For scripts/load-check.mjs: how the map turned into the scene. */
   report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
 
@@ -83,7 +91,8 @@ export class Mission extends Field {
     super('mission');
   }
 
-  init(data: { mission?: string; ranger?: string }) {
+  init(data: { mission?: string; ranger?: string; loadout?: Loadout }) {
+    this.loadout = data?.loadout ? sanitize(data.loadout) : loadLoadout();
     const key = data?.mission ?? (this.started ? this.cfg.map : new URLSearchParams(window.location.search).get('mission'));
     this.started = true;
     this.rangerId = data?.ranger ?? selected.get();
@@ -104,7 +113,12 @@ export class Mission extends Field {
     this.alertAt = null;
     this.objectiveAt = null;
     this.restartOnR = false;
-    this.grenadesLeft = START_GRENADES;
+    // G7: the Ranger's own basic carry (one magazine is in the carbine).
+    this.grenadesLeft = BASIC_CARRY.grenade;
+    this.magsLeft = BASIC_CARRY.mag;
+    this.lawsLeft = BASIC_CARRY.law;
+    this.bombsLeft = BASIC_CARRY.bomb;
+    this.medkitsLeft = BASIC_CARRY.medkit;
     this.report = { tiles: 0, objects: 0, missingSprites: [], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
     super.create();
     if (this.cfg.dusk && this.ranger) this.dusk();
@@ -196,7 +210,9 @@ export class Mission extends Field {
     const th = this.tmj.tileheight;
     // Tiled iso pixels (tileheight per cell on both axes) → screen pixels.
     const collision = typeof p.collision === 'string' ? (JSON.parse(p.collision) as [number, number][]).map(([x, y]) => [((x - y) / th) * (this.tmj.tilewidth / 2), ((x + y) / th) * (this.tmj.tileheight / 2)] as [number, number]) : undefined;
-    const placed = this.placeObject(name, String(p.facing) as Dir8, tileToScreen(cx, cy), { hp: target ? Number(p.hp ?? 100) : undefined, state: String(p.state), collision });
+    // G7: installations that aren't targets can be destroyed too (LAW, time bombs, grenades); they count as before.
+    const installation = INSTALLATION_HP[name] ?? (this.manifest.sprites[name]?.object?.states?.length ? 150 : undefined);
+    const placed = this.placeObject(name, String(p.facing) as Dir8, tileToScreen(cx, cy), { hp: target ? Number(p.hp ?? 100) : installation, state: String(p.state), collision });
     if (!placed) {
       if (!this.report.missingSprites.includes(name)) this.report.missingSprites.push(name);
       return;
@@ -331,16 +347,39 @@ export class Mission extends Field {
     }
   }
 
-  /** A supply pod: the crate sprite, tinted, no collider; walking over it restocks grenades. */
+  /**
+   * A supply pod (G7): the green duffle bag (`supply_pod`), no collider; walking over it adds its contents, the
+   * loadout packed before the drop. (The map's old `grenades` count is ignored.) Without the sprite, the tinted crate.
+   */
   protected addPod(z: TiledObject) {
     const [x, y] = this.cell(z.x, z.y);
     const at = tileToScreen(x, y);
-    const s = this.manifest.sprites.crate;
-    const spr = this.add.sprite(at.x, at.y, 'crate');
-    if (s && this.anims.exists(animKey(s, s.clips[0], 'SE'))) spr.play(animKey(s, s.clips[0], 'SE'));
-    spr.setTint(0xe0c060).setScale(0.8).setDepth(at.y);
+    const name = this.manifest.sprites.supply_pod ? 'supply_pod' : 'crate';
+    const s = this.manifest.sprites[name];
+    const spr = this.add.sprite(at.x, at.y, name);
+    const dir = s?.dirs.includes('SE') ? 'SE' : s?.dirs[0];
+    if (s && dir && this.anims.exists(animKey(s, s.clips[0], dir))) spr.play(animKey(s, s.clips[0], dir));
+    if (name === 'crate') spr.setTint(0xe0c060).setScale(0.8);
+    spr.setDepth(at.y);
     this.tweens.add({ targets: spr, y: at.y - 6, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.inOut' });
-    this.pods.push({ sprite: spr, at, grenades: Number(props(z).grenades ?? 3), taken: false });
+    this.pods.push({ sprite: spr, at, contents: { ...this.loadout }, taken: false });
+  }
+
+  /** Picking a pod up: its contents go into the Ranger's kit, listed above him for a moment. */
+  protected takePod(p: Pod) {
+    p.taken = true;
+    const c = p.contents;
+    this.magsLeft += c.mag;
+    this.grenadesLeft += c.grenade;
+    this.medkitsLeft += c.medkit;
+    this.lawsLeft += c.law;
+    this.bombsLeft += c.bomb;
+    sfx.pickup();
+    const got = ITEMS.filter((it) => c[it.key]).map((it) => `+${c[it.key]} ${it.short}`).join('  ') || 'empty pod';
+    const t = this.add.text(this.ranger.x, this.ranger.y - 100, got, { fontFamily: 'monospace', fontSize: '14px', color: '#e8d27a', backgroundColor: '#10140caa', padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(9e8 + 10);
+    this.tweens.add({ targets: t, y: t.y - 30, alpha: 0, delay: 900, duration: 900, onComplete: () => t.destroy() });
+    this.tweens.killTweensOf(p.sprite);
+    this.tweens.add({ targets: p.sprite, alpha: 0, y: p.sprite.y - 30, duration: 400, onComplete: () => p.sprite.destroy() });
   }
 
   /** The extraction zone's outline on the ground, brighter once the depot is destroyed. */
@@ -389,11 +428,7 @@ export class Mission extends Field {
     // Supply pods.
     for (const p of this.pods) {
       if (p.taken || Phaser.Math.Distance.Between(p.at.x, p.at.y / 0.5, this.ranger.x, this.ranger.y / 0.5) > POD_RADIUS * this.ppm) continue;
-      p.taken = true;
-      this.grenadesLeft += p.grenades;
-      sfx.pickup();
-      this.tweens.killTweensOf(p.sprite);
-      this.tweens.add({ targets: p.sprite, alpha: 0, y: p.sprite.y - 30, duration: 400, onComplete: () => p.sprite.destroy() });
+      this.takePod(p);
     }
     const elapsed = this.cfg.seconds - this.timeLeft;
     if (this.alertAt === null && this.enemies.some((e) => e.state === 'alert')) {
@@ -449,8 +484,9 @@ export class Mission extends Field {
         width / 2,
         height / 2,
         `${head}\n\n${line}\n` +
-          `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n\n` +
-          isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing',
+          `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n` +
+          `LAW fired ${this.arsenal.lawsFired} · time bombs ${this.arsenal.bombsPlaced} · knife kills ${this.arsenal.knifeKills} · first aid ${this.arsenal.heals}\n\n` +
+          (isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing'),
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )
       .setOrigin(0.5)

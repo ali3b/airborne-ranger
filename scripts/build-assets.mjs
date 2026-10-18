@@ -183,9 +183,13 @@ if (sprites.length || tilesets.length) {
 for (const k of Object.keys(manifest.sprites)) if (!spec.sprites.some((s) => s.name === k)) delete manifest.sprites[k];
 for (const k of Object.keys(manifest.tilesets)) if (!(spec.tilesets ?? []).some((t) => t.name === k)) delete manifest.tilesets[k];
 // Under the tile lock every sprite shares one grid: every data file carries a `scale` record (FB-019). Check it.
-const grids = [...new Set(Object.values(manifest.sprites).map((x) => (x.scale ? `${x.scale.mode} ${x.scale.tilePx}x${x.scale.tileHeightPx} ${x.scale.metresPerTile} m` : 'none')))];
+// UI icons (the loadout screen's items) are declared with their own `metresPerTile` (a close-up scale, FB-070) and
+// stay out of the shared-grid check and the game's ppm.
+const icons = new Set(spec.sprites.filter((s) => s.metresPerTile !== undefined && s.metresPerTile !== spec.metresPerTile).map((s) => s.name));
+const onGrid = Object.values(manifest.sprites).filter((x) => !icons.has(x.name));
+const grids = [...new Set(onGrid.map((x) => (x.scale ? `${x.scale.mode} ${x.scale.tilePx}x${x.scale.tileHeightPx} ${x.scale.metresPerTile} m` : 'none')))];
 if (grids.length !== 1 || grids[0] !== `tile ${spec.tile} ${spec.metresPerTile} m`) console.error(`  WARNING: sprites' scale records: ${grids.join(' | ')} (expected tile ${spec.tile} ${spec.metresPerTile} m)`);
-const ppms = [...new Set(Object.values(manifest.sprites).map((x) => x.pixelsPerMetre).filter(Boolean).map((v) => v.toFixed(3)))];
+const ppms = [...new Set(onGrid.map((x) => x.pixelsPerMetre).filter(Boolean).map((v) => v.toFixed(3)))];
 if (ppms.length > 1) console.error(`  WARNING: sprites disagree on pixels per metre: ${ppms.join(', ')}`);
 manifest.ppm = Number(ppms[0] ?? 0);
 manifest.builtAt = new Date().toISOString();

@@ -11,6 +11,16 @@ export interface TouchActions {
   shoot(): void;
   grenade(): void;
   prone(): void;
+  /** G7: an item tapped on the item bar (its key). */
+  select?(key: string): void;
+}
+
+/** One button of the item bar (G7): the weapon or item, its count, and whether FIRE uses it. */
+export interface TouchItem {
+  key: string;
+  label: string;
+  count: string;
+  selected: boolean;
 }
 
 /** The stick: x right, y down (screen), each -1..1; run when pushed to the edge. */
@@ -18,6 +28,9 @@ const stick = { x: 0, y: 0, run: false };
 let actions: TouchActions | null = null;
 let root: HTMLDivElement | null = null;
 let proneBtn: HTMLButtonElement | null = null;
+let fireBtn: HTMLButtonElement | null = null;
+let itemBar: HTMLDivElement | null = null;
+let itemSig = '';
 
 /** The stick's world direction (x east, y north) snapped to 8 directions, or null when centred; and whether to run. */
 export function touchMove(): { dx: number; dy: number; run: boolean } | null {
@@ -66,12 +79,18 @@ function build() {
     #touch button.fire { width: 96px; height: 96px; font-size: 14px; background: #5a1c14cc; grid-row: span 2; }
     #touch button.down, #touch button.on { background: #e8d27a; color: #10140c; }
     #touch button.fire.down { background: #ff7060; color: #10140c; }
+    #touch .items { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 184px);
+      display: flex; gap: 6px; pointer-events: auto; touch-action: none; }
+    #touch .items button { width: 52px; height: 44px; border-radius: 10px; font: bold 10px monospace; line-height: 1.25; }
+    #touch .items button.sel { background: #e8d27a; color: #10140c; }
+    #touch .items button.empty { opacity: 0.45; }
   `;
   document.head.appendChild(css);
   root = document.createElement('div');
   root.id = 'touch';
   root.innerHTML = `<div class="pad"><div class="hint">drag to move · push to the edge to run</div><div class="base"><div class="knob"></div></div></div>
-    <div class="btns"><button class="grenade">GRENADE</button><button class="fire">FIRE</button><button class="prone">PRONE</button></div>`;
+    <div class="btns"><button class="grenade">GRENADE</button><button class="fire">FIRE</button><button class="prone">PRONE</button></div>
+    <div class="items"></div>`;
   document.body.appendChild(root);
 
   const pad = root.querySelector('.pad') as HTMLDivElement;
@@ -145,9 +164,33 @@ function build() {
     return b;
   };
   // FIRE repeats while held (the scene's own cooldown sets the real rate).
-  bind('.fire', () => actions?.shoot(), 180);
+  fireBtn = bind('.fire', () => actions?.shoot(), 180);
+  itemBar = root.querySelector('.items') as HTMLDivElement;
+  itemBar.addEventListener('pointerdown', (e) => {
+    const b = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
+    if (!b) return;
+    e.preventDefault();
+    actions?.select?.(b.dataset.k ?? '');
+  });
+  itemBar.addEventListener('contextmenu', (e) => e.preventDefault());
   bind('.grenade', () => actions?.grenade());
   proneBtn = bind('.prone', () => actions?.prone());
+}
+
+/**
+ * G7: show the item bar (weapons and items with their counts) above the action buttons, and name the selected one on
+ * FIRE. Cheap to call every frame: the buttons are only rebuilt when something changed.
+ */
+export function setTouchItems(items: TouchItem[]) {
+  if (!itemBar) return;
+  const sig = JSON.stringify(items);
+  if (sig === itemSig) return;
+  itemSig = sig;
+  itemBar.innerHTML = items
+    .map((it) => `<button data-k="${it.key}" class="${it.selected ? 'sel' : ''}${it.count === '0' ? ' empty' : ''}">${it.label}<br>${it.count}</button>`)
+    .join('');
+  const sel = items.find((it) => it.selected);
+  if (fireBtn) fireBtn.textContent = sel && sel.key !== 'carbine' ? sel.label : 'FIRE';
 }
 
 /**

@@ -45,7 +45,7 @@ export class MissionSelect extends Phaser.Scene {
       return t;
     });
     this.add
-      .text(cx, top + 175 + MISSIONS.length * 38, isTouch ? 'tap a mission to drop in' : `Up/Down or 1-${MISSIONS.length} to pick · Enter or click to drop in · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
+      .text(cx, top + 175 + MISSIONS.length * 38, isTouch ? 'tap a mission, then pack the supply pods' : `Up/Down or 1-${MISSIONS.length} to pick · Enter or click: supply pods · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
       .setOrigin(0.5);
     this.add
       .text(20, 20, '< ROSTER', { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 8 }, backgroundColor: '#1a2014' })
@@ -71,6 +71,7 @@ export class MissionSelect extends Phaser.Scene {
 
   go(k: number) {
     sfx.confirm();
-    this.scene.start('mission', { mission: MISSIONS[k].map, ranger: this.ranger?.id });
+    // G7: pack the supply pods first.
+    this.scene.start('loadout', { mission: MISSIONS[k].map, ranger: this.ranger?.id });
   }
 }
