@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airborne Ranger Gallery</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #10140c; --panel: #1a2014; --line: #2e3824; --text: #e4e4cc; --dim: #9a9c84; --gold: #e8c060; --accent: #8fb060;
+    font-family: ui-monospace, "Cascadia Mono", "DejaVu Sans Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+  a { color: var(--gold); }
+  header { padding: 40px 16px 24px; text-align: center; border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; color: var(--gold); font-size: clamp(28px, 6vw, 48px); letter-spacing: 0.08em; }
+  header p { margin: 8px auto 0; max-width: 760px; color: var(--dim); }
+  .play { display: inline-block; margin-top: 20px; padding: 12px 28px; background: var(--gold); color: #10140c; font-weight: 700;
+    text-decoration: none; letter-spacing: 0.1em; border-radius: 4px; }
+  nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 4px 18px; justify-content: center; padding: 10px 16px;
+    background: rgba(16, 20, 12, 0.95); border-bottom: 1px solid var(--line); font-size: 14px; }
+  nav a { text-decoration: none; color: var(--dim); }
+  nav a:hover { color: var(--gold); }
+  main { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+  section { padding-top: 40px; }
+  h2 { color: var(--gold); letter-spacing: 0.06em; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  h3 { margin: 28px 0 4px; color: var(--accent); }
+  .lead { color: var(--dim); max-width: 860px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+  figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  figure img, figure video { display: block; width: 100%; height: auto; cursor: zoom-in; }
+  figure video { cursor: auto; }
+  figcaption { padding: 8px 12px; font-size: 13px; color: var(--dim); }
+  figcaption b { color: var(--text); font-weight: 600; }
+  .wide { grid-column: 1 / -1; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 400; }
+  kbd { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+  .sprites { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .sprite { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  .sprite canvas { display: block; width: 100%; aspect-ratio: 1; image-rendering: pixelated; background:
+    repeating-conic-gradient(#1f2618 0 25%, #232b1c 0 50%) 0 0 / 16px 16px; border-radius: 4px; }
+  .sprite .name { font-weight: 600; margin-top: 6px; }
+  .sprite .model { font-size: 11px; color: var(--dim); word-break: break-all; }
+  .sprite select { width: 100%; margin-top: 6px; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    font: inherit; font-size: 12px; padding: 3px; }
+  .dirs { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+  .dirs button { flex: 1 0 auto; min-width: 24px; background: var(--bg); color: var(--dim); border: 1px solid var(--line);
+    font: inherit; font-size: 10px; padding: 2px 0; cursor: pointer; }
+  .dirs button.on { color: #10140c; background: var(--accent); }
+  .tiles img { image-rendering: pixelated; cursor: zoom-in; }
+  #zoom { position: fixed; inset: 0; z-index: 9; display: none; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.88); cursor: zoom-out; padding: 16px; }
+  #zoom img { max-width: 100%; max-height: 100%; }
+  #zoom.on { display: flex; }
+  .note { color: var(--dim); font-size: 13px; }
+  footer { border-top: 1px solid var(--line); padding: 24px 16px; text-align: center; color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AIRBORNE RANGER</h1>
+  <p>A remake of MicroProse's 1988 classic in Phaser 3 with an isometric view. Every sprite, tileset and map was made with the
+    <b>Synty Sprite Generator</b> through its CLI and MCP tools, from Synty POLYGON 3D models.</p>
+  <a class="play" href="../">▶ PLAY IN BROWSER</a>
+  <p class="note">Needs a keyboard (desktop browser). Your roster is saved in this browser.</p>
+</header>
+<nav>
+  <a href="#video">Video</a><a href="#controls">Controls</a><a href="#missions">Missions</a><a href="#screens">Screens</a>
+  <a href="#maps">Maps</a><a href="#sprites">Sprites</a><a href="#tilesets">Tilesets</a><a href="#how">How it's made</a>
+</nav>
+<main>
+  <section id="video">
+    <h2>Gameplay video</h2>
+    <div class="grid">
+      <figure class="wide">
+        <video src="media/gameplay.mp4" controls preload="metadata" poster="shots/mission.png"></video>
+        <figcaption><b>85 seconds:</b> the roster, enlisting a Ranger, three missions with debriefings, medals and promotions (no sound in the recording).</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="controls">
+    <h2>Controls</h2>
+    <table>
+      <tr><th>Move</th><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys (8 directions)</td></tr>
+      <tr><th>Run</th><td><kbd>Shift</kbd></td></tr>
+      <tr><th>Prone / crawl</th><td><kbd>X</kbd></td></tr>
+      <tr><th>Shoot</th><td><kbd>Space</kbd></td></tr>
+      <tr><th>Grenade</th><td><kbd>G</kbd></td></tr>
+      <tr><th>Sound on/off</th><td><kbd>M</kbd></td></tr>
+      <tr><th>Menus</th><td><kbd>↑</kbd><kbd>↓</kbd> and <kbd>Enter</kbd>; <kbd>1</kbd>–<kbd>6</kbd> picks a Ranger</td></tr>
+    </table>
+  </section>
+
+  <section id="missions">
+    <h2>Missions</h2>
+    <p class="lead">A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the
+      extraction zone before the timer runs out. Merit earns promotions (PFC to COL) and medals for a roster of six Rangers.</p>
+    <div class="grid">
+      <figure><img src="shots/mission.png" alt=""><figcaption><b>1 · Destroy a Munitions Depot</b> · temperate</figcaption></figure>
+      <figure><img src="shots/mission2.png" alt=""><figcaption><b>2 · Knock Out Enemy Radar Array</b> · desert</figcaption></figure>
+      <figure><img src="shots/mission3.png" alt=""><figcaption><b>3 · Disable Enemy Aircraft</b> · arctic</figcaption></figure>
+      <figure><img src="shots/mission4.png" alt=""><figcaption><b>4 · Cut a Pipeline</b> · jungle at dusk</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="screens">
+    <h2>Screens</h2>
+    <h3>Title and roster</h3>
+    <div class="grid">
+      <figure><img src="shots/title.png" alt=""><figcaption><b>Title:</b> pick a Ranger or enlist a new one.</figcaption></figure>
+      <figure><img src="shots/title-roster.png" alt=""><figcaption><b>Roster:</b> ranks, merit and medals carry over between missions.</figcaption></figure>
+      <figure><img src="shots/kia-roster.png" alt=""><figcaption><b>KIA and captured</b> Rangers stay on the roster.</figcaption></figure>
+    </div>
+    <h3>Mission 1 · temperate</h3>
+    <div class="grid">
+      <figure><img src="shots/mission-drop.png" alt=""><figcaption><b>The drop:</b> the Ranger and three supply pods land.</figcaption></figure>
+      <figure><img src="shots/mission-end.png" alt=""><figcaption><b>Depot destroyed:</b> buildings collapse with scorch and debris.</figcaption></figure>
+      <figure><img src="shots/mission-debrief.png" alt=""><figcaption><b>Debriefing:</b> merit, medals and promotion.</figcaption></figure>
+    </div>
+    <h3>Missions 2 and 3 · desert and arctic</h3>
+    <div class="grid">
+      <figure><img src="shots/mission2-drop.png" alt=""><figcaption><b>Desert drop</b> near the radar array.</figcaption></figure>
+      <figure><img src="shots/mission3-drop.png" alt=""><figcaption><b>Arctic airfield:</b> planes to disable.</figcaption></figure>
+    </div>
+    <h3>Mission 4 · jungle at dusk</h3>
+    <div class="grid">
+      <figure><img src="shots/mission4-drop.png" alt=""><figcaption><b>The drop</b> by the river.</figcaption></figure>
+      <figure><img src="shots/mission4-station.png" alt=""><figcaption><b>Pump station:</b> pipeline, guard tower, searchlights and a spinning radar dish.</figcaption></figure>
+      <figure><img src="shots/mission4-road.png" alt=""><figcaption><b>Enemy truck</b> patrolling the road.</figcaption></figure>
+      <figure><img src="shots/mission4-truck.png" alt=""><figcaption><b>Truck wrecked</b> by a grenade.</figcaption></figure>
+      <figure><img src="shots/mission4-debrief.png" alt=""><figcaption><b>Debriefing</b> after the pipeline.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="maps">
+    <h2>Maps</h2>
+    <p class="lead">Each mission map was authored through the generator's MCP map tools (paint terrain, paths, scatter, place
+      objects, zones), then exported to Tiled <code>.tmj</code>, which Phaser loads directly. These previews are rendered by the generator.</p>
+    <div class="grid" id="mapGrid"></div>
+  </section>
+
+  <section id="sprites">
+    <h2>Sprites</h2>
+    <p class="lead">Every sprite in the game, live from the game's own atlases. Pick an animation and a direction. Characters
+      and vehicles have 8 directions; objects have states (intact, destroyed, and the transition between them).</p>
+    <div class="sprites" id="spriteGrid"><p class="note">Loading…</p></div>
+  </section>
+
+  <section id="tilesets">
+    <h2>Tilesets</h2>
+    <p class="lead">Isometric 64×32 ground tiles with corner-based terrain transitions, shores, cliffs and junction tiles
+      where three or four terrains meet, rasterized by the generator from Synty textures with a climate tint.</p>
+    <div class="grid tiles" id="tileGrid"></div>
+  </section>
+
+  <section id="how">
+    <h2>How it's made</h2>
+    <p class="lead">The game is a test customer for the Synty Sprite Generator. It may only use the generator through its
+      <code>ssg</code> CLI and MCP tools. Every gap it hits is logged as feedback, fixed in the generator, and then re-tested in the game.</p>
+    <table>
+      <tr><th>Sprites</th><td>Declared in <code>ssg.assets.json</code> and built with <code>ssg sprite apply</code>: real scale locked to the 64×32 tile (1 m per tile), isometric 8-direction views, collision footprints and object states.</td></tr>
+      <tr><th>Tilesets</th><td>Declared terrains (grass, dirt, sand, road, water, snow, moss…) with Wang corner sets, exported as Tiled <code>.tsj</code>.</td></tr>
+      <tr><th>Maps</th><td>Built with MCP <code>edit_map</code> operations and exported as Tiled <code>.tmj</code> with object layers, zones and typed properties.</td></tr>
+      <tr><th>Engine</th><td>Phaser 3.80, TypeScript, Vite. Sound is procedural WebAudio.</td></tr>
+    </table>
+  </section>
+</main>
+<footer>Fan remake of Airborne Ranger (MicroProse, 1988) for testing the Synty Sprite Generator. 3D models © Synty Studios, rendered into sprites.</footer>
+<div id="zoom"><img alt=""></div>
+<script>
+  const zoom = document.getElementById('zoom');
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest('figure img, .tiles img');
+    if (img) { zoom.querySelector('img').src = img.src; zoom.classList.add('on'); }
+    else if (e.target.closest('#zoom')) zoom.classList.remove('on');
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') zoom.classList.remove('on'); });
+
+  const A = '../';
+  const MISSION_NAMES = { mission1: 'Destroy a Munitions Depot', mission2: 'Knock Out Enemy Radar Array', mission3: 'Disable Enemy Aircraft', mission4: 'Cut a Pipeline' };
+  const loadImg = (src) => new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
+  const getJson = (p) => fetch(A + p).then((r) => { if (!r.ok) throw new Error(p); return r.json(); });
+
+  async function main() {
+    const m = await getJson('assets/manifest.json');
+    const mapGrid = document.getElementById('mapGrid');
+    for (const [k, v] of Object.entries(m.maps ?? {})) {
+      if (!v.preview) continue;
+      mapGrid.insertAdjacentHTML('beforeend', `<figure><img src="${A + v.preview}" alt="" loading="lazy"><figcaption><b>${MISSION_NAMES[k] ?? k}</b> · ${v.size} tiles</figcaption></figure>`);
+    }
+    mapGrid.insertAdjacentHTML('beforeend', `<figure><img src="shots/mcp-mission4-preview.png" alt="" loading="lazy"><figcaption><b>Mission 4 while authoring:</b> the labelled preview an AI sees through the MCP <code>map_preview</code> tool.</figcaption></figure>`);
+    const tileGrid = document.getElementById('tileGrid');
+    for (const [k, v] of Object.entries(m.tilesets ?? {}))
+      tileGrid.insertAdjacentHTML('beforeend', `<figure><img src="${A + v.image}" alt="" loading="lazy"><figcaption><b>${k}</b></figcaption></figure>`);
+
+    const grid = document.getElementById('spriteGrid');
+    grid.innerHTML = '';
+    const players = [];
+    for (const [name, s] of Object.entries(m.sprites)) {
+      const card = document.createElement('div');
+      card.className = 'sprite';
+      card.innerHTML = `<canvas width="256" height="256"></canvas><div class="name">${name}</div><div class="model">${s.asset ?? ''}</div><select></select><div class="dirs"></div>`;
+      grid.appendChild(card);
+      players.push(setup(s, card).catch(() => { card.querySelector('.model').textContent += ' (failed to load)'; }));
+    }
+    await Promise.all(players);
+    requestAnimationFrame(tick);
+  }
+
+  const live = [];
+  async function setup(s, card) {
+    const [atlas, anims] = await Promise.all([getJson(s.atlas), getJson(s.anims)]);
+    const frames = {};
+    for (const t of atlas.textures ?? [atlas]) {
+      const img = await loadImg(A + s.path + t.image);
+      for (const f of t.frames) frames[f.filename] = { img, ...f };
+    }
+    // Group "<prefix><clip>_<DIR>" anims by clip.
+    const clips = new Map();
+    for (const a of anims.anims) {
+      const key = a.key.startsWith(s.animPrefix ?? '') ? a.key.slice((s.animPrefix ?? '').length) : a.key;
+      const cut = key.lastIndexOf('_');
+      const dir = cut > 0 ? key.slice(cut + 1) : '';
+      const clip = cut > 0 && /^[NSEW]{1,2}$/.test(dir) ? key.slice(0, cut) : key;
+      if (!clips.has(clip)) clips.set(clip, new Map());
+      clips.get(clip).set(/^[NSEW]{1,2}$/.test(dir) ? dir : '-', a);
+    }
+    // One fixed frame box per sprite, so the size doesn't jump between clips.
+    let W = 1, H = 1;
+    for (const f of Object.values(frames)) { W = Math.max(W, f.sourceSize.w); H = Math.max(H, f.sourceSize.h); }
+    const state = { clips, frames, clip: null, dir: null, i: 0, t: 0, W, H, canvas: card.querySelector('canvas') };
+    const sel = card.querySelector('select');
+    for (const c of clips.keys()) sel.add(new Option(`${c} (${[...clips.get(c).values()][0].frames.length} frames)`, c));
+    const dirsEl = card.querySelector('.dirs');
+    const pick = (clip) => {
+      state.clip = clip; state.i = 0;
+      const dirs = [...clips.get(clip).keys()];
+      if (!dirs.includes(state.dir)) state.dir = dirs.includes('S') ? 'S' : dirs.includes('SE') ? 'SE' : dirs[0];
+      dirsEl.innerHTML = '';
+      if (dirs.length > 1) for (const d of dirs) {
+        const b = document.createElement('button');
+        b.textContent = d; b.className = d === state.dir ? 'on' : '';
+        b.onclick = () => { state.dir = d; state.i = 0; dirsEl.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); };
+        dirsEl.appendChild(b);
+      }
+    };
+    sel.onchange = () => pick(sel.value);
+    const len = (c) => [...clips.get(c).values()][0].frames.length;
+    // Open on something that moves: a loop (idle, drive, spin…), else a state transition (intact_to_destroyed), else the first clip.
+    const names = [...clips.keys()];
+    const first = names.find((c) => /idle|drive|spin|loop|sweep|wave|walk/.test(c) && len(c) > 1) ?? names.find((c) => /_to_/.test(c)) ?? names.find((c) => len(c) > 1) ?? names[0];
+    sel.value = first; pick(first);
+    live.push(state);
+  }
+
+  let last = performance.now();
+  function tick(now) {
+    const dt = now - last; last = now;
+    for (const s of live) {
+      const a = s.clips.get(s.clip)?.get(s.dir);
+      if (!a) continue;
+      s.t += dt;
+      const step = 1000 / (a.frameRate || 10);
+      while (s.t >= step) { s.t -= step; s.i = (s.i + 1) % a.frames.length; }
+      const f = s.frames[a.frames[s.i % a.frames.length].frame];
+      const ctx = s.canvas.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
+      if (!f) continue;
+      const k = Math.min(256 / s.W, 256 / s.H);
+      ctx.imageSmoothingEnabled = k < 1;
+      ctx.save();
+      ctx.translate((256 - s.W * k) / 2, (256 - s.H * k) / 2);
+      ctx.scale(k, k);
+      // Center each frame's source box inside the sprite's fixed box.
+      const ox = (s.W - f.sourceSize.w) / 2, oy = s.H - f.sourceSize.h;
+      const sx = f.spriteSourceSize?.x ?? 0, sy = f.spriteSourceSize?.y ?? 0;
+      if (a.flipX) { ctx.translate(s.W, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(f.img, f.frame.x, f.frame.y, f.frame.w, f.frame.h, ox + sx, oy + sy, f.frame.w, f.frame.h);
+      ctx.restore();
+    }
+    requestAnimationFrame(tick);
+  }
+  main().catch((e) => { document.getElementById('spriteGrid').innerHTML = `<p class="note">Could not load the game's assets (${e.message}).</p>`; });
+</script>
+</body>
+</html>

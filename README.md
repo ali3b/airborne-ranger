@@ -1,0 +1,68 @@
+# Airborne Ranger (remake)
+
+A remake of MicroProse's **Airborne Ranger** (1988) in Phaser 3 with an isometric view. Every sprite, tileset and map was
+made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator) through its `ssg` CLI and MCP
+tools, from Synty POLYGON 3D models.
+
+**▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop, keyboard) ·
+**[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: gameplay video, screenshots, map previews, every sprite animated live, tilesets.
+
+![Mission 4: the pump station at dusk](docs/screenshots/mission4-station.png)
+
+## Controls
+
+| | |
+|---|---|
+| Move | `W` `A` `S` `D` or arrow keys (8 directions) |
+| Run | `Shift` |
+| Prone / crawl | `X` |
+| Shoot | `Space` |
+| Grenade | `G` |
+| Sound on/off | `M` |
+| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger |
+
+## The game
+
+A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
+before the timer runs out. Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
+
+| Mission | Climate | |
+|---|---|---|
+| 1 · Destroy a Munitions Depot | temperate | ![](docs/screenshots/mission.png) |
+| 2 · Knock Out Enemy Radar Array | desert | ![](docs/screenshots/mission2.png) |
+| 3 · Disable Enemy Aircraft | arctic | ![](docs/screenshots/mission3.png) |
+| 4 · Cut a Pipeline | jungle, dusk | ![](docs/screenshots/mission4.png) |
+
+| Roster | Drop | Debriefing |
+|---|---|---|
+| ![](docs/screenshots/title-roster.png) | ![](docs/screenshots/mission-drop.png) | ![](docs/screenshots/mission-debrief.png) |
+| **Truck patrol** | **Truck wrecked** | **Map preview from the generator's MCP** |
+| ![](docs/screenshots/mission4-road.png) | ![](docs/screenshots/mission4-truck.png) | ![](docs/screenshots/mcp-mission4-preview.png) |
+
+## How it's made
+
+The game is a test customer for the generator: it may only use it through `ssg` and the MCP tools (see `CLAUDE.md`), and
+every gap it hits is logged in `FEEDBACK.md`, fixed in the generator, then re-tested here.
+
+- **Sprites** are declared in `ssg.assets.json` and built with `ssg sprite apply`: real scale locked to the 64×32 tile
+  (1 m per tile), isometric 8-direction views, collision footprints, object states (intact → destroyed) and looping props.
+- **Tilesets**: declared terrains with Wang corner transitions, shores, cliffs and junction tiles, exported as Tiled `.tsj`.
+- **Maps** are authored with MCP `edit_map` operations (`maps/*.ops.json`) and exported as Tiled `.tmj`.
+- **Engine**: Phaser 3.80, TypeScript, Vite; procedural WebAudio sound.
+
+## Running it locally
+
+The generated assets (`public/assets/`) aren't committed; they're rebuilt from the declarations with the generator running.
+
+```sh
+npm install
+npm run assets   # needs the Synty Sprite Generator (ssg) and its server
+npm run dev      # http://localhost:5195
+npm run check    # Playwright load check of every scene
+node scripts/deploy-pages.mjs   # build the game + gallery and publish to GitHub Pages (gh-pages branch)
+```
+
+## Credits
+
+Fan remake for testing the Synty Sprite Generator; not affiliated with MicroProse. 3D models © Synty Studios, rendered
+into sprites. The original game's files are not included.
