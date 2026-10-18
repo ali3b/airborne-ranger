@@ -577,7 +577,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite apply --help`: "states … (no anim/template/set/class)"; README: "With `states` the states are the sprite's moves: `"template": "still"` … other moves are refused". Each state is one still frame per direction.
 - Workaround: two sprites of the same model, `truck_drive` (template `drive`, 8 directions) and `truck_wreck` (`auto,destroyed@destroy`, `dirs: 8`, `facings: 0`). Their anchors per direction are identical, so `src/scenes/Mission.ts` (`// FB-056`) plays `truck_drive/drive_<dir>` while it moves and swaps to `truck_wreck/intact_to_destroyed_<dir>` on the same sprite when a grenade kills it. The spinning dish (`radar_spin`) is scenery only.
 - Suggested change: let a state carry its own moves (`"intact": {"template": "drive"}` or `"intact": "@spin"`), or allow `template`/`anim` next to `states` and render them on the same sheet with the shared framing (transitions start from the state's first frame).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-057 · `flag_wave` can't wave a single-mesh flag, and POLYGON_War's flags are all single meshes
 - Severity: polish        Milestone: G5
@@ -586,7 +586,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `Error: none of the set applies to this asset`. `get_asset` shows no parts, so `set_part_role` can't mark one as `flag`. The only models with a `flag` part are POLYGON_Dark_Fortress banners (9.6 m wide).
 - Workaround: none (no flag in mission 4).
 - Suggested change: a vertex-bend `flag_wave` for single meshes (bend the vertices beyond the pole's bounding box, or the thin plane part of the mesh, by distance from the pole), or let `set_part_role` take a vertex region / material as a part.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-058 · `set_part_role` accepts an unknown part name silently
 - Severity: polish        Milestone: G5
@@ -595,7 +595,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `isError: false` and the parts list back with `role: null` unchanged; only reading it showed that the part is `SM_Prop_Searchlight_Head_01`. The retry worked and `turret_sweep` sweeps the head nicely. Also, `get_asset` gives the head's `bbox_min/max` as ±0.005 m on a 1.46 m model (probably model-local units), which doesn't help to find the part either.
 - Workaround: none needed (re-read and retried).
 - Suggested change: refuse unknown parts (`no part "…": parts are SM_Prop_Searchlight_Head_01`), accept the `local` name (`Head_01`) too, and give part boxes in metres.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-059 · Vehicle routes: a patrol zone can't say which vehicle drives it
 - Severity: workaround        Milestone: G5
@@ -604,7 +604,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: patrol zones are generic; `properties: {"vehicle": "truck_drive", "wreck": "truck_wreck", "speed": 3}` are free-form, so a misspelt sprite name only shows when the game runs, and the picture shows just a patrol line. `map_sprites` lists `truck_drive` with per-facing footprints (E 7×7, SE 8×4…), but nothing ties it to the zone.
 - Workaround: `src/scenes/Mission.ts` (`// FB-059`) turns a patrol zone with a `vehicle` property into a driving vehicle instead of a soldier.
 - Suggested change: a `sprite` (or `vehicle`) property on patrol/route zones that is validated like `place`'s `sprite`, exported as `sprite` on the Tiled object, and drawn by `map_preview` (the sprite at the first point, facing along the route).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-060 · Dusk and night: tilesets can be tinted, sprites can't be lit or tinted
 - Severity: workaround        Milestone: G5
@@ -613,7 +613,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: nothing in `sprite apply --help`, `list_options` or the project settings.
 - Workaround: `Mission.dusk()` (FB-060 in src/scenes/Mission.ts and src/missions.ts): a blue multiply rectangle over the world under the HUD; additive effects (fire, explosions) are lifted above it so they still glow; searchlights get an additive glow ellipse.
 - Suggested change: a render-time light preset per project or sprite (`"light": "dusk" | {ambient, sun: {colour, elevation, azimuth}}`) applied to every sprite and tileset of the project, as one more variant key (so a game can ship day and night sheets).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-061 · Re-applying an unchanged tileset with `"pairs": "all"` adds hundreds of mix tiles without saying why
 - Severity: polish        Milestone: G5
@@ -622,7 +622,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `tileset desert: would update · 868 → 1036 tiles (would create 168)` and `arctic: 1264 → 1744 (would create 480)`. `tileset show arctic` afterwards says `mixes: auto (every 3–4-terrain mix: 5 terrains or fewer), 480 mixed tiles`, so wave 8's `auto` default creates every mix for small tilesets. That is fine, but the dry run reads as if the file changed, and the arctic atlas grew 38 % for a map that has no three-terrain cells.
 - Workaround: none (accepted the larger arctic atlas).
 - Suggested change: give the update a reason (`mixes: auto now adds every mix (5 terrains or fewer)`), and maybe let `auto` add only the mixes the project's maps use.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
 ## FB-062 · `"dirs": "1"` on an object sprite switches the view to "custom"
 - Severity: polish        Milestone: G5
@@ -631,5 +631,5 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the dry run said `view custom · dirs 1` (the FX sprites' straight-on single view), not `iso8 · facings 1`.
 - Workaround: left `dirs` out; objects default to one facing.
 - Suggested change: for an object in a view with facings, read `dirs: 1` as `facings: 1`, or warn that it leaves the project's view.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
 
