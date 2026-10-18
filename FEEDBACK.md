@@ -613,7 +613,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: nothing in `sprite apply --help`, `list_options` or the project settings.
 - Workaround: `Mission.dusk()` (FB-060 in src/scenes/Mission.ts and src/missions.ts): a blue multiply rectangle over the world under the HUD; additive effects (fire, explosions) are lifted above it so they still glow; searchlights get an additive glow ellipse.
 - Suggested change: a render-time light preset per project or sprite (`"light": "dusk" | {ambient, sun: {colour, elevation, azimuth}}`) applied to every sprite and tileset of the project, as one more variant key (so a game can ship day and night sheets).
-- Status: triaged (TODO: Inbox, generator 2026-10-18 wave 9)
+- Status: fixed (generator wave 9: `light` presets on sprites and tilesets; re-test and drop the blue overlay)
 
 ## FB-061 · Re-applying an unchanged tileset with `"pairs": "all"` adds hundreds of mix tiles without saying why
 - Severity: polish        Milestone: G5
