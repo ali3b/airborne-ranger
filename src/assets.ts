@@ -145,8 +145,9 @@ export function preloadAssets(scene: Phaser.Scene) {
   scene.load.json('manifest', 'assets/manifest.json');
   scene.load.once('filecomplete-json-manifest', (_key: string, _type: string, m: AssetManifest) => {
     for (const s of Object.values(m.sprites)) {
-      // The sprite's own name is the texture key: the generator's base names collide between packs.
-      scene.load.multiatlas(s.name, s.atlas, s.path);
+      // The sprite's own name is the texture key: the generator's base names collide between packs. (Already
+      // there: loaded by the loadout screen for its item icons.)
+      if (!scene.textures.exists(s.name)) scene.load.multiatlas(s.name, s.atlas, s.path);
       scene.load.json(`anims:${s.name}`, s.anims);
       // Characters' meta carries the per-frame sockets (grenade hand, muzzle).
       if (s.meta && !s.object) scene.load.json(`meta:${s.name}`, s.meta);

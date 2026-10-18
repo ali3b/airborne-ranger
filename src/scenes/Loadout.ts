@@ -8,8 +8,8 @@ import { fitMenu, isTouch } from '../touch';
 const FONT = { fontFamily: 'monospace' };
 const GOLD = '#e8d27a';
 const DIM = '#9aa88a';
-/** Facing used for each item's icon (the long LAW reads best side-on). */
-const ICON_DIR: Record<ItemKey, string> = { mag: 'SE', grenade: 'SE', medkit: 'SE', law: 'E', bomb: 'SE' };
+/** Facing used for each item's icon (the long LAW diagonally, so it has some height). */
+const ICON_DIR: Record<ItemKey, string> = { mag: 'SE', grenade: 'SE', medkit: 'SE', law: 'NE', bomb: 'SE' };
 
 /**
  * The supply pod loadout (G7), between the mission select and the drop, after the original's supply pod screen: the
@@ -25,6 +25,7 @@ export class Loadout extends Phaser.Scene {
   pick = 0;
   private rows: { name: Phaser.GameObjects.Text; num: Phaser.GameObjects.Text; bg: Phaser.GameObjects.Rectangle }[] = [];
   private bag!: Phaser.GameObjects.Container;
+  private bagW = 600;
   private gauge!: Phaser.GameObjects.Text;
   private bars: { items: Phaser.GameObjects.Rectangle; weight: Phaser.GameObjects.Rectangle; w: number } | null = null;
   private manifest: AssetManifest | null = null;
@@ -53,9 +54,9 @@ export class Loadout extends Phaser.Scene {
 
   create() {
     this.manifest = (this.cache.json.get('loadout-manifest') as AssetManifest | undefined) ?? null;
-    const { width, height } = fitMenu(this, 720, 600);
+    const { width, height } = fitMenu(this, 720, 620);
     const cx = width / 2;
-    const top = Math.max(16, height / 2 - 290);
+    const top = Math.max(16, height / 2 - 300);
     this.add.text(cx, top, 'SUPPLY POD', { ...FONT, fontSize: '30px', color: GOLD }).setOrigin(0.5, 0);
     this.add
       .text(cx, top + 38, `MISSION ${this.cfg.number}: ${this.cfg.title}  ·  ${POD_COUNT} pods drop with you`, { ...FONT, fontSize: '14px', color: '#c8c8a0' })
@@ -63,6 +64,7 @@ export class Loadout extends Phaser.Scene {
 
     // The pod: a green bag with the packed items in it (like the original's screen).
     const bagW = Math.min(640, width - 40);
+    this.bagW = bagW;
     const bagY = top + 66;
     this.add.rectangle(cx, bagY + 50, bagW, 100, 0x2e5a22).setStrokeStyle(3, 0x7fd060).setOrigin(0.5);
     this.add.ellipse(cx + bagW / 2 - 6, bagY + 50, 40, 96, 0x24481a).setStrokeStyle(3, 0x7fd060);
@@ -100,10 +102,10 @@ export class Loadout extends Phaser.Scene {
       w: bw,
     };
     const carry = ITEMS.filter((it) => BASIC_CARRY[it.key]).map((it) => `${BASIC_CARRY[it.key]} ${it.short}`).join(', ');
-    this.add.text(left, gy + 26, `you carry: carbine + 1 loaded mag, ${carry}`, { ...FONT, fontSize: '13px', color: DIM });
+    this.add.text(left, gy + 42, `you carry: carbine + 1 loaded mag, ${carry}`, { ...FONT, fontSize: '13px', color: DIM });
 
     // CLEAR / STANDARD / DONE.
-    const by = gy + 72;
+    const by = gy + 86;
     this.button(cx - 190, by, 'CLEAR', 160, () => this.setPod({ ...EMPTY }), true).setName('btn-clear');
     this.button(cx, by, 'STANDARD', 160, () => this.setPod({ ...STANDARD }), true).setName('btn-standard');
     this.button(cx + 190, by, 'DONE', 160, () => this.done(), true).setName('btn-done');
@@ -204,18 +206,19 @@ export class Loadout extends Phaser.Scene {
     }
     // The bag's contents: one small icon per item, in packing order.
     this.bag.removeAll(true);
+    const bagLimit = this.bagW - 70;
     let x = 0;
     let row = 0;
     for (const it of ITEMS) {
       for (let c = 0; c < this.pod[it.key]; c++) {
-        const img = this.icon(it.icon, ICON_DIR[it.key], 0, 0, it.key === 'law' ? 56 : 26, 26);
+        const img = this.icon(it.icon, ICON_DIR[it.key], 0, 0, 36, 36);
         if (!img) continue;
-        const iw = Math.max(26, img.displayWidth) + 4;
-        if (x + iw > 560) {
+        const iw = Math.max(30, img.displayWidth) + 2;
+        if (x + iw > bagLimit) {
           x = 0;
           row++;
         }
-        img.setPosition(x + iw / 2, 14 + row * 30);
+        img.setPosition(x + iw / 2, 20 + row * 40);
         this.bag.add(img);
         x += iw;
       }

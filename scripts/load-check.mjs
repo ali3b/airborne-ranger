@@ -401,6 +401,7 @@ async function arsenalChecks(page) {
   const knifeRes = await page.evaluate(async () => {
     const m = window.game.scene.getScene('mission');
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    while (m.busy) await wait(50);
     const e = m.enemies.find((x) => x.state !== 'dead');
     // Place the Ranger 0.9 m from the soldier along screen x (a world offset found by probing worldOf).
     const at = { x: e.sprite.x - 40, y: e.sprite.y };
@@ -422,23 +423,29 @@ async function arsenalChecks(page) {
     while (m.busy) await wait(50);
     const t = m.targets.find((x) => x.hp > 0) ?? m.props.find((x) => x.hp > 0);
     if (!t) return { error: 'nothing to hit' };
-    m.ranger.setPosition(t.at.x - 10 * m.ppm, t.at.y);
-    m.facing = 'E';
-    m.prone = false;
-    m.lawsLeft = Math.max(1, m.lawsLeft);
-    const laws = m.lawsLeft;
-    m.selectWeapon('law');
-    m.use();
-    const t0 = performance.now();
-    while (performance.now() - t0 < 30000 && !m.rockets.length) await wait(30);
-    const flying = m.rockets.length;
-    const sprite = m.rockets[0]?.sprite.texture?.key ?? null;
-    while (performance.now() - t0 < 60000 && m.rockets.length) await wait(30);
-    return { name: t.name, flying, sprite, hp: t.hp, by: t.destroyedBy ?? null, used: laws - m.lawsLeft, cam: [t.at.x, t.at.y] };
+    // A patrol or a crate in the line of fire takes the rocket instead: fire again (up to 3).
+    let flying = 0;
+    let sprite = null;
+    let shots = 0;
+    const laws = (m.lawsLeft = Math.max(3, m.lawsLeft));
+    for (; shots < 3 && t.hp > 0; shots++) {
+      while (m.busy) await wait(50);
+      m.ranger.setPosition(t.at.x - 10 * m.ppm, t.at.y);
+      m.facing = 'E';
+      m.prone = false;
+      m.selectWeapon('law');
+      m.use();
+      const t0 = performance.now();
+      while (performance.now() - t0 < 30000 && !m.rockets.length) await wait(30);
+      flying = Math.max(flying, m.rockets.length);
+      sprite ??= m.rockets[0]?.sprite.texture?.key ?? null;
+      while (performance.now() - t0 < 60000 && m.rockets.length) await wait(30);
+    }
+    return { name: t.name, flying, sprite, shots, hp: t.hp, by: t.destroyedBy ?? null, used: laws - m.lawsLeft };
   });
   await page.screenshot({ path: 'test-results/arsenal-law.png' }).catch(() => undefined);
   console.log('LAW:', JSON.stringify(law));
-  if (law.error || !law.flying || law.sprite !== 'law_rocket' || law.used !== 1 || law.hp > 0 || law.by !== 'law') fail('LAW rocket (fired, flew and destroyed the target)');
+  if (law.error || !law.flying || law.sprite !== 'law_rocket' || law.used !== law.shots || law.hp > 0 || law.by !== 'law') fail('LAW rocket (fired, flew and destroyed the target)');
 
   // Time bomb: set at a target's edge, the fuse shows 10, the Ranger walks off, the blast destroys it.
   const bomb = await page.evaluate(async () => {
@@ -543,7 +550,7 @@ async function touchArsenal() {
     });
     console.log('touch items:', JSON.stringify(sel));
     if (sel.hp !== 90 || sel.weapon !== 'law' || sel.fire !== 'LAW') fail('item bar: AID heals, LAW selects (and names FIRE)');
-    await tp.waitForTimeout(800);
+    await until(tp, () => !window.game.scene.getScene('mission').busy, null, 15000);
     await tapEl('#touch button.fire');
     const fired = await until(tp, () => window.game.scene.getScene('mission').arsenal.lawsFired > 0, null, 30000);
     console.log('touch LAW fired:', fired);

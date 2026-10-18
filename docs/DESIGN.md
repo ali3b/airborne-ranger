@@ -91,6 +91,49 @@ distance), explosion, footsteps on the clips' `footstep_l` / `footstep_r` events
 Germans'), grenade throw whoosh on the `release` event, supply-pod pickup chime, UI click / confirm, an alert whistle,
 a promotion fanfare, and a 16-step march drum loop on the title. M or the corner button mutes (saved).
 
+## Arsenal and supply pods (G7)
+**Flow:** mission select → **supply pod** screen → the drop. The pod screen follows the original's: the pod (a green
+bag) shows what's packed, one row per item with its icon, weight and − count +, gauges for items and weight, and
+CLEAR / STANDARD / DONE. Keys: Up/Down or 1–5 pick a row, Left/Right or −/+ change it, C clear, S standard, Enter
+done, Esc back; on touch, tap − / + and the buttons (`fitMenu` zooms it to the phone). The last loadout is remembered
+in this browser (`ar.loadout.v1`). The rules live in `src/loadout.ts`:
+
+| item | weight | STANDARD pod | Ranger's basic carry |
+|---|---|---|---|
+| carbine magazine (30 rounds) | 1 | 6 | 3 (+ 1 in the carbine) |
+| hand grenade | 1 | 6 | 3 |
+| first-aid kit (+50 HP) | 2 | 3 | 1 |
+| LAW rocket | 5 | 3 | 1 |
+| time bomb | 4 | 3 | 1 |
+
+A pod holds at most **21 items** and **45 weight** (STANDARD fills both). The **three pods** dropped with the Ranger
+(the map's pod zones) each carry the chosen loadout; walking over one adds its contents (listed above him).
+
+**Weapons** (Space / FIRE uses the selected one; 1–6 or Q select, the touch item bar above FIRE selects, and FIRE
+shows its name):
+- **Carbine:** 30-round magazines; firing on empty reloads (R reloads any time; the `ranger_kit` reload clip, a
+  1.5 s pause when prone); no magazines left: a dry click.
+- **Grenade** (2, or G as before).
+- **LAW** (3): the Ranger kneels with the launcher (`ranger_law`, kneel_shoot); on its `shoot` event a slow
+  `law_rocket` (16 m/s, 30 m, smoke trail) flies straight on and explodes on the first prop or soldier it meets: 300
+  damage to what it hits (tanks, bunkers, vehicles have 200–300 HP), plus a 2.5 m splash. It is loud.
+- **Time bomb** (4): he crouches and sets the C4 (`time_bomb`) at his feet; the fuse counts 10 s above it (ticking,
+  blinking in the last 3 s), then a 5 m blast does 400 damage: it destroys any installation. Get clear.
+- **Knife** (5): he turns to the nearest soldier within 1.4 m and stabs (`ranger_knife`, Knife_Stab_Fore); the
+  clip's `hit` event kills him. Silent: no noise, nobody is alerted by it.
+- **First aid** (6, or H, or the AID button): +50 HP, one kit.
+
+**Installations:** besides the mission targets, every object with a destroyed state (crates, tents, containers…)
+and bunkers, tanks, trucks, hangars, towers have hit points, so LAW rockets, bombs and grenades destroy them; each
+counts as an installation (+50 merit), and kills by knife, LAW or bomb count as before. The game records what
+destroyed what (`killedBy` / `destroyedBy`), and the end screen lists LAW shots, bombs, knife kills and first aid.
+
+**Sprites (all generator, ssg.assets.json):** `ranger_kit` (rifle reload, crouch), `ranger_knife` (Palm City knife,
+Knife_Stab_Fore trimmed to 0.9 s), `ranger_law` (BattleRoyale RPG, kneel_shoot), `law_rocket` (RPG rocket,
+`projectile`, 8 directions), `time_bomb` (BattleRoyale C4), `supply_pod` (Apocalypse duffle bag), and the loadout
+icons `item_mag`, `item_grenade`, `item_medkit`, `item_law`, `item_bomb` at a close-up scale (FB-070). Gaps:
+FB-070–075.
+
 ## Milestones (they mirror the generator's TODO "Phase G")
 | | Needs from the generator | Delivers |
 |---|---|---|
@@ -100,3 +143,4 @@ a promotion fanfare, and a 16-step march drum loop on the title. M or the corner
 | G3 | maps (Phase C) | missions built only through MCP map tools: drop, 3 pods, objective, patrols, timer, extraction |
 | G4 | — | mission select, roster with ranks and medals (saved in localStorage), sound |
 | G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |
+| G7 | — (gaps FB-070–075) | supply pod loadout screen, limited ammo and reload, LAW rockets, time bombs, knife, first aid; keyboard and touch item bar |

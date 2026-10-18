@@ -28,6 +28,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 - `npm run typecheck`
 - `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>` for `title` (Ranger
   select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4` (each plays to the debriefing; mission 4 also checks the driving
-  truck, its wreck and the animated props). It
+  truck, its wreck and the animated props), and `arsenal` (G7: the supply pod screen, pods, reload, first aid, knife, LAW,
+  time bomb, then the same by touch on an emulated iPhone in landscape). It
   needs no page errors, and it writes `test-results/<scene>.png`.
 - Update `FEEDBACK.md`, and commit in this repo.

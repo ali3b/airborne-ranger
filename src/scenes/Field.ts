@@ -936,6 +936,8 @@ export class Field extends Phaser.Scene {
   }
 
   // ---- G7 arsenal: the selected weapon, reload, LAW, time bombs, knife, first aid ----
+  // FB-074: the Ranger's knife, launcher and kit clips are separate sprites of the same model (`ranger_knife`,
+  // `ranger_law`, `ranger_kit`); their animations are played on the Ranger's own sprite.
 
   /** Space / FIRE: use the selected weapon or item. A held touch FIRE repeats; only the carbine fires on repeat. */
   use() {
@@ -1013,7 +1015,8 @@ export class Field extends Phaser.Scene {
 
   /**
    * LAW: the Ranger kneels with the launcher (`ranger_law`'s kneel_shoot); on its `shoot` event a rocket leaves the
-   * tube's tip and flies straight on until it hits a prop, a soldier or its range.
+   * tube's tip and flies straight on until it hits a prop, a soldier or its range. // FB-072: kneel_shoot holds the
+   * launcher like a rifle, and the tube's own rocket stays drawn in it; the flying rocket is the `law_rocket` sprite.
    */
   fireLaw() {
     if (!this.ranger || this.busy || this.dead || this.lawsLeft <= 0) return;
@@ -1076,7 +1079,10 @@ export class Field extends Phaser.Scene {
     this.rockets = this.rockets.filter((r) => r.left > 0);
   }
 
-  /** A time bomb at the Ranger's feet: he crouches to set it (`ranger_kit` crouch), then the fuse runs (shown). */
+  /**
+   * A time bomb at the Ranger's feet: he crouches to set it, then the fuse runs (shown). // FB-073: no place / plant
+   * clip, so the rifle crouch_idle loop plays for 0.8 s.
+   */
   placeBomb() {
     if (!this.ranger || this.busy || this.dead || this.bombsLeft <= 0) return;
     this.busy = true;
@@ -1240,7 +1246,9 @@ export class Field extends Phaser.Scene {
     this.updateRockets(dt);
     this.updateBombs(dt);
 
-    this.hud.setText(`${this.hudLine()}\n${this.armsLine()}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
+    // On touch the item bar shows the counts; the HUD keeps only a bomb's fuse (narrow phone screens).
+    const arms = isTouch ? (this.bombs.length ? this.armsLine().replace(/^.*   /, '') : '') : this.armsLine();
+    this.hud.setText(`${this.hudLine()}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
     if (isTouch) setTouchItems(WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })));
   }
 
