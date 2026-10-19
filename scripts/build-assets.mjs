@@ -183,9 +183,14 @@ if (sprites.length || tilesets.length) {
 for (const k of Object.keys(manifest.sprites)) if (!spec.sprites.some((s) => s.name === k)) delete manifest.sprites[k];
 for (const k of Object.keys(manifest.tilesets)) if (!(spec.tilesets ?? []).some((t) => t.name === k)) delete manifest.tilesets[k];
 // Under the tile lock every sprite shares one grid: every data file carries a `scale` record (FB-019). Check it.
-// UI icons (the loadout screen's items) are declared with their own `metresPerTile` (a close-up scale, FB-070) and
-// stay out of the shared-grid check and the game's ppm.
-const icons = new Set(spec.sprites.filter((s) => s.metresPerTile !== undefined && s.metresPerTile !== spec.metresPerTile).map((s) => s.name));
+// UI icons (the loadout screen's items) leave the tile lock (`"tile": null, "scale": "fit"`, FB-070 verified): their
+// meta says `scale.mode: "fit"` (weapon models have no meta, FB-104, so the declaration counts too). They stay out of
+// the shared-grid check and the game's ppm.
+const icons = new Set(
+  Object.values(manifest.sprites)
+    .filter((x) => x.scale?.mode === 'fit' || spec.sprites.some((s) => s.name === x.name && (s.scale === 'fit' || s.tile === null)))
+    .map((x) => x.name),
+);
 const onGrid = Object.values(manifest.sprites).filter((x) => !icons.has(x.name));
 const grids = [...new Set(onGrid.map((x) => (x.scale ? `${x.scale.mode} ${x.scale.tilePx}x${x.scale.tileHeightPx} ${x.scale.metresPerTile} m` : 'none')))];
 if (grids.length !== 1 || grids[0] !== `tile ${spec.tile} ${spec.metresPerTile} m`) console.error(`  WARNING: sprites' scale records: ${grids.join(' | ')} (expected tile ${spec.tile} ${spec.metresPerTile} m)`);

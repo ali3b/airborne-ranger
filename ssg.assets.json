@@ -19,15 +19,43 @@
         "prone_idle",
         "crawl",
         "prone_shoot",
-        "throw",
-        "death"
+        "death",
+        "reload",
+        {
+          "clip": "Knife_Stab_Fore",
+          "trim": "0:0.9",
+          "with": "POLYGON_Palm_City/SM_Wep_Knife_01",
+          "as": "knife"
+        }
       ],
       "with": [
         "POLYGON_War/SM_Wep_American_Rifle_01",
         "POLYGON_War/SM_Char_Attach_American_Helmet_01"
       ],
       "dirs": "8",
-      "uniform": true
+      "uniform": true,
+      "template": [
+        {
+          "template": "throw",
+          "with": "POLYGON_War/SM_Wep_American_Grenade_01",
+          "as": "grenade"
+        },
+        {
+          "template": "shoulder_fire:kneel=1",
+          "with": "POLYGON_War/SM_Wep_American_RocketLauncher_01",
+          "as": "law"
+        },
+        {
+          "template": "kneel_place",
+          "with": "POLYGON_BattleRoyale/SM_Prop_C4_01",
+          "as": "bomb"
+        },
+        {
+          "template": "kneel_place",
+          "with": "POLYGON_BattleRoyale/SM_Prop_MedicalBox_01",
+          "as": "medkit"
+        }
+      ]
     },
     {
       "name": "german",
@@ -260,47 +288,6 @@
       "template": "still"
     },
     {
-      "name": "ranger_kit",
-      "asset": "POLYGON_War/Character_American_Soldier_01",
-      "class": "rifle",
-      "anim": [
-        "reload",
-        "crouch_idle"
-      ],
-      "with": [
-        "POLYGON_War/SM_Wep_American_Rifle_01",
-        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
-      ],
-      "dirs": "8",
-      "uniform": true
-    },
-    {
-      "name": "ranger_knife",
-      "asset": "POLYGON_War/Character_American_Soldier_01",
-      "anim": [
-        "Knife_Stab_Fore@0:0.9"
-      ],
-      "with": [
-        "POLYGON_Palm_City/SM_Wep_Knife_01",
-        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
-      ],
-      "dirs": "8",
-      "uniform": true
-    },
-    {
-      "name": "ranger_law",
-      "asset": "POLYGON_War/Character_American_Soldier_01",
-      "template": [
-        "kneel_shoot"
-      ],
-      "with": [
-        "POLYGON_BattleRoyale/SM_Wep_RPG_01",
-        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
-      ],
-      "dirs": "8",
-      "uniform": true
-    },
-    {
       "name": "law_rocket",
       "asset": "POLYGON_BattleRoyale/SM_Wep_RPG_Rocket_Active_01",
       "template": "projectile",
@@ -320,36 +307,36 @@
       "name": "item_mag",
       "asset": "POLYGON_Apocalypse/SM_Item_Ammo_556_01",
       "template": "still",
-      "tile": "64x32",
-      "metresPerTile": 0.125
+      "tile": null,
+      "scale": "fit"
     },
     {
       "name": "item_grenade",
-      "asset": "POLYGON_BattleRoyale/SM_Wep_Grenade_01",
+      "asset": "POLYGON_War/SM_Wep_American_Grenade_01",
       "template": "still",
-      "tile": "64x32",
-      "metresPerTile": 0.125
+      "tile": null,
+      "scale": "fit"
     },
     {
       "name": "item_medkit",
       "asset": "POLYGON_BattleRoyale/SM_Prop_MedicalBox_01",
       "template": "still",
-      "tile": "64x32",
-      "metresPerTile": 0.125
+      "tile": null,
+      "scale": "fit"
     },
     {
       "name": "item_law",
-      "asset": "POLYGON_BattleRoyale/SM_Wep_RPG_01",
+      "asset": "POLYGON_War/SM_Wep_American_RocketLauncher_01",
       "template": "still",
-      "tile": "64x32",
-      "metresPerTile": 0.125
+      "tile": null,
+      "scale": "fit"
     },
     {
       "name": "item_bomb",
       "asset": "POLYGON_BattleRoyale/SM_Prop_C4_01",
       "template": "still",
-      "tile": "64x32",
-      "metresPerTile": 0.125
+      "tile": null,
+      "scale": "fit"
     }
   ],
   "tilesets": [

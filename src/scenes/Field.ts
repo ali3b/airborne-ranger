@@ -89,6 +89,15 @@ const MEDKIT_HEAL = 50;
 /** What the Ranger can use; Space / FIRE uses the selected one. */
 export const WEAPONS = ['carbine', 'grenade', 'law', 'bomb', 'knife', 'medkit'] as const;
 export type Weapon = (typeof WEAPONS)[number];
+/** The Ranger's one-shot clips: one sheet, each with its own items in hand (generator per-clip `with` / `as`). */
+const RANGER_CLIP = {
+  reload: 'rifle_reload',
+  grenade: 'grenade_throw',
+  law: 'law_shoulder_fire',
+  bomb: 'bomb_kneel_place',
+  medkit: 'medkit_kneel_place',
+  knife: 'knife_Knife_Stab_Fore',
+} as const;
 const WEAPON_LABEL: Record<Weapon, string> = { carbine: 'CARBINE', grenade: 'GRENADE', law: 'LAW', bomb: 'BOMB', knife: 'KNIFE', medkit: 'AID' };
 /** What killed a soldier or destroyed an installation (G7 scoring hooks and the end screen). */
 export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife';
@@ -910,9 +919,12 @@ export class Field extends Phaser.Scene {
     );
   }
 
-  /** Throw a grenade: the throw move's `release` event spawns it at the throwing hand's socket on that frame. */
+  /**
+   * Throw a grenade: the Ranger's grenade clip (`grenade_throw`: the throw with the grenade in his hand, the carbine
+   * put away) spawns it on its `release` event at the throwing hand's socket on that frame.
+   */
   protected throwGrenade() {
-    const clip = 'rifle_throw';
+    const clip = RANGER_CLIP.grenade;
     if (!this.ranger || this.busy || this.prone || this.dead || this.grenadesLeft <= 0 || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     const dir = this.facing;
     this.busy = true;
@@ -924,8 +936,7 @@ export class Field extends Phaser.Scene {
       dir,
       'release',
       () => {
-        // The procedural throw uses the free left hand by default (the rifle stays in the right).
-        const off = this.socket('ranger', clip, dir, 'release', ['hand_l', 'hand_r']) ?? { x: 0, y: -60 };
+        const off = this.socket('ranger', clip, dir, 'release', ['hand_r', 'hand_l']) ?? { x: 0, y: -60 };
         sfx.throwWhoosh();
         this.spawnGrenade(dir, off);
       },
@@ -1007,8 +1018,9 @@ export class Field extends Phaser.Scene {
   }
 
   // ---- G7 arsenal: the selected weapon, reload, LAW, time bombs, knife, first aid ----
-  // FB-074: the Ranger's knife, launcher and kit clips are separate sprites of the same model (`ranger_knife`,
-  // `ranger_law`, `ranger_kit`); their animations are played on the Ranger's own sprite.
+  // One `ranger` sheet carries every loadout (FB-074 verified): the carbine moves (`rifle_*`) and, per clip, what is
+  // in his hands: `grenade_throw`, `law_shoulder_fire`, `bomb_kneel_place`, `medkit_kneel_place`,
+  // `knife_Knife_Stab_Fore` (RANGER_CLIP).
 
   /** Space / FIRE: use the selected weapon or item. A held touch FIRE repeats; only the carbine fires on repeat. */
   use() {
@@ -1074,20 +1086,20 @@ export class Field extends Phaser.Scene {
       this.arsenal.reloads++;
       sfx.reload();
     };
-    if (this.prone || !this.manifest.sprites.ranger_kit) {
+    if (this.prone || !this.hasClip(RANGER_CLIP.reload)) {
       this.time.delayedCall(RELOAD_PRONE_S * 1000, () => {
         swap();
         done();
       });
       return;
     }
-    this.oneShot(this.ranger, 'ranger_kit', 'rifle_reload', this.facing, 'reload', swap, done);
+    this.oneShot(this.ranger, 'ranger', RANGER_CLIP.reload, this.facing, 'reload', swap, done);
   }
 
   /**
-   * LAW: the Ranger kneels with the launcher (`ranger_law`'s kneel_shoot); on its `shoot` event a rocket leaves the
-   * tube's tip and flies straight on until it hits a prop, a soldier or its range. // FB-072: kneel_shoot holds the
-   * launcher like a rifle, and the tube's own rocket stays drawn in it; the flying rocket is the `law_rocket` sprite.
+   * LAW: the Ranger kneels with the bazooka on his shoulder (`law_shoulder_fire`); on its `shoot` event the tube's own
+   * rocket is hidden (FB-072 verified) and the flying `law_rocket` leaves the tube's tip and flies straight on until it
+   * hits a prop, a soldier or its range.
    */
   fireLaw() {
     if (!this.ranger || this.busy || this.dead || this.lawsLeft <= 0) return;
@@ -1097,15 +1109,15 @@ export class Field extends Phaser.Scene {
     this.lawsLeft--;
     this.oneShot(
       this.ranger,
-      'ranger_law',
-      'kneel_shoot',
+      'ranger',
+      RANGER_CLIP.law,
       dir,
       'shoot',
       () => {
         if (this.dead) return;
         this.arsenal.lawsFired++;
         sfx.launch();
-        const tip = this.socket('ranger_law', 'kneel_shoot', dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
+        const tip = this.socket('ranger', RANGER_CLIP.law, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
         const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
         const ground = { x: this.ranger.x + tip.x, y: this.ranger.y };
         const s = this.manifest.sprites.law_rocket;
@@ -1151,32 +1163,45 @@ export class Field extends Phaser.Scene {
   }
 
   /**
-   * A time bomb at the Ranger's feet: he crouches to set it, then the fuse runs (shown). // FB-073: no place / plant
-   * clip, so the rifle crouch_idle loop plays for 0.8 s.
+   * A time bomb at the Ranger's feet: he kneels and sets it (`bomb_kneel_place`, FB-073 verified); on the clip's
+   * `release` event the bomb lies on the ground and the fuse runs (shown). Prone, he sets it where he lies (0.8 s).
    */
   placeBomb() {
     if (!this.ranger || this.busy || this.dead || this.bombsLeft <= 0) return;
     this.busy = true;
     this.bombsLeft--;
-    if (!this.prone) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
-    this.time.delayedCall(800, () => {
+    const done = () => {
       this.busy = false;
-      if (this.dead) return;
-      this.arsenal.bombsPlaced++;
-      const a = (DIRS8.indexOf(this.facing) * Math.PI) / 4;
-      const off = worldToScreenDelta(Math.cos(a) * 0.45, Math.sin(a) * 0.45, this.ppm);
-      const at = { x: this.ranger.x + off.x, y: this.ranger.y + off.y };
-      const s = this.manifest.sprites.time_bomb;
-      const key = s ? animKey(s, s.clips[0], s.dirs.includes('SE') ? 'SE' : s.dirs[0]) : '';
-      const spr = this.anims.exists(key) ? this.add.sprite(at.x, at.y, 'time_bomb').play(key) : this.add.rectangle(at.x, at.y - 4, 14, 8, 0x2a2a1a);
-      spr.setDepth(at.y);
-      const label = this.add
-        .text(at.x, at.y - 22, String(BOMB_FUSE), { fontFamily: 'monospace', fontSize: '14px', color: '#ff5040', backgroundColor: '#10140caa', padding: { x: 3, y: 1 } })
-        .setOrigin(0.5)
-        .setDepth(9e8 + 10);
-      this.bombs.push({ sprite: spr, label, at, fuse: BOMB_FUSE });
-      sfx.tick();
-    });
+    };
+    if (this.prone || !this.hasClip(RANGER_CLIP.bomb)) {
+      this.time.delayedCall(800, () => {
+        this.setBomb();
+        done();
+      });
+      return;
+    }
+    const dir = this.facing;
+    // The bomb lies where his hand puts it (the clip's hand socket on the `release` frame, a few cm off the ground).
+    this.oneShot(this.ranger, 'ranger', RANGER_CLIP.bomb, dir, 'release', () => this.setBomb(this.socket('ranger', RANGER_CLIP.bomb, dir, 'release', ['hand_r', 'hand_l'])), done);
+  }
+
+  /** The time bomb lands at `hand` (screen px from his feet), else just in front of his feet, and its fuse starts. */
+  protected setBomb(hand: Pt | null = null) {
+    if (this.dead) return;
+    this.arsenal.bombsPlaced++;
+    const a = (DIRS8.indexOf(this.facing) * Math.PI) / 4;
+    const off = hand && Math.abs(hand.y) < 12 ? hand : worldToScreenDelta(Math.cos(a) * 0.45, Math.sin(a) * 0.45, this.ppm);
+    const at = { x: this.ranger.x + off.x, y: this.ranger.y + off.y };
+    const s = this.manifest.sprites.time_bomb;
+    const key = s ? animKey(s, s.clips[0], s.dirs.includes('SE') ? 'SE' : s.dirs[0]) : '';
+    const spr = this.anims.exists(key) ? this.add.sprite(at.x, at.y, 'time_bomb').play(key) : this.add.rectangle(at.x, at.y - 4, 14, 8, 0x2a2a1a);
+    spr.setDepth(at.y);
+    const label = this.add
+      .text(at.x, at.y - 22, String(BOMB_FUSE), { fontFamily: 'monospace', fontSize: '14px', color: '#ff5040', backgroundColor: '#10140caa', padding: { x: 3, y: 1 } })
+      .setOrigin(0.5)
+      .setDepth(9e8 + 10);
+    this.bombs.push({ sprite: spr, label, at, fuse: BOMB_FUSE });
+    sfx.tick();
   }
 
   protected updateBombs(dt: number) {
@@ -1217,7 +1242,8 @@ export class Field extends Phaser.Scene {
 
   /**
    * Knife: a silent kill at close range. The Ranger turns to the nearest soldier within reach and stabs
-   * (`ranger_knife`'s Knife_Stab_Fore); on the clip's `hit` event the soldier falls. No noise: nobody is alerted.
+   * (`knife_Knife_Stab_Fore`: the knife in his hand); on the clip's `hit` event the soldier falls. No noise: nobody is
+   * alerted.
    */
   stab() {
     if (!this.ranger || this.busy || this.dead) return;
@@ -1233,8 +1259,8 @@ export class Field extends Phaser.Scene {
     sfx.stab();
     this.oneShot(
       this.ranger,
-      'ranger_knife',
-      'Knife_Stab_Fore',
+      'ranger',
+      RANGER_CLIP.knife,
       dir,
       'hit',
       () => {
@@ -1251,7 +1277,7 @@ export class Field extends Phaser.Scene {
     );
   }
 
-  /** First aid (H, or the AID item): +50 HP, one kit. */
+  /** First aid (H, or the AID item): +50 HP, one kit; he kneels with the kit (`medkit_kneel_place`, FB-073 verified). */
   firstAid() {
     if (!this.ranger || this.busy || this.dead || this.medkitsLeft <= 0 || this.hp >= RANGER_HP) {
       if (this.hp >= RANGER_HP) sfx.dryFire();
@@ -1262,14 +1288,21 @@ export class Field extends Phaser.Scene {
     this.hp = Math.min(RANGER_HP, this.hp + MEDKIT_HEAL);
     sfx.heal();
     this.busy = true;
-    if (!this.prone) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
     this.ranger.setTint(0x80ff80);
     const t = this.add.text(this.ranger.x, this.ranger.y - 90, `+${MEDKIT_HEAL}`, { fontFamily: 'monospace', fontSize: '16px', color: '#80ff80' }).setOrigin(0.5).setDepth(9e8 + 10);
     this.tweens.add({ targets: t, y: t.y - 30, alpha: 0, duration: 900, onComplete: () => t.destroy() });
-    this.time.delayedCall(600, () => {
+    const done = () => {
       this.ranger.clearTint();
       this.busy = false;
-    });
+    };
+    if (this.prone || !this.hasClip(RANGER_CLIP.medkit)) this.time.delayedCall(600, done);
+    else this.oneShot(this.ranger, 'ranger', RANGER_CLIP.medkit, this.facing, 'release', () => undefined, done);
+  }
+
+  /** Whether the Ranger's sheet has a clip (in his current facing). */
+  protected hasClip(clip: string) {
+    const s = this.manifest.sprites.ranger;
+    return !!s && this.anims.exists(animKey(s, clip, this.facing));
   }
 
   /** Ground speed of a locomotion clip, as measured by the generator (`speedMps`), so the feet don't slide. */
