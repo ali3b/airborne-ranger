@@ -58,6 +58,12 @@
   {"op":"addZone","kind":"custom","id":"pod1","name":"supply pod","points":[[100.5,200.5]],"properties":{"pod":true}},
   {"op":"addZone","kind":"custom","id":"pod2","name":"supply pod","points":[[36.5,128.5]],"properties":{"pod":true}},
   {"op":"addZone","kind":"custom","id":"pod3","name":"supply pod","points":[[88.5,84.5]],"properties":{"pod":true}},
+  {"op":"place","sprite":"mg_nest","x":20,"y":70,"facing":"SW","state":"intact","id":"g9_nest1","properties":{"kind":"mg_nest"}},
+  {"op":"place","sprite":"mg_nest","x":96,"y":80,"facing":"SW","state":"intact","id":"g9_nest2","properties":{"kind":"mg_nest"}},
+  {"op":"place","sprite":"mg_nest","x":30,"y":166,"facing":"SE","state":"intact","id":"g9_nest3","properties":{"kind":"mg_nest"}},
+  {"op":"addZone","kind":"custom","id":"g9_mines1","name":"minefield","shape":"polygon","points":[[80,110],[92,106],[94,114],[82,118]],"properties":{"minefield":true,"mines":7}},
+  {"op":"addZone","kind":"custom","id":"g9_mines2","name":"minefield","shape":"polygon","points":[[20,120],[32,116],[34,124],[22,128]],"properties":{"minefield":true,"mines":6}},
+  {"op":"addZone","kind":"custom","id":"g9_tank1","name":"tank route","shape":"polyline","points":[[4,152],[20,146],[36,148]],"properties":{"tank":true,"speed":1.8}},
   {"op":"scatter","seed":"pines","objects":[{"sprite":"pine_snow","weight":2},{"sprite":"pine_snow_small","weight":1}],"density":1.8,"spacing":3.5,"cluster":0.7,"clusterScale":24,"avoidTerrains":["ice","road","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
   {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock_snow"}],"density":0.35,"spacing":4,"avoidTerrains":["ice","road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
   {"op":"scatter","seed":"approach-cover","objects":[{"sprite":"pine_snow_small"},{"sprite":"rock_snow"}],"count":14,"spacing":5,"region":{"rect":[56,6,76,34]},"avoidTerrains":["road"],"avoidZones":["custom","spawn","patrol"],"avoidMargin":0.5}

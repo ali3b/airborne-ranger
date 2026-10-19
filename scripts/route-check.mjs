@@ -96,6 +96,13 @@ for (const name of names) {
   const total = a + b;
   const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
   console.log(`${name}: drop→objective ${a.toFixed(0)} m, objective→extraction ${b.toFixed(0)} m, total ${total.toFixed(0)} m · run ${mmss(total / run)} · walk ${mmss(total / walk)} · blocked ${blocked.reduce((s, v) => s + v, 0)} cells`);
+  // G10: the G9 hazards along that route (the game's own numbers: src/enemies/mgnest.ts 18 m and ±65°, tanks.ts 22 m).
+  // Mines on the route are a mistake (the shortest way must not need a minefield); nests and tanks may cover it, but
+  // the drop→objective leg of a stealth mission (9) should stay out of their reach.
+  const hz = hazards(tmj, th, ra.cells, rb.cells);
+  if (hz.list.length) console.log(`  hazards: ${hz.list.join(' · ')}`);
+  if (hz.mined) console.log(`  MINES ON THE ROUTE: ${hz.mined} cells`);
+  if (process.env.ROUTE_DUMP) fs.writeFileSync(path.join(process.env.ROUTE_DUMP, `${name}.route.json`), JSON.stringify({ in: ra.cells, out: rb.cells }));
   if (browser) {
     // Every 4th cell of the route as a waypoint (cell centres).
     const way = [...ra.cells, ...rb.cells].filter((_, k, all) => k % 4 === 0 || k === all.length - 1).map(([x, y]) => [x + 0.5, y + 0.5]);
@@ -158,3 +165,72 @@ for (const name of names) {
   }
 }
 await browser?.close();
+
+/**
+ * The G9 hazards on a route (cells): route cells inside a minefield, the cells of each leg (in = drop→objective, out =
+ * objective→extraction) a machine-gun nest covers (range and arc, sight lines not traced) and a tank route's nearest
+ * approach. Cells are metres; a cell (x, y) is world ((x − y)/√2, −(x + y)/√2).
+ */
+function hazards(tmj, th, inLeg, outLeg) {
+  const layer = (k) => tmj.layers.find((l) => (l.class ?? l.name) === k)?.objects ?? [];
+  const zp = (z) => (z.polygon ?? z.polyline ?? [{ x: 0, y: 0 }]).map((q) => [(z.x + q.x) / th, (z.y + q.y) / th]);
+  const inPoly = ([x, y], poly) => {
+    let r = false;
+    for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
+      const [ax, ay] = poly[k];
+      const [bx, by] = poly[j];
+      if (ay > y !== by > y && x < ((bx - ax) * (y - ay)) / (by - ay) + ax) r = !r;
+    }
+    return r;
+  };
+  const segDist = ([px, py], line) => {
+    let best = Infinity;
+    for (let k = 0; k + 1 < line.length; k++) {
+      const [ax, ay] = line[k];
+      const [bx, by] = line[k + 1];
+      const ex = bx - ax;
+      const ey = by - ay;
+      const t = Math.max(0, Math.min(1, ((px - ax) * ex + (py - ay) * ey) / (ex * ex + ey * ey || 1)));
+      best = Math.min(best, Math.hypot(ax + t * ex - px, ay + t * ey - py));
+    }
+    return best;
+  };
+  const centre = ([x, y]) => [x + 0.5, y + 0.5];
+  const route = [...inLeg, ...outLeg].map(centre);
+  const list = [];
+  let mined = 0;
+  const zones = layer('zones').filter((z) => z.type === 'custom');
+  const pz = (z) => Object.fromEntries((z.properties ?? []).map((p) => [p.name, p.value]));
+  for (const z of zones.filter((z) => pz(z).minefield)) {
+    const poly = zp(z);
+    const n = route.filter((c) => inPoly(c, poly)).length;
+    mined += n;
+    list.push(`${z.name}#${z.id} ${n} cells`);
+  }
+  const W = Math.SQRT1_2;
+  const world = ([x, y]) => [(x - y) * W, -(x + y) * W];
+  const DIRS = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
+  for (const o of layer('objects')) {
+    const p = Object.fromEntries((o.properties ?? []).map((q) => [q.name, q.value]));
+    if (String(p.sprite ?? o.name) !== 'mg_nest') continue;
+    const a = (Math.max(0, DIRS.indexOf(String(p.facing))) * Math.PI) / 4;
+    const [ax, ay] = world([o.x / th, o.y / th]);
+    const g = [ax - Math.cos(a) * 1.9, ay - Math.sin(a) * 1.9];
+    const covered = (cells) =>
+      cells.map(centre).filter((c) => {
+        const [wx, wy] = world(c);
+        const d = Math.hypot(wx - g[0], wy - g[1]);
+        let da = Math.atan2(wy - g[1], wx - g[0]) - a;
+        da = Math.atan2(Math.sin(da), Math.cos(da));
+        return d <= 18 && Math.abs(da) <= (65 * Math.PI) / 180;
+      }).length;
+    list.push(`nest ${p.id ?? o.id} ${p.facing} covers in ${covered(inLeg)} / out ${covered(outLeg)} cells`);
+  }
+  for (const z of zones.filter((z) => pz(z).tank)) {
+    const line = zp(z);
+    const near = (cells) => Math.min(...cells.map(centre).map((c) => segDist(c, line)));
+    list.push(`${z.name}#${z.id} nearest in ${near(inLeg).toFixed(0)} m / out ${near(outLeg).toFixed(0)} m`);
+  }
+  for (const z of zones.filter((z) => pz(z).trench)) list.push(`${z.name}#${z.id}`);
+  return { list, mined };
+}
