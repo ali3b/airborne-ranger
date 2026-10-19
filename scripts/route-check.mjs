@@ -52,7 +52,7 @@ for (const name of names) {
   const ex = zones.find((z) => z.type === 'extraction');
   const astar = ([sx, sy], [gx, gy]) => {
     // Start and goal may lie in the clearance band: they and the 3 cells around them count as free.
-    const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (!blocked[y * W + x] || (Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3 && !hard[y * W + x]) || (Math.abs(x - gx) <= 3 && Math.abs(y - gy) <= 3 && !hard[y * W + x]));
+    const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (!blocked[y * W + x] || (Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3 && !hard[y * W + x]) || (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6 && !hard[y * W + x]));
     // The goal may sit on a prop (a target): stop next to it.
     const g = new Float64Array(W * H).fill(Infinity);
     const from = new Int32Array(W * H).fill(-1);
@@ -69,7 +69,7 @@ for (const name of names) {
       const [, x, y] = open[bi];
       open[bi] = open[open.length - 1];
       open.pop();
-      if (Math.abs(x - gx) <= 3 && Math.abs(y - gy) <= 3) return { m: g[y * W + x], cells: trace(x, y) };
+      if (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6) return { m: g[y * W + x], cells: trace(x, y) };
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if (!dx && !dy) continue;
         const nx = x + dx;

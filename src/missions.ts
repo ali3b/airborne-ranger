@@ -13,6 +13,10 @@ export interface MissionConfig {
   done: string;
   /** End screen line on success. */
   success: string;
+  /**
+   * The clock. G6 maps are 128×256 m: the shortest walkable route (scripts/route-check.mjs) is 370–480 m, 2:10–2:50
+   * at a flat-out run, 5–6:30 walking; with the objective, pods, stealth and fights a mission takes about 6–10 minutes.
+   */
   seconds: number;
 }
 
@@ -25,7 +29,7 @@ export const MISSIONS: MissionConfig[] = [
     goal: 'destroy the munitions depot',
     done: 'DEPOT DESTROYED: get to the extraction zone',
     success: 'Munitions depot destroyed. The Ranger made the pickup.',
-    seconds: 12 * 60,
+    seconds: 10 * 60,
   },
   {
     map: 'mission2',
@@ -35,7 +39,7 @@ export const MISSIONS: MissionConfig[] = [
     goal: 'knock out the radar array',
     done: 'RADAR ARRAY DOWN: get to the extraction zone',
     success: 'The radar array is down. The Ranger made the pickup.',
-    seconds: 12 * 60,
+    seconds: 10 * 60,
   },
   {
     map: 'mission3',
@@ -45,7 +49,7 @@ export const MISSIONS: MissionConfig[] = [
     goal: 'destroy the aircraft on the airfield',
     done: 'AIRCRAFT DESTROYED: get to the extraction zone',
     success: 'The enemy aircraft are burning. The Ranger made the pickup.',
-    seconds: 12 * 60,
+    seconds: 11 * 60,
   },
   {
     map: 'mission4',

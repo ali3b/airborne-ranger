@@ -80,8 +80,9 @@ async function buildMap(def) {
   const entry = { name: def.name, id: map.id, size: def.size };
   if (def.export) {
     const dir = path.join(root, def.export);
-    fs.rmSync(dir, { recursive: true, force: true });
+    // Empty the folder rather than delete it: a dev server watching public/ loses track of a folder made again.
     fs.mkdirSync(dir, { recursive: true });
+    for (const f of fs.readdirSync(dir)) fs.rmSync(path.join(dir, f), { recursive: true, force: true });
     const e = await must(['map', 'export', String(map.id), ...P, '-f', 'tmj', '--embed', '-o', dir], `map export ${def.name}`);
     for (const w of [e.json?.warnings ?? []].flat()) console.error(`  export warning: ${typeof w === 'string' ? w : JSON.stringify(w)}`);
     const tmj = fs.readdirSync(dir).find((f) => f.endsWith('.tmj'));
