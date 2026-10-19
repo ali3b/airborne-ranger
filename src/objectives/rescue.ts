@@ -1,3 +1,4 @@
+import type { Escortee } from '../enemies/escort';
 import { registerObjective, type Objective } from './index';
 import type { Mission } from '../scenes/Mission';
 import type { Placed } from '../scenes/Field';
@@ -95,6 +96,11 @@ class Rescue implements Objective {
     const alive = this.hostages.alive.length;
     if (!this.freed) return `blow open the stockade gate (hostages ${alive}/${this.total})`;
     return `bring the hostages to the extraction (${alive}/${this.total} alive, ${this.withHim(v).length} with you)`;
+  }
+
+  /** G10: freed hostages are shot at by alerted soldiers and machine-gun nests (src/enemies/escort.ts). */
+  exposed(): Escortee[] {
+    return this.hostages.list.filter((f) => f.alive && f.free).map((f) => ({ sprite: f.sprite, alive: true, hit: (from) => this.hostages.kill(f, from, 'shot') }));
   }
 
   marker(m: Mission) {

@@ -2,6 +2,7 @@ import { props } from '../assets';
 import type { Dir8 } from '../iso';
 import type { Mission } from '../scenes/Mission';
 import { sfx } from '../sound';
+import type { Escortee } from '../enemies/escort';
 import { registerObjective, type Objective } from './index';
 import { centroid, customZones, dist, Escort, Follower, rangerExtracting, say, screenCell, view, zoneCell } from './follower';
 
@@ -16,7 +17,7 @@ const DELIVER = 7;
  * Mission 6, Capture an Enemy Officer: the officer (`officer`, the map's custom zone with `officer`) is at his
  * headquarters. If he spots the Ranger at a distance he shouts for his guards; when the Ranger gets close he
  * surrenders and follows him (`Follower`). Bring him to the extraction zone alive: a stray bullet or a blast that
- * kills him fails the mission.
+ * kills him fails the mission. G10: once he's with the Ranger the enemy shoots at him too (src/enemies/escort.ts).
  */
 class Officer implements Objective {
   private officer?: Follower;
@@ -73,6 +74,12 @@ class Officer implements Objective {
     return `escort the officer to the extraction zone${lag}`;
   }
 
+  /** G10: once captured he walks with the Ranger, and the enemy shoots at him too. */
+  exposed(): Escortee[] {
+    const o = this.officer;
+    return o && this.state === 'captured' && o.alive ? [{ sprite: o.sprite, alive: true, hit: (from) => o.hit('enemy', from) }] : [];
+  }
+
   marker(m: Mission) {
     return this.state === 'captured' ? centroid(view(m).extractArea) : this.officer && this.shouted ? screenCell(this.officer.sprite) : null;
   }
@@ -80,7 +87,7 @@ class Officer implements Objective {
   stats(): Record<string, string | number> {
     const o = this.officer;
     if (!o) return {};
-    return { officer: !o.alive ? `killed (${o.killedBy})` : this.state === 'captured' ? 'captured' : 'still at large', ...(this.capturedAt !== null ? { 'captured at': `${Math.floor(this.capturedAt / 60)}:${String(Math.round(this.capturedAt % 60)).padStart(2, '0')}` } : {}) };
+    return { officer: !o.alive ? `killed (${o.killedBy === 'enemy' ? 'enemy fire' : o.killedBy})` : this.state === 'captured' ? 'captured' : 'still at large', ...(this.capturedAt !== null ? { 'captured at': `${Math.floor(this.capturedAt / 60)}:${String(Math.round(this.capturedAt % 60)).padStart(2, '0')}` } : {}) };
   }
 }
 

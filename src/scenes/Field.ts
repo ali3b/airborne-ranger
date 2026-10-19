@@ -102,7 +102,7 @@ const RANGER_CLIP = {
 } as const;
 const WEAPON_LABEL: Record<Weapon, string> = { carbine: 'CARBINE', grenade: 'GRENADE', law: 'LAW', bomb: 'BOMB', knife: 'KNIFE', medkit: 'AID' };
 /** What killed a soldier or destroyed an installation (G7 scoring hooks and the end screen). */
-export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife';
+export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife' | 'enemy'; // G10: 'enemy' = enemy fire (an escort)
 
 export type Pt = { x: number; y: number };
 

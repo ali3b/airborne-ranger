@@ -5,6 +5,7 @@ import type { MissionConfig } from '../missions';
 import type { Loadout } from '../loadout';
 import type { Cause, Enemy, Placed, Pt } from '../scenes/Field';
 import type { PropGrid } from '../world';
+import type { Escortee } from './escort';
 
 /**
  * G9: what the enemy systems (src/enemies/*) use of the field scene. Field's members are `protected` for its
@@ -24,7 +25,7 @@ export interface FieldHost extends Phaser.Scene {
   props: Placed[];
   grid: PropGrid<Placed>;
   enemies: Enemy[];
-  bullets: { pos: Pt; left: number; owner: 'ranger' | 'enemy' }[];
+  bullets: { pos: Pt; dir: Pt; left: number; owner: 'ranger' | 'enemy' }[];
   worldOf(p: Pt): Pt;
   propAt(w: Pt): Placed | undefined;
   placeObject(name: string, dir: Dir8, at: Pt, opts?: { hp?: number; state?: string; collision?: [number, number][] }): Placed | null;
@@ -55,6 +56,8 @@ export interface FieldHost extends Phaser.Scene {
   outcome?: string | null;
   timeLeft?: number;
   overview?: { isOpen: boolean };
+  /** G10: who the enemy may shoot at besides the Ranger (src/enemies/escort.ts). */
+  objective?: { exposed?(m: FieldHost): Escortee[] } | null;
 }
 
 /** The map's zones (Mission), or none (the test field). */

@@ -1,4 +1,5 @@
 // src/objectives/index.ts
+import type { Escortee } from '../enemies/escort';
 import type { MissionConfig } from '../missions';
 import type { Mission } from '../scenes/Mission';
 
@@ -14,6 +15,8 @@ export interface Objective {
   marker?(m: Mission): { x: number; y: number } | null;
   /** Extra debrief stats (label → value). */
   stats?(m: Mission): Record<string, string | number>;
+  /** G10: the people the enemy may shoot at now (the escorted officer, freed prisoners or hostages). */
+  exposed?(m: Mission): Escortee[];
 }
 
 const KINDS: Record<string, (cfg: MissionConfig) => Objective> = {};

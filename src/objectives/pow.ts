@@ -4,6 +4,7 @@ import type { Dir8 } from '../iso';
 import type { Placed } from '../scenes/Field';
 import type { Mission } from '../scenes/Mission';
 import { sfx } from '../sound';
+import type { Escortee } from '../enemies/escort';
 import { registerObjective, type Objective } from './index';
 import { cellWorld, centroid, customZones, dist, Escort, Follower, rangerExtracting, say, screenCell, view, zoneCell } from './follower';
 
@@ -21,7 +22,7 @@ const DELIVER = 12;
  * camp's wire. Open the gate (the target `pow_gate`): blow it up, or stand at it for a few seconds to cut it. Freed
  * prisoners walk out to the camp exit (the custom zone `pow_exit`) and wait; each joins the Ranger when he comes
  * near and follows him (`Follower`). Bring them to the extraction zone; the debriefing counts the rescued. If every
- * prisoner dies the mission fails.
+ * prisoner dies the mission fails. G10: once the gate is open the enemy shoots at them (src/enemies/escort.ts).
  */
 class Pow implements Objective {
   private escort?: Escort;
@@ -102,6 +103,12 @@ class Pow implements Objective {
     const rw = v.worldOf(v.ranger);
     const lag = e.following.some((f) => dist(f.world, rw) > DELIVER) ? ' (wait for them)' : '';
     return `prisoners with you ${e.following.length}/${e.alive.length}: lead them to the extraction zone${lag}`;
+  }
+
+  /** G10: once the gate is open the prisoners are out in the open, and the enemy shoots at them. */
+  exposed(): Escortee[] {
+    if (!this.open || !this.escort) return [];
+    return this.escort.alive.map((f) => ({ sprite: f.sprite, alive: true, hit: (from) => f.hit('enemy', from) }));
   }
 
   marker(m: Mission) {

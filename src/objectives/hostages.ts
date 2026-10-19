@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { animKey } from '../assets';
 import { DIRS8, dirFromWorld, screenToWorldDelta, tileToScreen, worldToScreenDelta, type Dir8 } from '../iso';
 import { circleHitsPolygon, type Placed, type Pt } from '../scenes/Field';
-import { sfx } from '../sound';
 import { distM, type MissionView } from './g8b-view';
 
 /**
@@ -10,12 +9,10 @@ import { distM, type MissionView } from './g8b-view';
  * released, then walk or run (`unarmed_walk` / `unarmed_run`) through `exits` (cell points, e.g. the blown gate and a
  * spot outside it) and after that keep 1.6–3 m behind the Ranger, in a file. They collide with props like the
  * Ranger, slide along walls and step aside when stuck. An enemy bullet that passes within 0.45 m kills one, so does a
- * blast; alerted soldiers near a freed hostage shoot at him now and then.
+ * blast; alerted soldiers and machine-gun nests shoot at freed ones (src/enemies/escort.ts).
  */
 const RADIUS = 0.3;
 const GAP = 1.8; // metres behind the one in front
-const ENEMY_FIRE_RANGE = 12; // metres
-const ENEMY_FIRE_EVERY = 2.5; // seconds per alerted soldier, at most
 
 export interface Follower {
   sprite: Phaser.GameObjects.Sprite;
@@ -31,7 +28,6 @@ export interface Follower {
 
 export class Followers {
   list: Follower[] = [];
-  private fireCool = new Map<object, number>();
   private near: Placed[] = [];
 
   constructor(private v: MissionView) {}
@@ -96,23 +92,7 @@ export class Followers {
         }
       }
     }
-    // Alerted soldiers fire at freed hostages near them (a miss is aimed past).
-    for (const e of v.enemies) {
-      if (e.state !== 'alert' || e.busy || !e.sprite.active) continue;
-      const cool = (this.fireCool.get(e) ?? Math.random() * ENEMY_FIRE_EVERY) - dt;
-      this.fireCool.set(e, cool);
-      if (cool > 0) continue;
-      const ew = v.worldOf(e.sprite);
-      const target = this.list.find((f) => f.alive && f.free && distM(v.worldOf(f.sprite), ew) < ENEMY_FIRE_RANGE);
-      if (!target) continue;
-      this.fireCool.set(e, ENEMY_FIRE_EVERY);
-      const tw = v.worldOf(target.sprite);
-      const d = distM(tw, ew);
-      let ang = Math.atan2(tw.y - ew.y, tw.x - ew.x);
-      if (Math.random() > 0.35) ang += (Math.random() < 0.5 ? -1 : 1) * Math.atan2(1 + Math.random(), d);
-      sfx.enemyShot(0.3);
-      v.fireBullet(e.sprite, { x: 0, y: -50 }, { x: Math.cos(ang), y: Math.sin(ang) }, d + 4, 'enemy', false);
-    }
+    // Alerted soldiers and machine-gun nests fire at freed hostages: src/enemies/escort.ts (G10, Rescue.exposed).
     // Walking: through the exits, then after the Ranger (each after the one in front of him).
     const walk = v.manifest.sprites.hostage?.clipInfo.unarmed_walk?.speedMps ?? 1.3;
     const run = v.manifest.sprites.hostage?.clipInfo.unarmed_run?.speedMps ?? 3.5;

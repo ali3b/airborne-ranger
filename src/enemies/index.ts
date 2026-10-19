@@ -4,6 +4,7 @@ import { mods as difficultyMods, getDifficulty, type Difficulty, type Difficulty
 import { Pickup } from '../pickup';
 import type { Cause, Placed, Pt } from '../scenes/Field';
 import { Alerts } from './alerts';
+import { EscortFire } from './escort';
 import { zoneCells, zonesOf, type FieldHost } from './host';
 import { MgNests } from './mgnest';
 import { Mines } from './mines';
@@ -44,6 +45,8 @@ export class G9 {
   readonly tanks: Tanks;
   readonly trenches: Trenches;
   readonly pickup: Pickup;
+  /** G10: fire at the officer, prisoners and hostages the Ranger leads out. */
+  readonly escort: EscortFire;
   /** What changed with the difficulty (for the load check). */
   readonly adjust = { removed: 0, added: 0, pods: 0 };
   private cullTick = 0;
@@ -60,6 +63,7 @@ export class G9 {
     this.tanks = new Tanks(host, this);
     this.trenches = new Trenches(host);
     this.pickup = new Pickup(host, this);
+    this.escort = new EscortFire(host, this);
     if (host.tmj) this.fromMap();
     else this.testField(TEST_FIELD);
     this.nests.manAll();
@@ -125,6 +129,7 @@ export class G9 {
     this.nests.update(dt);
     this.tanks.update(dt);
     this.pickup.update(dt);
+    this.escort.update(dt);
     if (this.cullTick++ % 3 === 0) this.nests.cull(this.host.cameras.main.worldView);
   }
 
