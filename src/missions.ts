@@ -20,6 +20,8 @@ export interface MissionConfig {
   seconds: number;
   /** G8: the objective kind (src/objectives); absent: destroy every target. */
   objective?: string;
+  /** G8: the plane is already waiting once the objective is done (mission 11): no call, it boards him in the zone. */
+  planeWaiting?: boolean;
 }
 
 export const MISSIONS: MissionConfig[] = [
@@ -109,6 +111,53 @@ export const MISSIONS: MissionConfig[] = [
     done: 'PRISONERS OUT',
     success: 'The prisoners are free and flown out at dusk. The Ranger made the pickup.',
     seconds: 13 * 60,
+  },
+  // G8 (lane g8b): missions 9-12 with their own objectives (src/objectives/g8b.ts). g8a adds 5-8.
+  {
+    map: 'mission9',
+    number: 9,
+    title: 'PHOTOGRAPH AN EXPERIMENTAL AIRCRAFT',
+    climate: 'arctic',
+    objective: 'photo',
+    goal: 'photograph the prototype at the hangar',
+    done: 'PHOTOGRAPHS TAKEN: get to the extraction zone',
+    success: 'The prototype is on film. The Ranger made the pickup.',
+    seconds: 11 * 60,
+  },
+  {
+    map: 'mission10',
+    number: 10,
+    title: 'FREE THE HOSTAGES',
+    climate: 'desert',
+    objective: 'hostages',
+    goal: 'blow open the stockade gate',
+    done: 'HOSTAGES WITH YOU: extraction',
+    success: 'The hostages are free. The Ranger brought them out.',
+    seconds: 12 * 60,
+  },
+  {
+    map: 'mission11',
+    number: 11,
+    title: 'CREATE A DIVERSION',
+    climate: 'temperate',
+    objective: 'diversion',
+    planeWaiting: true,
+    goal: 'reach the garrison, hold fire until the buzzer',
+    done: 'THE PLANE IS DOWN: get to the border zone',
+    success: 'The garrison is in uproar. The Ranger slipped over the border.',
+    seconds: 12 * 60,
+  },
+  {
+    map: 'mission12',
+    number: 12,
+    title: 'DELAYED SABOTAGE',
+    climate: 'jungle',
+    dusk: true,
+    objective: 'sabotage',
+    goal: 'plant time bombs on the fuel dump unseen',
+    done: 'CHARGES SET: get clear and out before they blow',
+    success: 'The charges are ticking in the fuel dump. The Ranger made the pickup unseen.',
+    seconds: 12 * 60,
   },
 ];
 

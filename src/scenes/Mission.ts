@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { isTouch, setMapView } from '../touch';
+import { isTouch, setMapView, type TouchItem } from '../touch';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
 import { Field, circleHitsPolygon, distW, RANGER_RADIUS, type Placed, type Pt } from './Field';
@@ -11,6 +11,7 @@ import { sfx } from '../sound';
 import { BASIC_CARRY, ITEMS, loadLoadout, sanitize, type Loadout } from '../loadout';
 import { makeObjective, type Objective } from '../objectives';
 import '../objectives/g8a';
+import '../objectives/g8b';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -78,10 +79,6 @@ export class Mission extends Field {
   protected vehicles: Vehicle[] = [];
   protected timeLeft = 0;
   protected objectiveDone = false;
-  /** G8: the mission's own goal (src/objectives), or null for "destroy every target". */
-  objective: Objective | null = null;
-  /** G8: why the mission failed, when it wasn't the clock (the officer was killed…). */
-  protected failReason: string | null = null;
   /** 'accomplished' | 'failed' | 'kia' once the mission is over. */
   outcome: MissionResult['outcome'] | null = null;
   /** The Ranger on the roster playing this mission (null: a guest, see Title). */
@@ -94,6 +91,11 @@ export class Mission extends Field {
   award: Award | null = null;
   /** G7: what each supply pod carries (from the loadout screen; a guest gets the last saved loadout). */
   loadout: Loadout = loadLoadout();
+  /** G8: the mission's objective kind (src/objectives), null = destroy every target; why it failed, if it did. */
+  objective: Objective | null = null;
+  failReason: string | null = null;
+  /** G8: touch item-bar entries an objective adds (its camera…), with what a tap does. */
+  touchExtras: (TouchItem & { action: () => void })[] = [];
   /** For scripts/load-check.mjs: how the map turned into the scene. */
   report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
 
@@ -134,6 +136,7 @@ export class Mission extends Field {
     this.alertAt = null;
     this.objectiveAt = null;
     this.restartOnR = false;
+    this.touchExtras = [];
     // G7: the Ranger's own basic carry (one magazine is in the carbine).
     this.grenadesLeft = BASIC_CARRY.grenade;
     this.magsLeft = BASIC_CARRY.mag;
@@ -549,7 +552,7 @@ export class Mission extends Field {
       this.alertAt = elapsed;
       sfx.alert();
     }
-    const state = this.objectiveDone ? 'done' : this.objective ? this.objective.update(this, dt) : this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0) ? 'done' : 'pending';
+    const state = this.objective ? this.objective.update(this, dt) : this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0) ? 'done' : 'pending';
     if (typeof state === 'object') {
       this.failReason = state.failed;
       this.finish('failed');
@@ -618,6 +621,16 @@ export class Mission extends Field {
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(1e9 + 1);
+  }
+
+  protected extraItems() {
+    return this.touchExtras;
+  }
+
+  protected itemAction(key: string) {
+    const it = this.touchExtras.find((x) => x.key === key);
+    it?.action();
+    return !!it;
   }
 
   /** Enter after the end: the debriefing. */

@@ -704,7 +704,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Suggested change: `path {…, collision: false}` that clears the cells under it (a ford or bridge); or `rect {value: false, terrains: ["sand"]}` / a `paint`/`fill` filter by terrain; or make `path {collision: true}` re-derive blocking from the final terrain so a later sand path over the water unblocks exactly its cells.
 - Re-test (generator large-map update, 2026-10-19): unchanged (`rect` has no terrain filter, `path {collision}` only blocks).
 - Re-test (G8 lane g8a, 2026-10-19): works. Missions 5 and 8 make their fords with `path {terrain, width, collision: false}` and no rect (maps/g8/mission5|8/stage1.json): the route check crosses on the fords, and its blocked-cell count rises by 211 / 270 against the old rects (the water beside the fords stays blocked).
-- Status: verified (missions 5 and 8; missions 1–4 still carry the old rects until they are rebuilt)
+- Re-test (G8 lane g8b, 2026-10-19): works. Missions 11 and 12 cut their fords with `path {collision:false}` alone (reports `cleared: 16–21`); no `rect value:false`, the water beside them stays blocked; route-check crosses them. Missions 1–4 still use the old rects.
+- Status: verified (missions 5, 8, 11, 12; missions 1–4 still carry the old rects until they are rebuilt)
 
 
 ## FB-070 · A sprite can't leave the project's tile lock: UI icons get the map scale, `ppm` is ignored silently
@@ -741,7 +742,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only kneeling bow clips and `Stand_ToCrouch` / `Crouch_ToStand` transitions; nothing with the hands going to the ground.
 - Workaround: the rifle moveset's `crouch_idle` loop (`ranger_kit`) plays for 0.8 s, then the bomb appears at the Ranger's feet (`placeBomb`, FB-073); first aid uses the same crouch.
 - Suggested change: a procedural `kneel_place` template (crouch, reach the free hand to the ground in front, stand) with `place` at the lowest reach, and maybe `use_item` (hands to the chest) for first aid.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (G8 lane g8b, 2026-10-19): works. `ranger_ops` has `{ "template": "kneel_place", "with": "POLYGON_BattleRoyale/SM_Prop_C4_01", "as": "plant" }` → `plant_kneel_place` with a `release` event (frame 6); `placeBomb` plays it and sets the bomb on `release` (the crouch stand-in stays only for a build without `ranger_ops`).
+- Status: verified for the time bomb (lane g8b; first aid still uses the crouch)
 
 ## FB-074 · One character, different held items per clip, needs one sprite per item
 - Severity: workaround        Milestone: G7
@@ -867,4 +869,38 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `g9_nest1 would overlap o174 (tree_small) at (51.5, 98.5); …` for every nest; the scatter's object ids change on each rebuild, so removing them by id isn't stable.
 - Workaround: the G9 ops are a stage *before* the scatters (maps/g6/<mission>/stage3.json; the scatters moved to stage4), so the scatter avoids them; the maps' scatter results changed with it.
 - Suggested change: `clear: true` on `place` / `stamp` (only removing objects from scatter ops, reported), or a `clearRect` / `clearZone` op for objects.
+## FB-085 · A destroyed state can't say how it collides: a blown gate keeps the whole panel as its collider
+- Severity: workaround        Milestone: G8
+- Tried: mission 10's stockade gate, `stockade_gate` (POLYGON_War `SM_Prop_Fence_High_02`) declared with `"states": "destroyed=@scorch:dark=0.9@collapse:blast=1"`, blown by a time bomb so the hostages can walk out.
+- Wanted: the destroyed state's footprint to be what is left on the ground: nothing (a gap) for a gate or fence panel, a low rubble outline for a wall.
+- Got: the destroyed state is the scorched copy with the intact panel's polygon (5 × 0.15 m), so the gap stays shut in the game, and `collapse` fades the picture but not the collider.
+- Workaround: `src/objectives/rescue.ts` (FB-085) empties the gate's collider once its state is `destroyed` and shows the wreck at 45 % alpha.
+- Suggested change: a per-state `collision` (`"none"`, `"base"`, `"full"`, or `"auto"`: none when the transition fades out) in the `states` syntax, e.g. `"destroyed=@scorch@collapse:fade=1;collision=none"` or `{ "destroyed": { "collision": "none" } }`, written into the export's `object.states[].directions[].polygon` (empty).
+- Status: open
+
+## FB-086 · A character declared with templates only still renders the locomotion set
+- Severity: polish        Milestone: G8
+- Tried: `ranger_ops` with only `"template": [{ "template": "kneel_shoot:…", "with": "…Camera_01", "as": "camera" }, { "template": "kneel_place", "with": "…C4_01", "as": "plant" }]` (and `"anim": []`), `ssg sprite apply --dry-run`.
+- Wanted: two clips (`camera_kneel_shoot`, `plant_kneel_place`): the Ranger's own sprite has idle/walk/run already (the game plays these clips on it, FB-074 pattern).
+- Got: clips `idle, walk, run, camera_kneel_shoot, plant_kneel_place`: three 8-direction clips nobody plays are rendered on the shared runner (the same for `ranger_law`).
+- Workaround: none (render time only).
+- Suggested change: when `template` (or `anim`) is given, don't add the kind's default set; or let `"set": "none"` / `"anim": []` mean "only these".
+- Status: open
+
+## FB-087 · `search_assets` misses everyday names for props and people: "fuel tank", "hostage", "siren"
+- Severity: polish        Milestone: G8
+- Tried: `search_assets` for the new missions' props and people: "jet", "aircraft", "fuel tank", "fuel", "hostage", "prisoner", "civilian", "siren", "alarm", "camera".
+- Wanted: aircraft (fine now: "aircraft"/"airplane" find the planes, FB-075), the tankers and tanks (`SK_Veh_BigRig_Trailer_Tanker_01`, `SK_Veh_Army_Truck_Tank_01`, `SM_Bld_WaterTank_01`) for "fuel tank", the civilian characters (`Character_GentleMan_01`, `Character_Resistance_Male_01`, `Character_FactoryGirl_01`…) for "hostage"/"civilian", `SM_Prop_AlarmPole_01` for "siren".
+- Got: "fuel tank" → TankTrap, Tankard and battle tanks; "hostage" and "siren" → nothing; "fuel" → only a fuel sign; "jet" → the jet ski (there is no jet aircraft in the installed packs, which is fine, but nothing says so). Found by listing every character and guessing prop names.
+- Workaround: none (picked by hand: `hostage` = Resistance_Male_01, `alarm_pole`, `fuel_tank` = WaterTank_01, `fuel_bowser` = Army_Truck_Tank_01, the V-2 `SM_Veh_Rocket_01` as the experimental aircraft).
+- Suggested change: role words in the synonym list (hostage/prisoner/civilian → non-soldier characters, fuel tank → tanker/tank but not tank trap or battle tank, siren → alarm) and a `kind`/`category` filter that ranks vehicles vs props; for characters, AI tags like `civilian`, `soldier`, `officer`.
+- Status: open
+
+## FB-088 · No pose for raising a held item to the eyes (camera, binoculars)
+- Severity: polish        Milestone: G8
+- Tried: mission 9's camera: `ranger_ops` `{ "template": "kneel_shoot:duration=1.5,twoHanded=1,kick=0", "with": "POLYGON_Apocalypse/SM_Item_Camera_01", "as": "camera" }`; `search_animations` for camera, photo, binocular, look.
+- Wanted: a kneeling (or standing) "hold to the face" pose with the item at the eyes, with an event when it is in place (`shutter` / `look`).
+- Got: kneel_shoot holds the camera at arm's length like a pistol; at 1 m per tile the 18 cm camera is a dark dot in the hands, so it reads as aiming, not photographing. No camera/binocular clips found.
+- Workaround: the kneel_shoot clip plus a white flash circle when the exposure completes (`src/objectives/photo.ts`).
+- Suggested change: a `raise_to_eyes` character template (hands to the face, head slightly forward, optional kneel) with a `look` event, usable for cameras, binoculars, radios.
 - Status: open

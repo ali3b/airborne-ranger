@@ -20,12 +20,13 @@ tools, from Synty POLYGON 3D models.
 | Grenade | `G` |
 | Sound on/off | `M` |
 | Weapons and items | `1`–`6` carbine, grenade, LAW, time bomb, knife, first aid; `Q` cycles; `R` reload; `H` first aid |
+| Camera (mission 9) | `C`: hold while the prototype is in view |
 | Overview map | `Tab` or `O` |
 | Call the plane (extraction zone, objective done) | `C` |
 | Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger; on the mission select `D` difficulty, `C` campaign |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
-FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid) beside them, a MAP button under the compass and a CALL PLANE button under it in the extraction zone. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
+FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid, and CAMERA in mission 9) beside them, a MAP button under the compass and a CALL PLANE button under it in the extraction zone. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
 retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them off.
 
 ## The game
@@ -50,6 +51,10 @@ the prisoners out (they follow you; the debriefing counts the rescued).
 | 6 · Capture an Enemy Officer | arctic | ![](docs/screenshots/g8-mission6-escort.png) |
 | 7 · Disable SAM Site | desert | ![](docs/screenshots/g8-mission7-sam.png) |
 | 8 · Liberate a P.O.W. Camp | jungle, dusk | ![](docs/screenshots/g8-mission8-prisoners.png) |
+| 9 · Photograph an Experimental Aircraft: get the prototype in view unseen and hold the camera | arctic | ![](docs/screenshots/g8-mission9.png) |
+| 10 · Free the Hostages: blow the stockade gate, lead the hostages out alive | desert | ![](docs/screenshots/g8-mission10.png) |
+| 11 · Create a Diversion: hold fire until the buzzer, wreck the garrison, be at the border when the plane lands | temperate | ![](docs/screenshots/g8-mission11.png) |
+| 12 · Delayed Sabotage: time bombs on the fuel dump, long fuses, never seen there | jungle, dusk | ![](docs/screenshots/g8-mission12.png) |
 
 | Roster | Drop | Debriefing |
 |---|---|---|

@@ -51,7 +51,7 @@ export class Pickup {
 
   get canCall() {
     const h = this.host;
-    return this.state === 'idle' && !!h.objectiveDone && !h.dead && !h.outcome && this.inZone();
+    return this.state === 'idle' && !h.cfg?.planeWaiting && !!h.objectiveDone && !h.dead && !h.outcome && this.inZone();
   }
 
   /** Radio the plane. */
@@ -79,6 +79,13 @@ export class Pickup {
       this.button.style.display = show && !h.overview?.isOpen ? 'block' : 'none';
       this.button.textContent = this.state === 'idle' ? 'CALL PLANE' : `PLANE ${Math.max(0, Math.ceil(this.eta))}s`;
       this.button.classList.toggle('on', this.state !== 'idle');
+    }
+    // G8 mission 11: the plane has already landed at the border (MissionConfig.planeWaiting): no call, no alarm; it
+    // comes in as soon as the Ranger is in the zone.
+    if (h.cfg?.planeWaiting && this.state === 'idle' && h.objectiveDone && !h.dead && !h.outcome && this.inZone()) {
+      this.state = 'called';
+      this.eta = FLY_IN;
+      this.say('THE PLANE IS HERE: get aboard');
     }
     if (this.state === 'idle' || this.state === 'done' || this.state === 'boarding') return;
     this.eta -= dt;

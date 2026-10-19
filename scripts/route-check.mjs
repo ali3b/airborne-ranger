@@ -87,8 +87,10 @@ for (const name of names) {
     }
     return { m: Infinity, cells: [] };
   };
-  const ra = astar(centre(drop), centre(obj));
-  const rb = astar(centre(obj), centre(ex));
+  // G8: an objective inside an enclosure (mission 10's stockade) names the cell to reach in `approach` ("x,y").
+  const oc = props(obj).approach ? String(props(obj).approach).split(',').map((v) => Math.floor(Number(v))) : centre(obj);
+  const ra = astar(centre(drop), oc);
+  const rb = astar(oc, centre(ex));
   const a = ra.m;
   const b = rb.m;
   const total = a + b;
@@ -103,6 +105,8 @@ for (const name of names) {
     const res = await page.evaluate(async (way) => {
       const m = window.game.scene.getScene('mission');
       m.god = true;
+      // G8: objectives that fail when the Ranger is seen (missions 9, 12) would end the walk: nobody sees him.
+      if (m.objective) m.sees = () => false;
       const k = m.keys;
       const t0 = m.timeLeft;
       let i = 0;

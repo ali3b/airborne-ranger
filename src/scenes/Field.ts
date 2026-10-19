@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { isTouch, setProneLit, setTouchItems, showFieldControls, touchMove } from '../touch';
+import { isTouch, setProneLit, setTouchItems, showFieldControls, touchMove, type TouchItem } from '../touch';
 import { MAG_SIZE } from '../loadout';
 import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
@@ -231,6 +231,14 @@ export class Field extends Phaser.Scene {
   /** The overview map, in scenes that have one (Mission). */
   toggleMap?(): void;
 
+  /** G8: extra touch item-bar entries (a mission objective's camera…) and their tap; true when handled. */
+  protected extraItems(): TouchItem[] {
+    return [];
+  }
+  protected itemAction(_key: string): boolean {
+    return false;
+  }
+
   /** Mission maps this scene needs loaded (the test field has none). */
   protected mapsToLoad(): string[] {
     return [];
@@ -307,7 +315,7 @@ export class Field extends Phaser.Scene {
     document.getElementById('rotate')?.remove();
     const hideTouch = showFieldControls({
       shoot: () => this.use(),
-      select: (k) => (k === 'medkit' ? this.firstAid() : this.selectWeapon(k as Weapon)),
+      select: (k) => this.itemAction(k) || (k === 'medkit' ? this.firstAid() : this.selectWeapon(k as Weapon)),
       grenade: () => this.throwGrenade(),
       prone: () => {
         if (!this.busy && !this.dead) this.prone = !this.prone;
@@ -1187,9 +1195,14 @@ export class Field extends Phaser.Scene {
     if (!this.ranger || this.busy || this.dead || this.bombsLeft <= 0) return;
     this.busy = true;
     this.bombsLeft--;
-    if (!this.prone) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
-    this.time.delayedCall(800, () => {
-      this.busy = false;
+    // G8: the generator's kneel_place (`ranger_ops`, the C4 in hand, `release` event) when built; else the FB-073
+    // stand-in: the rifle crouch for 0.8 s.
+    const kneel = !this.prone && !!this.manifest.sprites.ranger_ops?.clipInfo.plant_kneel_place;
+    const set = (fn: () => void) =>
+      kneel ? this.oneShot(this.ranger, 'ranger_ops', 'plant_kneel_place', this.facing, 'release', fn, () => (this.busy = false)) : this.time.delayedCall(800, fn);
+    if (!this.prone && !kneel) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
+    set(() => {
+      if (!kneel) this.busy = false;
       if (this.dead) return;
       this.arsenal.bombsPlaced++;
       const a = (DIRS8.indexOf(this.facing) * Math.PI) / 4;
@@ -1350,7 +1363,7 @@ export class Field extends Phaser.Scene {
     // On touch the item bar shows the counts; the HUD keeps only a bomb's fuse (narrow phone screens).
     const arms = isTouch ? (this.bombs.length ? this.armsLine().replace(/^.*   /, '') : '') : this.armsLine();
     this.hud.setText(`${this.hudLine()}${this.g9?.hud() ?? ''}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
-    if (isTouch) setTouchItems(WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })));
+    if (isTouch) setTouchItems([...WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })), ...this.extraItems()]);
   }
 
   /**

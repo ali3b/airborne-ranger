@@ -146,6 +146,34 @@ screen. Missions 1–4 are now **128 × 256 m** (128 × 256 tiles at 1 m), up fr
   (`g6-mission<N>-objective.png`, an MCP `map_preview` region), the in-game overview (`g6-mission<N>-overview.png`,
   `g6-mission4-overview-phone.png`), the compass (`g6-compass.png`, `g6-mission4-phone.png`).
 
+## Objectives: missions 9–12 (G8, lane g8b)
+A mission's goal beyond "destroy every target" is an **objective kind** (`src/objectives/index.ts`: `start`, `update`
+→ pending / done / failed with a reason, `hud`, `marker` for the compass, `stats` for the end screen);
+`MissionConfig.objective` names it. Missions 9–12 register theirs in `src/objectives/g8b.ts`. Done opens the
+extraction as before; failed ends the mission with the reason. The maps are 128 × 256 m like G6's, built over MCP in
+`maps/g6/mission<N>/stage*.json` (`scripts/g6-stages.mjs`), objective in the north.
+
+| | objective (the original's briefing) | the rules here | map | route | clock |
+|---|---|---|---|---|---|
+| 9 arctic | Photograph an Experimental Aircraft: "sneak into the hangar; do not be seen entering it" | the prototype (`prototype_rocket`, the V-2 at the hangar) within 16 m and in sight; C / CAMERA: the Ranger kneels with the camera (`ranger_ops` camera_kneel_shoot) and holds still 1.5 s (letting go of C, losing sight spoil it). Seen inside the hangar zone before that, or the prototype destroyed: failed | hangar compound with searchlights and towers north, frozen river, ridges; extraction east | 342 m | 11:00 |
+| 10 desert | Free the Hostages: "blow open the door on the prison … defend the hostages" | five hostages (`hostage`) sit in a stockade (`stockade`, `prison_hut`); its gate (`stockade_gate`) gives only to explosives. Then they come out through the gap and follow in a file (`src/objectives/hostages.ts`); enemy bullets and blasts kill them, alerted soldiers shoot at them. Done on reaching the extraction with at least one near; all dead: failed. The end screen counts the rescued | stockade north, guarded by towers, barracks and a loop patrol; extraction west | 360 m | 12:00 |
+| 11 temperate | Create a Diversion: "no combat until the buzzer; shoot whenever it sounds; the aircraft can't be recalled early" | entering the garrison starts an 8 s HOLD (combat there before the buzzer: failed); the buzzer sounds the alarm (`alarm_pole`s flash, the garrison is alerted) and opens a 35 s window: kills there score 1, wrecks 2; another buzzer after 15 s until 6 points. The plane then lands at the border 60 s later, not before | garrison of tents, trucks, a tank, containers north; a river with fords; the "border" extraction east | 360 m | 12:00 |
+| 12 jungle, dusk | Delayed Sabotage: "plant a time bomb at the aviation fuel dump … not be seen in its vicinity" | a time bomb (set with `kneel_place`, `ranger_ops` plant_kneel_place) within 2.5 m of a fuel target (`fuel_tank` ×2, `fuel_bowser`) gets a 150 s fuse; every target charged: done. Seen inside the fuel dump: failed (the charges are found). The end screen says when they go off | airfield with hangar, planes and a fuel dump behind sandbags and wire, searchlights; river with fords; extraction west | 381 m | 12:00 |
+
+- **Shared hooks:** `Mission.touchExtras` (item-bar entries an objective adds, e.g. CAMERA), `Field.extraItems()` /
+  `itemAction()`; `Mission.failReason`. The objectives read the scene's protected parts through
+  `src/objectives/g8b-view.ts`.
+- **Checks:** `node scripts/load-check.mjs <url> mission9` … `mission12` play each objective through the game's own
+  actions (`scripts/g8b-checks.mjs`), including the failure rules (seen at the hangar, premature contact);
+  `scripts/route-check.mjs` (mission 10's objective zone names an `approach` cell outside the stockade);
+  `scripts/g8b-shots.mjs` writes `docs/screenshots/g8-mission<N>.png` and the touch CAMERA shot.
+- **Balance and speed:** the route walk (`route-check --walk`, unhurtable, unseen) reaches every objective and
+  extraction: 120–135 s of game time at a run. `perf-check --gpu` (Intel UHD): 60 fps, 1.6–1.8 ms CPU per frame at
+  1280×720; mission 12 on the emulated phone 60 fps, 5.0 ms.
+- **Sprites (ssg.assets.json):** `prototype_rocket`, `hostage` (unarmed idle/walk/run, sit, death_fall), `prison_hut`,
+  `stockade`, `stockade_gate`, `fuel_tank`, `fuel_bowser`, `alarm_pole`, `ranger_ops` (camera and plant clips with
+  per-template held items). Gaps: FB-085–087.
+
 ## Living battlefield (G5)
 - **Mission 4, Cut a Pipeline (jungle, dusk):** authored over MCP (first at 48×40 in `maps/mcp4/stage*.json`; G6 rebuilt it at 128×256 in `maps/g6/mission4/`, see above) on
   the `jungle` tileset (tinted moss, mud, water, road). A river with a mud ford, a road, a pipeline of

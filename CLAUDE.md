@@ -29,7 +29,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 ## Checks before you finish a milestone
 - `npm run typecheck`
 - `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>` for `title` (Ranger
-  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4`, `mission5`…`mission8` (G8 objectives: code book, officer, SAM site, P.O.W. camp) (each plays to the debriefing; mission 4 also checks the driving
+  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4`, `mission5`…`mission8` (G8 objectives: code book, officer, SAM site, P.O.W. camp), `mission9`–`mission12` (photo, hostages, diversion, sabotage with their failure rules; `scripts/g8b-checks.mjs`) (each plays to the debriefing; mission 4 also checks the driving
   truck, its wreck and the animated props), and `arsenal` (G7: the supply pod screen, pods, reload, first aid, knife, LAW,
   time bomb, then the same by touch on an emulated iPhone in landscape). G9: `g9` (the test field's machine-gun nest, mines, trench, tank, alerts and alarm). It
   needs no page errors, and it writes `test-results/<scene>.png`.
