@@ -11,7 +11,7 @@ export interface TouchActions {
   shoot(): void;
   grenade(): void;
   prone(): void;
-  /** The overview map (missions only): a MAP button top centre when given. */
+  /** The overview map (missions only): a MAP button under the HUD compass when given. */
   map?(): void;
 }
 
@@ -70,7 +70,7 @@ function build() {
     #touch button.fire { width: 96px; height: 96px; font-size: 14px; background: #5a1c14cc; grid-row: span 2; }
     #touch button.down, #touch button.on { background: #e8d27a; color: #10140c; }
     #touch button.fire.down { background: #ff7060; color: #10140c; }
-    #touch button.map { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 50%; margin-left: -34px; width: 68px; height: 40px;
+    #touch button.map { position: absolute; top: calc(max(10px, env(safe-area-inset-top)) + 100px); left: max(10px, env(safe-area-inset-left)); width: 68px; height: 40px;
       border-radius: 8px; pointer-events: auto; font-size: 13px; }
   `;
   document.head.appendChild(css);

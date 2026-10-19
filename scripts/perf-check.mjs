@@ -1,5 +1,5 @@
 // G6: frame rate on the big maps, and the overview map screen.
-//   node scripts/perf-check.mjs [url] [mission1,mission2,…] [--phone] [--gpu] [--seconds 20] [--shots]
+//   node scripts/perf-check.mjs [url] [mission1,mission2,…] [--phone] [--gpu] [--seconds 20] [--shots] [--nocull]
 // The Ranger runs a fixed route (north from the drop, god mode) while the frame rate is sampled from Phaser's loop.
 // --phone: a Pixel 7 sized landscape viewport (915×412, DPR 2.6, touch) with the CPU throttled 4× (CDP).
 // --gpu: hardware GL (EGL) instead of SwiftShader, for realistic numbers; --shots: overview + compass screenshots.
@@ -38,11 +38,32 @@ for (const map of maps) {
     const dbg = g?.getExtension('WEBGL_debug_renderer_info');
     return g ? g.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : g.RENDERER) : 'canvas';
   });
+  if (flag('--nocull')) {
+    // For comparison: Phaser's own iso tile cull, every prop drawn and animated, no AI sleep.
+    await page.evaluate(() => {
+      const m = window.game.scene.getScene('mission');
+      m.events.off('postupdate', m.cullWorld, m);
+      for (const l of m.children.list.filter((o) => o.type === 'TilemapLayer')) l.cullCallback = window.Phaser.Tilemaps.Components.GetCullTilesFunction(l.layer.orientation);
+      for (const p of m.props) p.sprite.setVisible(true).setActive(true);
+      for (const e of m.enemies) e.sprite.setVisible(true);
+      m.awake = (e) => (e.sprite.setActive(true), true);
+    });
+  }
   // Run north-west on the map (screen up-left = towards the map's top corner) with the keyboard, sampling fps.
   const r = await page.evaluate(async (seconds) => {
     const m = window.game.scene.getScene('mission');
     m.god = true;
     const loop = window.game.loop;
+    // CPU time per frame: Phaser's step (update + render submit).
+    const step = loop.callback;
+    let stepMs = 0;
+    let steps = 0;
+    loop.callback = (t, d) => {
+      const a = performance.now();
+      step(t, d);
+      stepMs += performance.now() - a;
+      steps++;
+    };
     const samples = [];
     const frames0 = loop.frame;
     const t0 = performance.now();
@@ -70,7 +91,8 @@ for (const map of maps) {
     const secs = (performance.now() - t0) / 1000;
     const visible = m.props.filter((p) => p.sprite.visible).length;
     const awake = m.enemies.filter((e) => e.sprite.active).length;
-    return { fps: +(frames / secs).toFixed(1), worstFrameMs: Math.round(worst), props: m.props.length, visibleProps: visible, enemies: m.enemies.length, awake, children: m.children.list.length, moved: m.rangerCell() };
+    loop.callback = step;
+    return { fps: +(frames / secs).toFixed(1), stepMs: +(stepMs / steps).toFixed(2), worstFrameMs: Math.round(worst), props: m.props.length, visibleProps: visible, enemies: m.enemies.length, awake, children: m.children.list.length, moved: m.rangerCell() };
   }, seconds);
   results.push({ map, gl, ...r, errors: errors.slice(0, 3) });
   console.log(JSON.stringify(results.at(-1)));
