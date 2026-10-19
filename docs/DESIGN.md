@@ -41,8 +41,52 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
   `Sand_01` tinted `#eef4ff` (Fantasy Village's own `Snow_01` reads green-grey), its ice is `Generic_Water` tinted pale
   blue and its rock is a grey-tinted `Generic_Rock`. Snow-covered pines and rocks come from POLYGON_Adventure_Pack.
 
+## Original-scale maps (G6)
+The original scrolls over a long area: drop in the south, objective far north, extraction elsewhere, with a map
+screen. Missions 1–4 are now **128 × 256 m** (128 × 256 tiles at 1 m), up from 48 × 40.
+
+- **Layout** (map cells; the iso view puts cell (0, 0), the top corner, at world north): the drop zone near the south
+  corner, the objective in the north, the extraction east (missions 1, 2) or west (3, 4). Between them: a river or
+  frozen river with fords, roads and tracks, rock ridges with passes (desert, arctic), trench lines with wire,
+  bunker nests (`bunker_nest` stamp) and outposts (`outpost` stamp: tent, supplies, sandbags, two guards) at the
+  crossings, patrols along roads, banks and trenches, and the three supply pods spread along the way.
+
+| | objective (targets) | extraction | objects | enemies | shortest route | clock |
+|---|---|---|---|---|---|---|
+| 1 temperate | munitions depot in the north corner, wired, tower (11) | east | 977 | 27 | 395 m | 10:00 |
+| 2 desert | radar compound with 2 towers, 4 dishes (6) | east | 541 | 28 | 372 m | 10:00 |
+| 3 arctic | airfield: runway, hangar, 4 aircraft, fuel truck (5) | west | 686 | 27 | 442 m | 11:00 |
+| 4 jungle, dusk | pump station across the north: pipeline, 4 valves, 4 searchlights, comm dish (4) | west | 1 099 | 24 + 2 trucks | 469 m | 12:00 |
+
+- **Authoring:** staged `edit_map` batches over MCP (`maps/g6/<mission>/stage*.json`: terrain, then installations
+  and zones, then scatters), applied together by `scripts/g6-stages.mjs`, which also writes their sum to
+  `maps/<mission>.ops.json` for `scripts/build-maps.mjs`. The maps were made again at the new size under the same
+  names (FB-063: no resize; `build-maps.mjs --resize`). Mission 4's trucks use the zone `vehicle` / `speed` fields.
+- **Balance:** `scripts/route-check.mjs` finds the shortest walkable route (A* over collision and prop footprints with
+  a cell of clearance) drop → objective → extraction: 372–469 m, 2:12–2:47 at a flat-out run, 5:05–6:24 walking;
+  `--walk <url>` runs it in the game (unhurtable) through the real colliders. With the objective's targets, pods,
+  stealth (prone crawl is 0.6 m/s) and fights a mission takes about 6–10 minutes; the clocks are 10–12 minutes.
+- **Overview map** (Tab / O, the MAP touch button; tap or the key again to return): the whole area in the game's iso
+  orientation (north up), drawn from the exported map (each ground tile's average colour, objects darker; FB-064),
+  with the Ranger and his facing, the objective (filled until done), the pods left, the drop and the extraction.
+  The action pauses while it's open; the mission clock runs on.
+- **HUD compass:** north up, an arrow to the objective (to the extraction once it's done) and the distance in metres.
+- **Performance:** only the played mission's map is loaded; tile layers are culled to the camera analytically
+  (`src/world.ts` `isoCull`; Phaser's iso cull tests all 32 768 tiles per layer every frame) and the empty decoration
+  layer isn't drawn; props are in a screen-space grid (`PropGrid`) for collision, sight lines, bullets and depth
+  sorting; props off camera are hidden and inactive (no animation updates); enemies farther than 36 m sleep (no AI,
+  no animation) until the Ranger is within 32 m; vehicles farther than 45 m stop. Measured with
+  `scripts/perf-check.mjs` (the Ranger running through each map for 15–20 s, hardware GL on an Intel UHD iGPU):
+  1280×720: 58.6–60 fps, 1.5–3.0 ms CPU per frame; emulated phone (915×412, DPR 2.6, CPU throttled 4×):
+  54–60 fps, 4.5–7.6 ms per frame. With the culling and sleep switched off (`--nocull`) the phone needs
+  12.4–14.3 ms per frame (50.8–56.3 fps).
+
+- **Screenshots:** the generator's previews of each map (`docs/screenshots/g6-mission<N>-map.png`) and objective
+  (`g6-mission<N>-objective.png`, an MCP `map_preview` region), the in-game overview (`g6-mission<N>-overview.png`,
+  `g6-mission4-overview-phone.png`), the compass (`g6-compass.png`, `g6-mission4-phone.png`).
+
 ## Living battlefield (G5)
-- **Mission 4, Cut a Pipeline (jungle, dusk):** authored over MCP (`maps/mcp4/stage*.json`, their sum `maps/mission4.ops.json`) on
+- **Mission 4, Cut a Pipeline (jungle, dusk):** authored over MCP (first at 48×40 in `maps/mcp4/stage*.json`; G6 rebuilt it at 128×256 in `maps/g6/mission4/`, see above) on
   the `jungle` tileset (tinted moss, mud, water, road). A river with a mud ford, a road, a pipeline of
   POLYGON_Apocalypse pipes (a `path` with objects every 6 m) and three destructible valves (the targets), a guard
   tower, searchlights, a comm post with a spinning dish, palms, ferns and bushes. Dusk is a game-side wash (FB-060).
@@ -100,3 +144,4 @@ a promotion fanfare, and a 16-step march drum loop on the title. M or the corner
 | G3 | maps (Phase C) | missions built only through MCP map tools: drop, 3 pods, objective, patrols, timer, extraction |
 | G4 | — | mission select, roster with ranks and medals (saved in localStorage), sound |
 | G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |
+| G6 | large-map readiness (MCP region views, fast scatter) | original-scale 128×256 m maps for missions 1–4, overview map, HUD compass, culling and AI sleep for phones |
