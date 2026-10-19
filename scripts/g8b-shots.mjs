@@ -2,7 +2,7 @@
 //   node scripts/g8b-shots.mjs [url] [mission9,mission10,…] [--gpu]
 // Each mission: the Ranger is put at the objective (unhurtable, unseen) and the objective is played up to a
 // telling moment: the camera exposure at the prototype, the hostages following out of the blown stockade, the
-// garrison during a buzzer window, a charge being set at the fuel dump at night. Mission 9 again by touch at phone
+// garrison during a buzzer window, a charge being set at the fuel dump at dusk. Mission 9 again by touch at phone
 // size (844×390) for the CAMERA item.
 import { chromium } from '@playwright/test';
 

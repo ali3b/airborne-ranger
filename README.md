@@ -44,7 +44,7 @@ supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 2
 | 9 · Photograph an Experimental Aircraft: get the prototype in view unseen and hold the camera | arctic | ![](docs/screenshots/g8-mission9.png) |
 | 10 · Free the Hostages: blow the stockade gate, lead the hostages out alive | desert | ![](docs/screenshots/g8-mission10.png) |
 | 11 · Create a Diversion: hold fire until the buzzer, wreck the garrison, be at the border when the plane lands | temperate | ![](docs/screenshots/g8-mission11.png) |
-| 12 · Delayed Sabotage: time bombs on the fuel dump, long fuses, never seen there | jungle, night | ![](docs/screenshots/g8-mission12.png) |
+| 12 · Delayed Sabotage: time bombs on the fuel dump, long fuses, never seen there | jungle, dusk | ![](docs/screenshots/g8-mission12.png) |
 
 | Roster | Drop | Debriefing |
 |---|---|---|

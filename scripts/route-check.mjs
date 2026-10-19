@@ -103,6 +103,8 @@ for (const name of names) {
     const res = await page.evaluate(async (way) => {
       const m = window.game.scene.getScene('mission');
       m.god = true;
+      // G8: objectives that fail when the Ranger is seen (missions 9, 12) would end the walk: nobody sees him.
+      if (m.objective) m.sees = () => false;
       const k = m.keys;
       const t0 = m.timeLeft;
       let i = 0;
