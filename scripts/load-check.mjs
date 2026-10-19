@@ -259,8 +259,22 @@ try {
       return { difficulty: g.difficulty, nests: g.nests.list.length, mines: g.mines.list.length, minefields: g.mines.stats.fields, trenches: g.trenches.list.length, tanks: g.tanks.list.length, canopy: g.sight.canopyCells, adjust: g.adjust };
     });
     console.log('g9:', JSON.stringify(g9));
-    // Missions 1–4 carry the G9 hazards so far (maps/g6/<mission>/stage3.json); 5–12 don't have them yet.
-    const want = { mission1: { tanks: 1, trenches: 2 }, mission2: { tanks: 1 }, mission3: { tanks: 1 }, mission4: {} }[missionMap];
+    // Every mission carries the G9 hazards: 1–4 in maps/g6/<mission>/stage3.json, 5–8 in maps/g8/<mission>/stage3.json,
+    // 9–12 in maps/g10/<mission>.json (G10). Tanks and trenches where the climate and objective fit them.
+    const want = {
+      mission1: { tanks: 1, trenches: 2 },
+      mission2: { tanks: 1 },
+      mission3: { tanks: 1 },
+      mission4: {},
+      mission5: { tanks: 1, trenches: 2 },
+      mission6: { tanks: 1 },
+      mission7: { tanks: 1 },
+      mission8: {},
+      mission9: { tanks: 1 },
+      mission10: { tanks: 1 },
+      mission11: { tanks: 1, trenches: 1 },
+      mission12: {},
+    }[missionMap];
     if (g9.error || (want && (g9.nests < 2 || g9.mines < 6 || g9.minefields < 2 || g9.tanks < (want.tanks ?? 0) || g9.trenches < (want.trenches ?? 0)))) {
       ok = false;
       console.log('G9 MAP CHECK FAILED (want >= 2 manned nests, 2 minefields with >= 6 mines, the tanks and trenches the map has)');
@@ -307,6 +321,8 @@ try {
     }
     // G8 (g8b): objective missions play their own objective (scripts/g8b-checks.mjs), then the debriefing.
     if (!s.error && ['photo', 'hostages', 'diversion', 'sabotage'].includes(s.objective)) {
+      // G10: the enemy shoots at freed hostages (a fresh page, before the hostage run).
+      if (s.objective === 'hostages') ok = (await escortFireCheck(page, scene, s.objective)) && ok;
       ok = (await objectiveChecks(page, scene, s.objective)) && ok;
       await page.screenshot({ path: `test-results/${scene}.png` }).catch(() => undefined);
       const deb = await page.evaluate(async () => {
@@ -324,7 +340,9 @@ try {
       }
       shotTaken = true;
     }
-    if (!s.error && !s.objective) {
+    // The depot run, and G8a's objective kinds (code book, officer, SAM site, P.O.W. camp: objectiveStep). G10: the
+    // g8b merge had narrowed this to `!s.objective`, which skipped missions 5–8's objective checks altogether.
+    if (!s.error && !['photo', 'hostages', 'diversion', 'sabotage'].includes(s.objective)) {
       // Blow up the depot: stand 8 m (the grenade's range) west of each target's anchor facing east, unhurtable, and
       // throw until it's destroyed; then put the Ranger in the extraction zone and expect the end screen.
       const destroyed = await page.evaluate(async () => {
@@ -435,6 +453,8 @@ try {
       }
       await page.screenshot({ path: `test-results/${scene}-debrief.png` }).catch(() => undefined);
       shotTaken = true;
+      // G10: the enemy shoots at the escort (the officer, the prisoners).
+      if (s.objective === 'officer' || s.objective === 'pow') ok = (await escortFireCheck(page, scene, s.objective)) && ok;
       // G8: the officer / every prisoner killed fails the mission with its reason (the Ranger is recalled).
       if (s.objective === 'officer' || s.objective === 'pow') {
         await page.goto(`${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`);
@@ -490,6 +510,12 @@ async function objectiveStep() {
     const done = await until(() => m.objectiveDone, 15000);
     return { ok: done, kind, hud: m.hud.text.split('\n')[0], stats: o.stats() };
   }
+  // G10: the enemy shoots at an escort (src/enemies/escort.ts); this run checks the objective's own steps, so nobody
+  // sees the Ranger here and the escort fire is held (the escort-fire check below runs it for real).
+  if (kind === 'officer' || kind === 'pow') {
+    m.sees = () => false;
+    m.g9.escort.enabled = false;
+  }
   if (kind === 'officer') {
     const off = o.officer;
     const hud0 = o.hud(m);
@@ -513,6 +539,89 @@ async function objectiveStep() {
   }
   if (kind === 'sam') return { ok: m.objectiveDone, kind, hud: o.hud(m), stats: o.stats(m) };
   return { ok: false, kind, error: 'unknown objective kind' };
+}
+
+// ---- G10: the enemy shoots at the escort (src/enemies/escort.ts) ----
+
+/**
+ * A fresh mission page: expose the escort (the officer captured, the P.O.W. gate open, the hostages freed), put one
+ * alerted soldier with a clear line 6 m from the first of them (held on alert, never shooting at the Ranger, who stands
+ * aside unhurtable) and wait for him to kill that one with enemy fire. The officer: the mission fails with its reason.
+ * Prisoners and hostages: the count drops and the mission goes on while others live.
+ */
+async function escortFireCheck(page, scene, kind) {
+  await page.goto(`${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`);
+  await page.waitForFunction(() => window.game?.scene?.getScene('mission')?.ranger && window.game.scene.getScene('mission').objective && window.game.scene.getScene('mission').g9, null, { timeout: 90000 });
+  const r = await page.evaluate(async (kind) => {
+    const m = window.game.scene.getScene('mission');
+    const o = m.objective;
+    const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
+    m.god = true;
+    // Expose them.
+    if (kind === 'officer') {
+      o.state = 'captured';
+      o.officer.join();
+    } else if (kind === 'pow') o.free(m);
+    else if (kind === 'hostages') {
+      o.freed = true;
+      o.hostages.release([]);
+    }
+    await wait(300);
+    const people = o.exposed(m);
+    if (!people.length) return { error: 'nobody exposed' };
+    const t = people[0];
+    const tw = m.worldOf(t.sprite);
+    // A spot 6 m from him with a clear line and standing room; the Ranger 4 m to the side of that line.
+    const W2S = (x, y) => {
+      // world metres → screen px (the inverse of Field.worldOf: screenToWorldDelta).
+      const s0 = m.worldOf({ x: 0, y: 0 });
+      const ex = m.worldOf({ x: 1, y: 0 });
+      const ey = m.worldOf({ x: 0, y: 1 });
+      const a = ex.x - s0.x, b = ey.x - s0.x, c = ex.y - s0.y, d = ey.y - s0.y;
+      const det = a * d - b * c;
+      return { x: ((x - s0.x) * d - (y - s0.y) * b) / det, y: (a * (y - s0.y) - c * (x - s0.x)) / det };
+    };
+    let spot = null;
+    for (let k = 0; k < 16 && !spot; k++) {
+      const ang = (k * Math.PI) / 8;
+      const w = { x: tw.x + Math.cos(ang) * 6, y: tw.y + Math.sin(ang) * 6 };
+      const s = W2S(w.x, w.y);
+      if (m.canStand(s.x, s.y) && m.g9.escort.clear(w, tw)) spot = { w, s, ang };
+    }
+    if (!spot) return { error: 'no clear spot 6 m from them' };
+    const side = { x: tw.x + Math.cos(spot.ang + Math.PI / 2) * 4, y: tw.y + Math.sin(spot.ang + Math.PI / 2) * 4 };
+    const rs = W2S(side.x, side.y);
+    m.ranger.setPosition(rs.x, rs.y);
+    if (kind === 'officer') o.officer.queue = [];
+    const cell = (s) => [(s.x / 32 + s.y / 16) / 2, (s.y / 16 - s.x / 32) / 2];
+    const e = m.spawnEnemy([cell(spot.s)], 'N');
+    const t0 = performance.now();
+    const shots0 = m.g9.escort.stats.shots;
+    const alive = () => o.exposed(m).some((x) => x.sprite === t.sprite);
+    while (performance.now() - t0 < 60000 && alive()) {
+      e.state = 'alert';
+      e.unseen = 0;
+      e.reaction = 99;
+      if (kind === 'officer') o.officer.queue = [];
+      await wait(100);
+      if (kind === 'officer' && m.outcome) break;
+    }
+    const until = performance.now();
+    while (kind === 'officer' && performance.now() - until < 5000 && !m.outcome) await wait(100);
+    const stats = o.stats?.(m) ?? {};
+    return { kind, died: !alive(), shots: m.g9.escort.stats.shots - shots0, hits: m.g9.escort.stats.hits, outcome: m.outcome, reason: m.result?.reason ?? null, hud: o.hud(m), stats, left: o.exposed(m).length };
+  }, kind);
+  console.log('g10 escort fire:', JSON.stringify(r));
+  await page.screenshot({ path: `test-results/${scene}-escort-fire.png` }).catch(() => undefined);
+  let good = !r.error && r.died && r.shots > 0 && r.hits > 0;
+  if (kind === 'officer') good &&= r.outcome === 'failed' && /officer/i.test(r.reason ?? '') && /enemy fire/.test(String(r.stats?.officer ?? ''));
+  else good &&= r.outcome !== 'failed' && r.left > 0 && Number(r.stats?.[kind === 'pow' ? 'prisoners killed' : 'hostages killed'] ?? 0) >= 1;
+  // The checks after this one want the mission as dropped.
+  await page.goto(`${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`);
+  await page.waitForFunction(() => window.game?.scene?.getScene('mission')?.ranger && window.game.scene.getScene('mission').g9, null, { timeout: 90000 });
+  await page.waitForTimeout(1000);
+  if (!good) console.log('G10 ESCORT FIRE CHECK FAILED (want: an alerted soldier shoots the exposed escort dead; the officer fails the mission, a prisoner/hostage lowers the count)');
+  return good;
 }
 
 // ---- G7: the arsenal (supply pod loadout, ammo, first aid, knife, LAW, time bomb), keyboard then touch ----
