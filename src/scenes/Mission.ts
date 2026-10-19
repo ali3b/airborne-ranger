@@ -458,8 +458,16 @@ export class Mission extends Field {
     const done = this.targets.filter((t) => (t.hp ?? 0) <= 0).length;
     const t = Math.max(0, Math.ceil(this.timeLeft));
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-    const goal = this.objectiveDone ? this.cfg.done : this.objective ? this.objective.hud(this) : `${this.cfg.goal} (${done}/${this.targets.length})`;
+    const goal = this.objectiveDone ? `${this.cfg.done}${this.planeHint()}` : this.objective ? this.objective.hud(this) : `${this.cfg.goal} (${done}/${this.targets.length})`;
     return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}${isTouch ? '' : '   Tab map'}`;
+  }
+
+  /** G10: once the objective is done, the HUD says how the plane comes: called with C (or CALL PLANE) in the zone.
+   * In the zone the call itself shows (Pickup.hud); mission 11's plane is already waiting. */
+  protected planeHint() {
+    const p = this.g9?.pickup;
+    if (!p || this.cfg.planeWaiting || p.state !== 'idle' || p.canCall) return '';
+    return isTouch ? ', then CALL PLANE there' : ', then C: call the plane';
   }
 
   /** Open or close the overview map. While it's open the action pauses (the mission clock runs on). */

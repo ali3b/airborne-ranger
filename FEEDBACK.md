@@ -715,7 +715,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Re-test (generator large-map update, 2026-10-19): unchanged (`rect` has no terrain filter, `path {collision}` only blocks).
 - Re-test (G8 lane g8a, 2026-10-19): works. Missions 5 and 8 make their fords with `path {terrain, width, collision: false}` and no rect (maps/g8/mission5|8/stage1.json): the route check crosses on the fords, and its blocked-cell count rises by 211 / 270 against the old rects (the water beside the fords stays blocked).
 - Re-test (G8 lane g8b, 2026-10-19): works. Missions 11 and 12 cut their fords with `path {collision:false}` alone (reports `cleared: 16–21`); no `rect value:false`, the water beside them stays blocked; route-check crosses them. Missions 1–4 still use the old rects.
-- Status: verified (missions 5, 8, 11, 12; missions 1–4 still carry the old rects until they are rebuilt)
+- Re-test (G10 lane g10b, 2026-10-19): works on missions 1 and 4 too (missions 2 and 3 have no river). Their six fords are `path {…, collision: false}` and the `rect {value: false}` ops are gone (maps/g6/mission1|4/stage1.json, mission 1's stage2 rect too); `build-maps` reports `cleared: 16–21` per ford, mission 1's blocked cells rise 12323 → 12516 (the water beside the fords stays blocked) and route-check crosses. Mission 4's fords had to go to width 5 and its undergrowth/rock scatters avoid mud, see FB-120.
+- Status: verified (missions 1, 4, 5, 8, 11, 12)
 
 
 ## FB-070 · A sprite can't leave the project's tile lock: UI icons get the map scale, `ppm` is ignored silently
@@ -903,6 +904,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: clips `idle, walk, run, camera_kneel_shoot, plant_kneel_place`: three 8-direction clips nobody plays are rendered on the shared runner (the same for `ranger_law`).
 - Workaround: none (render time only).
 - Suggested change: when `template` (or `anim`) is given, don't add the kind's default set; or let `"set": "none"` / `"anim": []` mean "only these".
+- Re-test (G10 lane g10b, 2026-10-19): no longer bites the game: `ranger_ops` is dropped and its camera clip lives on the one `ranger` sheet (its plant clip was already `bomb_kneel_place` there). The gap itself is untested.
 - Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-087 · `search_assets` misses everyday names for props and people: "fuel tank", "hostage", "siren"
@@ -920,6 +922,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Wanted: a kneeling (or standing) "hold to the face" pose with the item at the eyes, with an event when it is in place (`shutter` / `look`).
 - Got: kneel_shoot holds the camera at arm's length like a pistol; at 1 m per tile the 18 cm camera is a dark dot in the hands, so it reads as aiming, not photographing. No camera/binocular clips found.
 - Workaround: the kneel_shoot clip plus a white flash circle when the exposure completes (`src/objectives/photo.ts`).
+- Re-test (G10 lane g10b, 2026-10-19): unchanged (no `raise_to_eyes` in `ssg templates --kind character` yet). The camera clip moved onto the one `ranger` sheet as `{ "template": "kneel_shoot:duration=1.5,twoHanded=1,kick=0", "with": "POLYGON_Apocalypse/SM_Item_Camera_01", "as": "camera" }` → `camera_kneel_shoot`; `ranger_ops` is gone. Swap the template for `raise_to_eyes` when it lands.
 - Suggested change: a `raise_to_eyes` character template (hands to the face, head slightly forward, optional kneel) with a `look` event, usable for cameras, binoculars, radios.
 - Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
@@ -975,4 +978,22 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `op 67 (place): sprite 121 has no facing "W" (facings: NE, NW, SW, SE)` and the whole atomic batch is refused (clear, generate, every other op), so one bad facing costs a full rebuild cycle. The error names the sprite by id, not by its name in the project.
 - Workaround: the nests use only NE/NW/SW/SE (the facings `mg_nest` was rendered with).
 - Suggested change: `snapFacing` (or snap by default with a warning) for `place` and stamp/path objects; name the sprite in the message (`mg_nest (121)`).
+- Status: open
+
+## FB-120 · A ford cut with `path {collision: false}` still gets scattered bushes and rocks
+- Severity: workaround        Milestone: G10
+- Tried: mission 4's three fords as `path {terrain: "mud", width: 4, smooth: false, collision: false}` across the river (FB-069's fix), then the map's later `scatter` ops (`undergrowth`: fern/bush/tree_small, `avoidTerrains: ["water", "road"]`; `rocks`: `avoidTerrains: ["water", "road"]`).
+- Wanted: the ford's cells to stay walkable: a path that clears collision is a way through, so scatter should keep off it like it keeps off roads.
+- Got: a bush at (69,163) and a 3×3 rock at (68..70, 161..163) landed on the middle ford, another bush/rock on each of the others; with the Ranger's clearance none of the three fords was passable and `scripts/route-check.mjs` reported no route (drop→objective `Infinity`). The old `rect {value: false}` hid this because it also opened the water beside the bar.
+- Workaround: the fords are width 5, and mission 4's `undergrowth` and `rocks` scatters add `mud` to `avoidTerrains` (maps/g6/mission4/stage1.json, stage4.json); that also keeps them off the jungle's mud tracks, which reads fine.
+- Suggested change: scatter (and generate's biome layers) avoid cells a `path {collision: false}` cleared (or any path marked `walkway: true`), or an `avoidPaths: ["ford-*"]` option by seed/id, with the reason counted in `rejected` (`path`).
+- Status: open
+
+## FB-121 · Adding one clip to a character re-renders its whole sheet
+- Severity: polish        Milestone: G10
+- Tried: one more per-clip template on the 14-clip `ranger` (`{ "template": "kneel_shoot:…", "with": "…Camera_01", "as": "camera" }`), `ssg sprite apply - --render --download public/assets` (dry run: `outdated: New moves: camera_kneel_shoot`).
+- Wanted: only the new clip rendered (8 directions, ~100 frames) and merged into the sheet.
+- Got: batch 578 rendered all 1520 frames of the 15 clips (70 s on the CPU runner; minutes on a busy shared runner).
+- Workaround: none (it is render time only).
+- Suggested change: cache rendered frames per clip and direction keyed by everything that affects them (model, outfit, clip, template params, view, scale), render only the missing ones and re-pack the atlas.
 - Status: open

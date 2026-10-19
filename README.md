@@ -23,7 +23,7 @@ tools, from Synty POLYGON 3D models.
 | Camera (mission 9) | `C`: hold while the prototype is in view |
 | Overview map | `Tab` or `O` |
 | Call the plane (extraction zone, objective done) | `C` |
-| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger; on the mission select `D` difficulty, `C` campaign |
+| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger; on the mission select `1`–`9`, then `0` `-` `=` for missions 10–12, `D` difficulty, `C` campaign |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
 FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid, and CAMERA in mission 9) beside them, a MAP button under the compass and a CALL PLANE button under it in the extraction zone. In menus, tap a row; tap an empty slot twice to enlist, hold a row to

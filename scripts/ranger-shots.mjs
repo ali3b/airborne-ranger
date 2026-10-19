@@ -21,7 +21,7 @@ const missing = await page.evaluate(() => {
   m.god = true;
   for (const e of m.enemies) e.state = 'dead';
   const s = m.manifest.sprites.ranger;
-  const clips = ['rifle_idle', 'rifle_reload', 'grenade_throw', 'law_shoulder_fire', 'bomb_kneel_place', 'medkit_kneel_place', 'knife_Knife_Stab_Fore'];
+  const clips = ['rifle_idle', 'rifle_reload', 'grenade_throw', 'law_shoulder_fire', 'bomb_kneel_place', 'medkit_kneel_place', 'knife_Knife_Stab_Fore', 'camera_kneel_shoot'];
   const dirs = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
   const others = Object.keys(m.manifest.sprites).filter((n) => /^ranger_/.test(n));
   return { missing: clips.flatMap((c) => dirs.map((d) => `${s.animPrefix}${c}_${d}`)).filter((k) => !m.anims.exists(k)), others };
