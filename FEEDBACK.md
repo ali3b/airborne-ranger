@@ -704,3 +704,57 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Re-test (generator large-map update, 2026-10-19): unchanged (`rect` has no terrain filter, `path {collision}` only blocks).
 - Status: open
 
+
+## FB-070 · A sprite can't leave the project's tile lock: UI icons get the map scale, `ppm` is ignored silently
+- Severity: workaround        Milestone: G7
+- Tried: the loadout screen's item icons (magazine, grenade, first-aid kit, LAW, time bomb) as sprites in the "Airborne Ranger" project with `"ppm": 300` (and `"tile": null` to opt out of the lock).
+- Wanted: a close-up render of small items for a menu (an icon ~60 px tall), declared next to the game's other sprites so it shows in the app.
+- Got: `sprite apply --dry-run` printed `tile 64x32 (1 m/tile)` for them: the project's tile lock wins and the sprite's `ppm` is dropped without a word; `"tile": null` is refused (`Bad tile size "null"`). At the map scale a grenade is ~5 px.
+- Workaround: the `item_*` sprites declare `"tile": "64x32", "metresPerTile": 0.125` (8× the map scale, 362 px/m); `scripts/build-assets.mjs` (FB-070) leaves sprites with their own `metresPerTile` out of the shared-grid check and the game's ppm.
+- Suggested change: warn when a sprite's `ppm` loses to the tile lock, and accept `"tile": false` (or `"scale": "free"`/`"ui": true`) on one sprite to render it at its own ppm, marked in the manifest so a game can tell icons from map sprites.
+- Status: open
+
+## FB-071 · POLYGON_War's American grenade renders 100× too big (centimetre units)
+- Severity: workaround        Milestone: G7
+- Tried: `preview_sprite {asset: "POLYGON_War/SM_Wep_American_Grenade_01", templates: ["still"], overrides: {ppm: 300}}` for the grenade icon.
+- Wanted: a 10 cm grenade.
+- Got: a 3630×6126 px frame. `get_asset` gives the parts' `bbox_min/max` around ±0.05 but `minM/maxM/sizeM` 100× larger (`sizeM [8.23, 14.98, 3.26]` for the clip), so the model is read as a 15 m object (like FB-048's props at 100+ m).
+- Workaround: `item_grenade` uses POLYGON_BattleRoyale/SM_Wep_Grenade_01.
+- Suggested change: detect centimetre-scaled weapons/props on ingest (a held weapon over 3 m, or parts whose metre size is 100× their bbox) and rescale them; flag the outliers in `search_assets`.
+- Status: open
+
+## FB-072 · No shoulder-fired launcher pose, and the launcher's rocket can't leave the tube
+- Severity: workaround        Milestone: G7
+- Tried: `search_animations` for rocket, bazooka, launcher (no results); the `kneel_shoot` template with `with: ["POLYGON_BattleRoyale/SM_Wep_RPG_01"]` (sprite `ranger_law`).
+- Wanted: a Ranger kneeling with a LAW on his shoulder, aiming along it, the rocket leaving on a `shoot` event (the RPG model even has a part `SM_Wep_RPG_Rocket_01` with role `projectile`).
+- Got: kneel_shoot holds the tube like a rifle at chest height (it reads as a launcher only side-on), and the rocket part stays drawn in the tube on every frame after the shot. There is no American LAW (M72) model either; the RPG stands in.
+- Workaround: `ranger_law` (kneel_shoot + RPG) for the shot, and a separate `law_rocket` sprite (SM_Wep_RPG_Rocket_Active_01, `projectile` template, 8 directions) spawned at the `weapon_tip` socket on `shoot` (`src/scenes/Field.ts` `fireLaw`, FB-072).
+- Suggested change: a `shoulder_fire` character template (tube on the right shoulder, head along it, kneeling or standing) using the weapon's grip, and a `hide` (or `detach`) of a `projectile` part from the weapon at the clip's `shoot` event.
+- Status: open
+
+## FB-073 · No clip or template to kneel and place something (time bomb, pick-up, first aid)
+- Severity: workaround        Milestone: G7
+- Tried: `search_animations` for place, plant, pick up, heal, bandage (all empty); the character templates (`list_options`).
+- Wanted: a short one-shot "kneel, put something on the ground, stand up" with a `place` event, usable for time bombs, mines and picking things up.
+- Got: only kneeling bow clips and `Stand_ToCrouch` / `Crouch_ToStand` transitions; nothing with the hands going to the ground.
+- Workaround: the rifle moveset's `crouch_idle` loop (`ranger_kit`) plays for 0.8 s, then the bomb appears at the Ranger's feet (`placeBomb`, FB-073); first aid uses the same crouch.
+- Suggested change: a procedural `kneel_place` template (crouch, reach the free hand to the ground in front, stand) with `place` at the lowest reach, and maybe `use_item` (hands to the chest) for first aid.
+- Status: open
+
+## FB-074 · One character, different held items per clip, needs one sprite per item
+- Severity: workaround        Milestone: G7
+- Tried: adding the knife stab (Knife_Stab_Fore with a knife) and the LAW shot (kneel_shoot with the RPG) to the Ranger, who carries the carbine in every other clip.
+- Wanted: one `ranger` sprite whose clips say what's in the hands (`"anim": [{"clip": "Knife_Stab_Fore", "with": ["…Knife_01"]}]`), one sheet, one prefix.
+- Got: `with` is per sprite, so the Ranger is now four sprites of the same model and helmet: `ranger` (carbine), `ranger_kit` (reload, crouch), `ranger_knife`, `ranger_law`, each with its own sheet, frame size and anim prefix (the old `ranger` even keeps the `Character_American_Soldier_01/` prefix, the new ones `ranger_kit/`…). An outfit change has to be repeated on four sprites.
+- Workaround: the game plays the other sprites' animations on the Ranger's sprite (`src/scenes/Field.ts`, FB-074); per-frame pivots line them up.
+- Suggested change: per-clip `with` (and per-clip "hands empty") in `anim` entries and in `add_moves`, rendered into the one sheet; or sprite "variants" that share a name and prefix.
+- Status: open
+
+## FB-075 · `search_assets` doesn't match everyday names: "first aid", "explosive", "bazooka" find nothing
+- Severity: polish        Milestone: G7
+- Tried: `search_assets` for "first aid", "explosive", "bazooka", "duffel" while looking for loadout items.
+- Wanted: SM_Gen_Prop_Medkit_01 / SM_Prop_MedicalBox_01, SM_Prop_C4_01, SM_Wep_RPG_01, SM_Item_Duffle_Bag_01.
+- Got: `{"total":0}` for each; only the exact name fragments ("medkit", "C4", "RPG", "duffle") work.
+- Workaround: guessed the names.
+- Suggested change: a small synonym list (first aid → medkit/medical/bandage, explosive → C4/bomb/dynamite, bazooka/launcher → RPG/rocket, duffel ↔ duffle) and fuzzy matching on tags.
+- Status: open

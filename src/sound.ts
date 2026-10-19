@@ -181,6 +181,47 @@ export const sfx = {
     tone(c, t, 0.14, 0.18, 1500, 1500, 'triangle');
     tone(c, t + 0.16, 0.2, 0.18, 1150, 1150, 'triangle');
   },
+  /** G7: an empty carbine's dry click. */
+  dryFire() {
+    const c = live();
+    if (!c) return;
+    tone(c, c.currentTime, 0.03, 0.2, 2200, 1800, 'square');
+  },
+  /** Magazine out, magazine in. */
+  reload() {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime;
+    noise(c, t, 0.06, 0.3, 'bandpass', 2400, 3);
+    noise(c, t + 0.35, 0.08, 0.4, 'bandpass', 1600, 3);
+  },
+  /** A LAW launch: a whoosh with a thump. */
+  launch() {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime;
+    tone(c, t, 0.2, 0.7, 120, 40);
+    noise(c, t, 0.7, 0.6, 'bandpass', 700, 1.5, 2600);
+  },
+  /** A time bomb's fuse tick (`high` in the last seconds). */
+  tick(high = false, vol = 1) {
+    const c = live();
+    if (!c) return;
+    tone(c, c.currentTime, 0.04, 0.15 * vol, high ? 1900 : 1300, high ? 1900 : 1300, 'square');
+  },
+  /** A knife strike: a short soft swish. */
+  stab() {
+    const c = live();
+    if (!c) return;
+    noise(c, c.currentTime, 0.12, 0.25, 'bandpass', 1800, 2, 900);
+  },
+  /** First aid used. */
+  heal() {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime;
+    [523, 659, 784].forEach((f, k) => tone(c, t + k * 0.08, 0.14, 0.18, f, f, 'triangle'));
+  },
   /** The debriefing's promotion fanfare: a short bugle-like triad. */
   fanfare() {
     const c = live();

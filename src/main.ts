@@ -3,6 +3,7 @@ import { Title } from './scenes/Title';
 import { MissionSelect } from './scenes/MissionSelect';
 import { Field } from './scenes/Field';
 import { Mission } from './scenes/Mission';
+import { Loadout } from './scenes/Loadout';
 import { Debrief } from './scenes/Debrief';
 import { installMuteControls, audioState } from './sound';
 
@@ -14,7 +15,7 @@ const game = new Phaser.Game({
   pixelArt: true,
   // Sound is procedural WebAudio (src/sound.ts); Phaser's own sound manager isn't used.
   audio: { noAudio: true },
-  scene: [Title, MissionSelect, Mission, Field, Debrief],
+  scene: [Title, MissionSelect, Loadout, Mission, Field, Debrief],
 });
 installMuteControls();
 

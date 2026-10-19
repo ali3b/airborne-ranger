@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { isTouch, setProneLit, showFieldControls, touchMove } from '../touch';
+import { isTouch, setProneLit, setTouchItems, showFieldControls, touchMove } from '../touch';
+import { MAG_SIZE } from '../loadout';
 import { preloadAssets, setupAssets, animKey, type AssetManifest, type SpriteEntry, type ObjectDirection, type CharacterMeta } from '../assets';
 import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDelta, type Dir8, TILE_W, TILE_H } from '../iso';
 import { buildGround } from '../ground';
@@ -58,8 +59,8 @@ const RANGER_HP = 100;
 const GRENADE_RANGE = 8; // metres
 const GRENADE_FLIGHT = 0.9; // seconds
 const GRENADE_APEX = 70; // px above the straight line at mid-flight
-const BLAST_RADIUS = 3; // metres
-const GRENADE_DAMAGE = 100;
+const BLAST_R = 3; // metres: a grenade's blast
+const GRENADE_DMG = 100;
 const BULLET_SPEED = 45; // m/s (slow enough to see the tracer)
 const RANGER_BULLET_RANGE = 22; // metres
 const ENEMY_VIEW_RANGE = 11; // metres
@@ -72,6 +73,25 @@ const NOISE_BLAST = 20;
 /** G6: enemies farther than this from the Ranger sleep (no AI, no animation); they wake again inside WAKE_AT. */
 const SLEEP_AT = 36; // metres
 const WAKE_AT = 32;
+
+// G7 arsenal.
+const RELOAD_PRONE_S = 1.5; // seconds (no clip for a prone reload: the Ranger just lies still)
+const LAW_SPEED = 16; // m/s: slow and heavy, you can watch it fly
+const LAW_RANGE = 30; // metres
+const LAW_DAMAGE = 300; // to what it hits (tanks, bunkers, vehicles have 200–300 HP)
+const LAW_BLAST = 2.5; // metres, the splash around the impact
+const BOMB_FUSE = 10; // seconds
+const BOMB_RADIUS = 5; // metres
+const BOMB_DAMAGE = 400;
+const KNIFE_RANGE = 1.4; // metres
+const MEDKIT_HEAL = 50;
+
+/** What the Ranger can use; Space / FIRE uses the selected one. */
+export const WEAPONS = ['carbine', 'grenade', 'law', 'bomb', 'knife', 'medkit'] as const;
+export type Weapon = (typeof WEAPONS)[number];
+const WEAPON_LABEL: Record<Weapon, string> = { carbine: 'CARBINE', grenade: 'GRENADE', law: 'LAW', bomb: 'BOMB', knife: 'KNIFE', medkit: 'AID' };
+/** What killed a soldier or destroyed an installation (G7 scoring hooks and the end screen). */
+export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife';
 
 export type Pt = { x: number; y: number };
 
@@ -92,6 +112,26 @@ export interface Placed {
   state?: string;
   /** Screen rectangle of its sprite and collider (the grid and view culling use it). */
   bounds?: Rect;
+  /** G7: what destroyed it. */
+  destroyedBy?: Cause;
+}
+
+/** A LAW rocket in flight (world metres along the ground, drawn `h` px above it). */
+interface Rocket {
+  sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
+  pos: Pt;
+  dir: Pt;
+  left: number;
+  h: number;
+  trail: number;
+}
+
+/** A placed time bomb counting down. */
+interface Bomb {
+  sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
+  label: Phaser.GameObjects.Text;
+  at: Pt;
+  fuse: number;
 }
 
 interface Grenade {
@@ -124,6 +164,8 @@ export interface Enemy {
   cooldown: number;
   unseen: number;
   busy: boolean; // shooting
+  /** G7: what killed him. */
+  killedBy?: Cause;
 }
 
 export class Field extends Phaser.Scene {
@@ -155,6 +197,19 @@ export class Field extends Phaser.Scene {
 
   /** Grenades the Ranger carries (the field test scene has no limit; missions restock from supply pods). */
   protected grenadesLeft = Infinity;
+  /** G7: rounds in the carbine, spare magazines, LAW rockets, time bombs and first-aid kits carried. */
+  rounds = MAG_SIZE;
+  magsLeft = Infinity;
+  lawsLeft = Infinity;
+  bombsLeft = Infinity;
+  medkitsLeft = Infinity;
+  /** The selected weapon or item (Space / FIRE). */
+  weapon: Weapon = 'carbine';
+  rockets: Rocket[] = [];
+  bombs: Bomb[] = [];
+  /** Counters for the end screen and scripts/load-check.mjs. */
+  arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
+  private lastUseAt = 0;
 
   constructor(key = 'field') {
     super(key);
@@ -195,6 +250,11 @@ export class Field extends Phaser.Scene {
     this.busy = false;
     this.prone = false;
     this.facing = 'SE';
+    this.rockets = [];
+    this.bombs = [];
+    this.rounds = MAG_SIZE;
+    this.weapon = 'carbine';
+    this.arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
 
     const m = setupAssets(this);
     if (!m || !m.sprites.ranger) {
@@ -215,19 +275,24 @@ export class Field extends Phaser.Scene {
 
     const kb = this.input.keyboard!;
     this.cursors = kb.createCursorKeys();
-    this.keys = kb.addKeys('W,A,S,D,SHIFT,X,SPACE,G,R') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.keys = kb.addKeys('W,A,S,D,SHIFT,X,SPACE,G,R,Q,H,ONE,TWO,THREE,FOUR,FIVE,SIX') as Record<string, Phaser.Input.Keyboard.Key>;
     this.keys.X.on('down', () => {
       if (!this.busy && !this.dead) this.prone = !this.prone;
     });
-    this.keys.SPACE.on('down', () => this.shoot());
+    this.keys.SPACE.on('down', () => this.use());
     this.keys.G.on('down', () => this.throwGrenade());
+    this.keys.H.on('down', () => this.firstAid());
+    this.keys.Q.on('down', () => this.cycleWeapon());
+    (['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'] as const).forEach((k, i) => this.keys[k].on('down', () => this.selectWeapon(WEAPONS[i])));
     this.keys.R.on('down', () => {
       if (this.dead && this.restartOnR) this.scene.restart();
+      else this.reload();
     });
     // Phones and tablets: the stick and buttons (src/touch.ts); a tap on the map restarts the test field when down.
     document.getElementById('rotate')?.remove();
     const hideTouch = showFieldControls({
-      shoot: () => this.shoot(),
+      shoot: () => this.use(),
+      select: (k) => (k === 'medkit' ? this.firstAid() : this.selectWeapon(k as Weapon)),
       grenade: () => this.throwGrenade(),
       prone: () => {
         if (!this.busy && !this.dead) this.prone = !this.prone;
@@ -426,7 +491,8 @@ export class Field extends Phaser.Scene {
    * then show the last state (destroyed) and swap the collider for that state's polygon; fire and smoke stay on the
    * wreck. Models without a destroyed version are exported with a scorched copy and a `collapse` (FB-028 verified).
    */
-  protected destroyProp(p: Placed) {
+  protected destroyProp(p: Placed, cause?: Cause) {
+    p.destroyedBy ??= cause;
     const s = this.manifest.sprites[p.name];
     const states = s.object?.states ?? [];
     const end = states[states.length - 1];
@@ -605,6 +671,13 @@ export class Field extends Phaser.Scene {
   protected shoot() {
     const clip = this.prone ? 'rifle_prone_shoot' : 'rifle_shoot';
     if (!this.ranger || this.busy || this.dead || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
+    // G7: an empty magazine reloads (or clicks when there's none left).
+    if (this.rounds <= 0) {
+      if (this.magsLeft > 0) this.reload();
+      else sfx.dryFire();
+      return;
+    }
+    this.rounds--;
     this.busy = true;
     const dir = this.facing;
     this.oneShot(
@@ -658,7 +731,7 @@ export class Field extends Phaser.Scene {
           const e = this.enemies.find((x) => x.state !== 'dead' && distW(b.pos, this.worldOf(x.sprite)) < 0.45);
           if (e) {
             b.left = 0;
-            this.killEnemy(e, b.dir);
+            this.killEnemy(e, b.dir, 'rifle');
           }
         } else if (b.hits && !this.dead && distW(b.pos, rangerW) < 0.45) {
           b.left = 0;
@@ -682,8 +755,9 @@ export class Field extends Phaser.Scene {
     return screenToWorldDelta(spr.x, spr.y, this.ppm);
   }
 
-  protected killEnemy(e: Enemy, from: Pt) {
+  protected killEnemy(e: Enemy, from: Pt, cause: Cause = 'rifle') {
     e.state = 'dead';
+    e.killedBy = cause;
     e.sprite.removeAllListeners(Phaser.Animations.Events.ANIMATION_UPDATE);
     e.sprite.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE);
     // Falls away from the shot: the death clip faces into it.
@@ -871,32 +945,45 @@ export class Field extends Phaser.Scene {
     this.grenades.push({ ball, shadow, from, to, h0: -off.y, t: 0 });
   }
 
-  /** Placeholder blast: flash, scorch ring, camera shake; kills enemies and damages destructibles in the radius. */
-  protected explode(at: Pt) {
+  /**
+   * A blast: the generator's explosion, scorch ring, camera shake; kills enemies and damages destructibles in the
+   * radius. Defaults are a grenade's; a LAW passes the prop it hit (`direct`, full `directDamage`), a time bomb a
+   * bigger radius and damage.
+   */
+  protected explode(at: Pt, opts: { radius?: number; damage?: number; cause?: Cause; scale?: number; direct?: Placed; directDamage?: number } = {}) {
+    const BLAST_RADIUS = opts.radius ?? BLAST_R;
+    const GRENADE_DAMAGE = opts.damage ?? GRENADE_DMG;
+    const cause = opts.cause ?? 'grenade';
+    const big = opts.scale ?? 1;
     // The generator's explosion (fireball, sparks); a flash circle when it wasn't built.
-    const boom = this.fx('explosion', at, at.y + 1000, { once: true });
+    const boom = this.fx('explosion', at, at.y + 1000, { once: true, scale: big });
+    if (big > 1.2) this.dustBurst(at);
     sfx.explosion(0.35 + 0.65 * this.loudness(at, 40));
     const flash = this.add.circle(at.x, at.y - 10, 10, 0xffd060, boom ? 0 : 0.95).setDepth(at.y + 1000);
     const ring = this.add.ellipse(at.x, at.y, 20, 10, 0xff6020, 0.6).setDepth(at.y + 999);
     this.tweens.add({ targets: flash, scale: 5, alpha: 0, duration: 450, onComplete: () => flash.destroy() });
     const r = BLAST_RADIUS * this.ppm;
     this.tweens.add({ targets: ring, displayWidth: r * 2, displayHeight: r, alpha: 0, duration: 600, onComplete: () => ring.destroy() });
-    this.cameras.main.shake(180, 0.006);
+    this.cameras.main.shake(180 * big, 0.006 * big);
     const w = this.worldOf(at);
     for (const e of this.enemies) {
       if (e.state === 'dead') continue;
       const ew = this.worldOf(e.sprite);
-      if (distW(ew, w) < BLAST_RADIUS) this.killEnemy(e, { x: ew.x - w.x, y: ew.y - w.y });
+      if (distW(ew, w) < BLAST_RADIUS) this.killEnemy(e, { x: ew.x - w.x, y: ew.y - w.y }, cause);
     }
     if (distW(this.worldOf(this.ranger), w) < BLAST_RADIUS * 0.7) this.hurtRanger(60);
+    if (opts.direct && opts.direct.hp !== undefined && opts.direct.hp > 0) {
+      opts.direct.hp -= opts.directDamage ?? GRENADE_DAMAGE;
+      if (opts.direct.hp <= 0) this.destroyProp(opts.direct, cause);
+    }
     for (const p of this.props) {
-      if (p.hp === undefined || p.hp <= 0) continue;
+      if (p.hp === undefined || p.hp <= 0 || p === opts.direct) continue;
       const d = pointInPolygon(w, p.world) ? 0 : distToPolygon(w, p.world);
       if (d > BLAST_RADIUS) continue;
       p.hp -= d < BLAST_RADIUS / 2 ? GRENADE_DAMAGE : GRENADE_DAMAGE / 2;
-      if (p.hp <= 0) this.destroyProp(p);
+      if (p.hp <= 0) this.destroyProp(p, cause);
     }
-    this.noise(at, NOISE_BLAST);
+    this.noise(at, NOISE_BLAST * Math.max(1, big * 0.8));
   }
 
   protected updateGrenades(dt: number) {
@@ -915,6 +1002,272 @@ export class Field extends Phaser.Scene {
       }
     }
     this.grenades = this.grenades.filter((g) => g.t < 1);
+  }
+
+  // ---- G7 arsenal: the selected weapon, reload, LAW, time bombs, knife, first aid ----
+  // FB-074: the Ranger's knife, launcher and kit clips are separate sprites of the same model (`ranger_knife`,
+  // `ranger_law`, `ranger_kit`); their animations are played on the Ranger's own sprite.
+
+  /** Space / FIRE: use the selected weapon or item. A held touch FIRE repeats; only the carbine fires on repeat. */
+  use() {
+    const now = this.time.now;
+    const repeat = now - this.lastUseAt < 250;
+    this.lastUseAt = now;
+    if (this.weapon === 'carbine') return this.shoot();
+    if (repeat) return;
+    if (this.weapon === 'grenade') this.throwGrenade();
+    else if (this.weapon === 'law') this.fireLaw();
+    else if (this.weapon === 'bomb') this.placeBomb();
+    else if (this.weapon === 'knife') this.stab();
+    else if (this.weapon === 'medkit') this.firstAid();
+  }
+
+  selectWeapon(w: Weapon) {
+    if (!WEAPONS.includes(w) || w === this.weapon) return;
+    this.weapon = w;
+    sfx.click();
+  }
+
+  /** Q: the next weapon or item the Ranger has. */
+  cycleWeapon() {
+    for (let k = 1; k <= WEAPONS.length; k++) {
+      const w = WEAPONS[(WEAPONS.indexOf(this.weapon) + k) % WEAPONS.length];
+      if (this.countOf(w) !== '0') return this.selectWeapon(w);
+    }
+  }
+
+  /** How many of a weapon or item are left, as shown (∞ on the test field). */
+  countOf(w: Weapon) {
+    const n = (v: number) => (Number.isFinite(v) ? String(v) : '∞');
+    if (w === 'carbine') return `${this.rounds}+${n(this.magsLeft)}`;
+    if (w === 'grenade') return n(this.grenadesLeft);
+    if (w === 'law') return n(this.lawsLeft);
+    if (w === 'bomb') return n(this.bombsLeft);
+    if (w === 'medkit') return n(this.medkitsLeft);
+    return '-';
+  }
+
+  /** The HUD's arms line: every weapon with its count, the selected one in brackets, any bomb's fuse. */
+  protected armsLine() {
+    const parts = WEAPONS.map((w, i) => {
+      const c = w === 'knife' ? '' : ` ${w === 'carbine' ? `${this.rounds}/${MAG_SIZE} +${Number.isFinite(this.magsLeft) ? this.magsLeft : '∞'}` : this.countOf(w)}`;
+      const t = `${i + 1} ${WEAPON_LABEL[w]}${c}`;
+      return w === this.weapon ? `[${t}]` : t;
+    });
+    const fuse = this.bombs.length ? `   BOMB ${Math.ceil(Math.min(...this.bombs.map((b) => b.fuse)))}s` : '';
+    return parts.join('  ') + fuse;
+  }
+
+  /** R (or firing on empty): a fresh magazine, on the reload clip's `reload` event. */
+  reload() {
+    if (!this.ranger || this.busy || this.dead || this.rounds >= MAG_SIZE || this.magsLeft <= 0) return;
+    this.busy = true;
+    const done = () => {
+      this.busy = false;
+    };
+    const swap = () => {
+      if (this.dead) return;
+      this.magsLeft--;
+      this.rounds = MAG_SIZE;
+      this.arsenal.reloads++;
+      sfx.reload();
+    };
+    if (this.prone || !this.manifest.sprites.ranger_kit) {
+      this.time.delayedCall(RELOAD_PRONE_S * 1000, () => {
+        swap();
+        done();
+      });
+      return;
+    }
+    this.oneShot(this.ranger, 'ranger_kit', 'rifle_reload', this.facing, 'reload', swap, done);
+  }
+
+  /**
+   * LAW: the Ranger kneels with the launcher (`ranger_law`'s kneel_shoot); on its `shoot` event a rocket leaves the
+   * tube's tip and flies straight on until it hits a prop, a soldier or its range. // FB-072: kneel_shoot holds the
+   * launcher like a rifle, and the tube's own rocket stays drawn in it; the flying rocket is the `law_rocket` sprite.
+   */
+  fireLaw() {
+    if (!this.ranger || this.busy || this.dead || this.lawsLeft <= 0) return;
+    if (this.prone) this.prone = false;
+    const dir = this.facing;
+    this.busy = true;
+    this.lawsLeft--;
+    this.oneShot(
+      this.ranger,
+      'ranger_law',
+      'kneel_shoot',
+      dir,
+      'shoot',
+      () => {
+        if (this.dead) return;
+        this.arsenal.lawsFired++;
+        sfx.launch();
+        const tip = this.socket('ranger_law', 'kneel_shoot', dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
+        const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
+        const ground = { x: this.ranger.x + tip.x, y: this.ranger.y };
+        const s = this.manifest.sprites.law_rocket;
+        const key = s ? animKey(s, s.clips[0], dir) : '';
+        const spr = this.anims.exists(key) ? this.add.sprite(ground.x, ground.y + tip.y, 'law_rocket').play(key) : this.add.rectangle(ground.x, ground.y + tip.y, 10, 4, 0x4a5a2a);
+        this.rockets.push({ sprite: spr, pos: this.worldOf(ground), dir: { x: Math.cos(a), y: Math.sin(a) }, left: LAW_RANGE, h: -tip.y, trail: 0 });
+        this.noise(this.ranger, NOISE_SHOT);
+      },
+      () => {
+        this.busy = false;
+      },
+    );
+  }
+
+  protected updateRockets(dt: number) {
+    for (const r of this.rockets) {
+      const step = Math.min(r.left, LAW_SPEED * dt);
+      const n = Math.max(1, Math.ceil(step / 0.25));
+      let hit: { prop?: Placed } | null = null;
+      for (let k = 0; k < n && !hit; k++) {
+        r.pos = { x: r.pos.x + (r.dir.x * step) / n, y: r.pos.y + (r.dir.y * step) / n };
+        r.left -= step / n;
+        const prop = this.props.find((p) => pointInPolygon(r.pos, p.world));
+        if (prop) hit = { prop };
+        else if (this.enemies.some((e) => e.state !== 'dead' && distW(r.pos, this.worldOf(e.sprite)) < 0.5)) hit = {};
+      }
+      const s = worldToScreenDelta(r.pos.x, r.pos.y, this.ppm);
+      // The rocket sinks a little over its range.
+      const h = r.h * Math.max(0.3, r.left / LAW_RANGE);
+      r.sprite.setPosition(s.x, s.y - h).setDepth(s.y + 2);
+      if ((r.trail -= dt) <= 0) {
+        r.trail = 0.04;
+        const puff = this.add.image(s.x, s.y - h, 'puff').setTint(0xb8b0a0).setAlpha(0.6).setScale(0.5).setDepth(s.y + 1);
+        this.tweens.add({ targets: puff, scale: 1.6, alpha: 0, y: puff.y - 10, duration: 700, onComplete: () => puff.destroy() });
+      }
+      if (hit || r.left <= 0) {
+        r.left = 0;
+        this.explode({ x: s.x, y: s.y }, { radius: LAW_BLAST, cause: 'law', scale: 1.2, direct: hit?.prop, directDamage: LAW_DAMAGE });
+      }
+    }
+    for (const r of this.rockets) if (r.left <= 0) r.sprite.destroy();
+    this.rockets = this.rockets.filter((r) => r.left > 0);
+  }
+
+  /**
+   * A time bomb at the Ranger's feet: he crouches to set it, then the fuse runs (shown). // FB-073: no place / plant
+   * clip, so the rifle crouch_idle loop plays for 0.8 s.
+   */
+  placeBomb() {
+    if (!this.ranger || this.busy || this.dead || this.bombsLeft <= 0) return;
+    this.busy = true;
+    this.bombsLeft--;
+    if (!this.prone) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
+    this.time.delayedCall(800, () => {
+      this.busy = false;
+      if (this.dead) return;
+      this.arsenal.bombsPlaced++;
+      const a = (DIRS8.indexOf(this.facing) * Math.PI) / 4;
+      const off = worldToScreenDelta(Math.cos(a) * 0.45, Math.sin(a) * 0.45, this.ppm);
+      const at = { x: this.ranger.x + off.x, y: this.ranger.y + off.y };
+      const s = this.manifest.sprites.time_bomb;
+      const key = s ? animKey(s, s.clips[0], s.dirs.includes('SE') ? 'SE' : s.dirs[0]) : '';
+      const spr = this.anims.exists(key) ? this.add.sprite(at.x, at.y, 'time_bomb').play(key) : this.add.rectangle(at.x, at.y - 4, 14, 8, 0x2a2a1a);
+      spr.setDepth(at.y);
+      const label = this.add
+        .text(at.x, at.y - 22, String(BOMB_FUSE), { fontFamily: 'monospace', fontSize: '14px', color: '#ff5040', backgroundColor: '#10140caa', padding: { x: 3, y: 1 } })
+        .setOrigin(0.5)
+        .setDepth(9e8 + 10);
+      this.bombs.push({ sprite: spr, label, at, fuse: BOMB_FUSE });
+      sfx.tick();
+    });
+  }
+
+  protected updateBombs(dt: number) {
+    for (const b of this.bombs) {
+      const before = Math.ceil(b.fuse);
+      b.fuse -= dt;
+      const now = Math.ceil(b.fuse);
+      if (now !== before && now > 0) {
+        b.label.setText(String(now));
+        sfx.tick(now <= 3, 0.3 + 0.7 * this.loudness(b.at, 25));
+      }
+      // The fuse light blinks faster as it runs down.
+      b.label.setVisible(b.fuse > 3 || Math.floor(b.fuse * 6) % 2 === 0);
+      if (b.fuse <= 0) {
+        b.sprite.destroy();
+        b.label.destroy();
+        this.explode(b.at, { radius: BOMB_RADIUS, damage: BOMB_DAMAGE, cause: 'bomb', scale: 2 });
+      }
+    }
+    this.bombs = this.bombs.filter((b) => b.fuse > 0);
+  }
+
+  /** The nearest living soldier within knife reach (world metres), or null. */
+  protected knifeTarget() {
+    const me = this.worldOf(this.ranger);
+    let best: Enemy | null = null;
+    let bd = KNIFE_RANGE;
+    for (const e of this.enemies) {
+      if (e.state === 'dead') continue;
+      const d = distW(me, this.worldOf(e.sprite));
+      if (d < bd) {
+        bd = d;
+        best = e;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Knife: a silent kill at close range. The Ranger turns to the nearest soldier within reach and stabs
+   * (`ranger_knife`'s Knife_Stab_Fore); on the clip's `hit` event the soldier falls. No noise: nobody is alerted.
+   */
+  stab() {
+    if (!this.ranger || this.busy || this.dead) return;
+    if (this.prone) this.prone = false;
+    const target = this.knifeTarget();
+    if (target) {
+      const a = this.worldOf(this.ranger);
+      const b = this.worldOf(target.sprite);
+      this.facing = dirFromWorld(b.x - a.x, b.y - a.y);
+    }
+    const dir = this.facing;
+    this.busy = true;
+    sfx.stab();
+    this.oneShot(
+      this.ranger,
+      'ranger_knife',
+      'Knife_Stab_Fore',
+      dir,
+      'hit',
+      () => {
+        const e = this.knifeTarget();
+        if (!e || this.dead) return;
+        const a = this.worldOf(this.ranger);
+        const b = this.worldOf(e.sprite);
+        this.killEnemy(e, { x: b.x - a.x, y: b.y - a.y }, 'knife');
+        this.arsenal.knifeKills++;
+      },
+      () => {
+        this.busy = false;
+      },
+    );
+  }
+
+  /** First aid (H, or the AID item): +50 HP, one kit. */
+  firstAid() {
+    if (!this.ranger || this.busy || this.dead || this.medkitsLeft <= 0 || this.hp >= RANGER_HP) {
+      if (this.hp >= RANGER_HP) sfx.dryFire();
+      return;
+    }
+    this.medkitsLeft--;
+    this.arsenal.heals++;
+    this.hp = Math.min(RANGER_HP, this.hp + MEDKIT_HEAL);
+    sfx.heal();
+    this.busy = true;
+    if (!this.prone) this.play(this.ranger, 'ranger_kit', 'rifle_crouch_idle', this.facing, false);
+    this.ranger.setTint(0x80ff80);
+    const t = this.add.text(this.ranger.x, this.ranger.y - 90, `+${MEDKIT_HEAL}`, { fontFamily: 'monospace', fontSize: '16px', color: '#80ff80' }).setOrigin(0.5).setDepth(9e8 + 10);
+    this.tweens.add({ targets: t, y: t.y - 30, alpha: 0, duration: 900, onComplete: () => t.destroy() });
+    this.time.delayedCall(600, () => {
+      this.ranger.clearTint();
+      this.busy = false;
+    });
   }
 
   /** Ground speed of a locomotion clip, as measured by the generator (`speedMps`), so the feet don't slide. */
@@ -959,9 +1312,13 @@ export class Field extends Phaser.Scene {
     this.updateEnemies(dt);
     this.updateGrenades(dt);
     this.updateBullets(dt);
+    this.updateRockets(dt);
+    this.updateBombs(dt);
 
-    const g = Number.isFinite(this.grenadesLeft) ? `${this.grenadesLeft} left` : `${this.grenadesThrown}`;
-    this.hud.setText(`${this.hudLine()}\n${isTouch ? `grenades: ${g}` : `WASD/arrows move · Shift run · X prone · Space shoot · G grenade (${g}) · M sound`}`);
+    // On touch the item bar shows the counts; the HUD keeps only a bomb's fuse (narrow phone screens).
+    const arms = isTouch ? (this.bombs.length ? this.armsLine().replace(/^.*   /, '') : '') : this.armsLine();
+    this.hud.setText(`${this.hudLine()}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
+    if (isTouch) setTouchItems(WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })));
   }
 
   /**

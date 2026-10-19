@@ -258,6 +258,98 @@
       "name": "fern",
       "asset": "POLYGON_Generic/SM_Gen_Env_Fern_02",
       "template": "still"
+    },
+    {
+      "name": "ranger_kit",
+      "asset": "POLYGON_War/Character_American_Soldier_01",
+      "class": "rifle",
+      "anim": [
+        "reload",
+        "crouch_idle"
+      ],
+      "with": [
+        "POLYGON_War/SM_Wep_American_Rifle_01",
+        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
+      ],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "ranger_knife",
+      "asset": "POLYGON_War/Character_American_Soldier_01",
+      "anim": [
+        "Knife_Stab_Fore@0:0.9"
+      ],
+      "with": [
+        "POLYGON_Palm_City/SM_Wep_Knife_01",
+        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
+      ],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "ranger_law",
+      "asset": "POLYGON_War/Character_American_Soldier_01",
+      "template": [
+        "kneel_shoot"
+      ],
+      "with": [
+        "POLYGON_BattleRoyale/SM_Wep_RPG_01",
+        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
+      ],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "law_rocket",
+      "asset": "POLYGON_BattleRoyale/SM_Wep_RPG_Rocket_Active_01",
+      "template": "projectile",
+      "dirs": "8"
+    },
+    {
+      "name": "time_bomb",
+      "asset": "POLYGON_BattleRoyale/SM_Prop_C4_01",
+      "template": "still"
+    },
+    {
+      "name": "supply_pod",
+      "asset": "POLYGON_Apocalypse/SM_Item_Duffle_Bag_01",
+      "template": "still"
+    },
+    {
+      "name": "item_mag",
+      "asset": "POLYGON_Apocalypse/SM_Item_Ammo_556_01",
+      "template": "still",
+      "tile": "64x32",
+      "metresPerTile": 0.125
+    },
+    {
+      "name": "item_grenade",
+      "asset": "POLYGON_BattleRoyale/SM_Wep_Grenade_01",
+      "template": "still",
+      "tile": "64x32",
+      "metresPerTile": 0.125
+    },
+    {
+      "name": "item_medkit",
+      "asset": "POLYGON_BattleRoyale/SM_Prop_MedicalBox_01",
+      "template": "still",
+      "tile": "64x32",
+      "metresPerTile": 0.125
+    },
+    {
+      "name": "item_law",
+      "asset": "POLYGON_BattleRoyale/SM_Wep_RPG_01",
+      "template": "still",
+      "tile": "64x32",
+      "metresPerTile": 0.125
+    },
+    {
+      "name": "item_bomb",
+      "asset": "POLYGON_BattleRoyale/SM_Prop_C4_01",
+      "template": "still",
+      "tile": "64x32",
+      "metresPerTile": 0.125
     }
   ],
   "tilesets": [
