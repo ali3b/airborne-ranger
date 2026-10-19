@@ -9,7 +9,7 @@ import { distToProp, inArea, say, seenBy, view, type MissionView } from './g8b-v
  * Mission 9, Photograph an Experimental Aircraft (G8). The original: "Infiltrate an enemy airfield and sneak into the
  * hangar. Do not allow yourself to be seen entering the hangar!" The prototype (`prototype_rocket`, the map object
  * with the `prototype` property) stands at the hangar. The Ranger gets within PHOTO_RANGE with a clear line of sight
- * and uses the camera (C, or CAMERA on the touch item bar): he kneels and holds still (`ranger_ops`
+ * and uses the camera (C, or CAMERA on the touch item bar): he kneels and holds still (the `ranger` sheet's
  * camera_kneel_shoot) for EXPOSURE seconds; moving away, releasing C early or losing sight spoils it. Seen by a
  * soldier inside the hangar zone before the photos are taken: the run is blown (failed). The prototype destroyed
  * before it is photographed: failed. Then extraction as usual.
@@ -69,7 +69,7 @@ class Photo implements Objective {
     const me = v.worldOf(v.ranger);
     const at = v.worldOf(this.subject.at);
     v.facing = dirFromWorld(at.x - me.x, at.y - me.y);
-    if (!v.play(v.ranger, 'ranger_ops', 'camera_kneel_shoot', v.facing, false)) v.play(v.ranger, 'ranger', 'rifle_idle', v.facing, false);
+    if (!v.play(v.ranger, 'ranger', 'camera_kneel_shoot', v.facing, false)) v.play(v.ranger, 'ranger', 'rifle_idle', v.facing, false);
     sfx.click();
   }
 

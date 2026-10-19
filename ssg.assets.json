@@ -54,6 +54,11 @@
           "template": "kneel_place",
           "with": "POLYGON_BattleRoyale/SM_Prop_MedicalBox_01",
           "as": "medkit"
+        },
+        {
+          "template": "kneel_shoot:duration=1.5,twoHanded=1,kick=0",
+          "with": "POLYGON_Apocalypse/SM_Item_Camera_01",
+          "as": "camera"
         }
       ]
     },
@@ -529,27 +534,6 @@
       "name": "alarm_pole",
       "asset": "POLYGON_War/SM_Prop_AlarmPole_01",
       "template": "still"
-    },
-    {
-      "name": "ranger_ops",
-      "asset": "POLYGON_War/Character_American_Soldier_01",
-      "template": [
-        {
-          "template": "kneel_shoot:duration=1.5,twoHanded=1,kick=0",
-          "with": "POLYGON_Apocalypse/SM_Item_Camera_01",
-          "as": "camera"
-        },
-        {
-          "template": "kneel_place",
-          "with": "POLYGON_BattleRoyale/SM_Prop_C4_01",
-          "as": "plant"
-        }
-      ],
-      "with": [
-        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
-      ],
-      "dirs": "8",
-      "uniform": true
     }
   ],
   "tilesets": [
