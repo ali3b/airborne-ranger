@@ -786,7 +786,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: nothing that lifts both arms above the head; the unarmed moveset has idle / walk / run only.
 - Workaround: the officer (`officer`, unarmed + `hit_react`) plays `hit_react` once as the "surrender" gesture with a "NICHT SCHIESSEN!" line, then follows with the normal unarmed walk (`src/objectives/officer.ts`, FB-076).
 - Suggested change: a procedural `hands_up` pose template (both upper arms raised, forearms up, loop) and a `hands_up_walk` (the walk clip with the arm bones overridden by the pose), or a generic "arms pose over a locomotion clip" layer.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-077 · The unarmed moveset has no hit or death, and doesn't fall back to the templates like the gunner set
 - Severity: polish        Milestone: G8
@@ -795,7 +795,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite apply` refused the whole batch: `"hit" is no move of the moveset (idle, walk, run, place)`, suggesting sword clips (Hit_F_React_Sword, Death_B_01_Sword…).
 - Workaround: `"anim": ["idle", "walk", "run"], "template": ["hit_react", "death_fall"]` (the game looks the clip names up, `src/objectives/follower.ts`).
 - Suggested change: let builtin_locomotion (unarmed) fall back to `hit_react` / `death_fall` the way the combat sets do, or add hit/death to the unarmed moveset.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-078 · Fences can't be laid end to end: footprints snap 5.12 m panels to 6 cells and overlaps are refused
 - Severity: workaround        Milestone: G8
@@ -804,7 +804,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `o2 would overlap o1 (pow_fence)…` for every second panel: the 5.12 m panel covers 6 cells, so panels can only stand 6 m apart, leaving 0.88 m gaps (the Ranger is 0.6 m wide). Path objects with `every` have the same limit.
 - Workaround: `snap: false, allowOverlap: true` on every panel and the gate, placed at computed centres (maps/g8/mission8/stage2.json); nothing checks that the fence is really closed.
 - Suggested change: a `fence` (or `wall`) op / path mode that lays a panel sprite end to end along a polyline by its real length (cut or scaled last panel), with `gaps: [{at, sprite: "pow_gate"}]`, exempting the panels from the overlap check against each other.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-079 · No way to put a small object on top of another (a code book on a table)
 - Severity: workaround        Milestone: G8
@@ -813,7 +813,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the overlap check refuses it; `allowOverlap` would only stand it on the ground inside the table's footprint. Objects have no elevation or "on top of" link.
 - Workaround: the book is a custom zone (`codebook`, `height: 0.82`) and the game draws `code_book` raised by that height (`src/objectives/codebook.ts`, FB-079).
 - Suggested change: `place {…, on: "<object id>"}` (or `elevation` metres) that puts a small prop on another's top surface (the support's height from its export), exported as an object property the engine can apply, and shown in the previews.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-094 · A template asked for with a class comes back as a different, class-named move
 - Severity: polish        Milestone: G9
@@ -822,7 +822,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the dry run and the export list `rifle_crouch_shoot` instead, with no note that the template was swapped for the rifle moveset's crouch shoot (were `twoHanded` / `kick` used?). It does kneel and has a `shoot` event, so the game uses it.
 - Workaround: src/enemies/mgnest.ts plays `rifle_crouch_shoot`.
 - Suggested change: keep the asked-for template (named as asked) or say in the dry run / apply report "template kneel_shoot → rifle_crouch_shoot (class rifle has it)" and which parameters were dropped.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-095 · No way to put game-only markers (mines) on a map: a placed object always collides
 - Severity: workaround        Milestone: G9
@@ -831,7 +831,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only solid objects, or zones.
 - Workaround: a `custom` zone with `minefield: true, mines: N` (maps/g6/<mission>/stage3.json); the game lays the mines inside it with a seeded random (src/enemies/mines.ts `addField`, avoiding blocked cells and props).
 - Suggested change: `place` / `scatter` with `collision: false` (written to the .tmj as a property, no collision layer cells), or a `markers` scatter that writes point objects.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-096 · A tank's turret can't aim apart from its hull
 - Severity: workaround        Milestone: G9
@@ -840,7 +840,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: one baked sheet per hull direction; the `turret_sweep` template only sweeps.
 - Workaround: the tank stops and swings its whole hull to the Ranger's 8-direction before it fires (src/enemies/tanks.ts `face`).
 - Suggested change: `layered` parts for vehicles (hull and turret+barrel as separate aligned sheets, the turret's pivot given), or a `turret_dirs` option.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-097 · Vehicle `fire` is a loop with no event and no muzzle socket
 - Severity: workaround        Milestone: G9
@@ -849,7 +849,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `fire` loops (repeat −1), its clip has no events, and object/vehicle metas carry no sockets.
 - Workaround: the game plays `fire` for 0.6 s and puts the muzzle 4.2 m in front of the anchor, 1.9 m up (src/enemies/tanks.ts `BARREL`, `MUZZLE_H`).
 - Suggested change: `fire:once=1` with a `shoot` event, and sockets for vehicle parts with roles (`barrel` tip, `turret`), exported like character sockets.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-098 · `dirs: "1"` on a vehicle picks S; you can't say which single direction
 - Severity: polish        Milestone: G9
@@ -858,7 +858,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `S` only (it suits flying down the screen, so it's used that way).
 - Workaround: the plane always flies north → south over the zone (src/pickup.ts).
 - Suggested change: `"dirs": "E"` / `["N", "S"]` (names), the same as a list of directions elsewhere.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-099 · A curved sandbag wall collides with its convex hull, so nobody can stand inside the curve
 - Severity: workaround        Milestone: G9
@@ -867,7 +867,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a D-shaped convex hull (`SE`: flat side at u = −1.12, bulge to +u) that also covers the inside of the curve.
 - Workaround: the gunner kneels just behind the open side, 1.9 m from the anchor (src/enemies/mgnest.ts `BEHIND`).
 - Suggested change: `collision: "concave"` (an alpha shape of the ground slice) for walls and fences.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-100 · A `path` trench leaves no trace the game can read
 - Severity: workaround        Milestone: G9
@@ -876,7 +876,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only the painted terrain (mud is also used for tracks and fords elsewhere, so the tiles don't say "trench").
 - Workaround: `custom` polyline zones with `trench: true, width: 2.2` on the same points (maps/g6/mission1/stage3.json).
 - Suggested change: an optional `zone` on `path` that records the (jittered) centreline and width.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-101 · Placing after a scatter: overlaps are refused, but there's no "clear the spot" option
 - Severity: workaround        Milestone: G9
@@ -892,7 +892,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the destroyed state is the scorched copy with the intact panel's polygon (5 × 0.15 m), so the gap stays shut in the game, and `collapse` fades the picture but not the collider.
 - Workaround: `src/objectives/rescue.ts` (FB-085) empties the gate's collider once its state is `destroyed` and shows the wreck at 45 % alpha.
 - Suggested change: a per-state `collision` (`"none"`, `"base"`, `"full"`, or `"auto"`: none when the transition fades out) in the `states` syntax, e.g. `"destroyed=@scorch@collapse:fade=1;collision=none"` or `{ "destroyed": { "collision": "none" } }`, written into the export's `object.states[].directions[].polygon` (empty).
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-086 · A character declared with templates only still renders the locomotion set
 - Severity: polish        Milestone: G8
@@ -901,7 +901,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: clips `idle, walk, run, camera_kneel_shoot, plant_kneel_place`: three 8-direction clips nobody plays are rendered on the shared runner (the same for `ranger_law`).
 - Workaround: none (render time only).
 - Suggested change: when `template` (or `anim`) is given, don't add the kind's default set; or let `"set": "none"` / `"anim": []` mean "only these".
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-087 · `search_assets` misses everyday names for props and people: "fuel tank", "hostage", "siren"
 - Severity: polish        Milestone: G8
@@ -910,7 +910,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: "fuel tank" → TankTrap, Tankard and battle tanks; "hostage" and "siren" → nothing; "fuel" → only a fuel sign; "jet" → the jet ski (there is no jet aircraft in the installed packs, which is fine, but nothing says so). Found by listing every character and guessing prop names.
 - Workaround: none (picked by hand: `hostage` = Resistance_Male_01, `alarm_pole`, `fuel_tank` = WaterTank_01, `fuel_bowser` = Army_Truck_Tank_01, the V-2 `SM_Veh_Rocket_01` as the experimental aircraft).
 - Suggested change: role words in the synonym list (hostage/prisoner/civilian → non-soldier characters, fuel tank → tanker/tank but not tank trap or battle tank, siren → alarm) and a `kind`/`category` filter that ranks vehicles vs props; for characters, AI tags like `civilian`, `soldier`, `officer`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-088 · No pose for raising a held item to the eyes (camera, binoculars)
 - Severity: polish        Milestone: G8
@@ -927,7 +927,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the item is drawn in the hand on every frame to the end of the clip: after the throw he stands with the grenade still in his hand, and he stands up from `kneel_place` holding the C4 while the game's time bomb already lies at his feet. These items are single meshes with no parts, so `set_part_role … projectile` can't help.
 - Workaround: none (it is a few frames; the grenade is ~5 px at the map scale).
 - Suggested change: for a per-clip `with` item on a clip with a `release` event, hide the item from that frame (an option `"release": "hide" | "drop" | "keep"`; `drop` leaves it on the ground where the hand let go for the rest of the clip).
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-104 · `scale: "fit"` weapon sprites are exported without a `.meta.json`; fit icons are listed as placeable map objects
 - Severity: polish        Milestone: wave 11
@@ -936,7 +936,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the props' folders have `<base>.meta.json` with `scale: {mode: "fit", pixelsPerMetre: null}`, the weapons' folders only the atlas and anims (no meta, no scale record). `map_sprites {kind: "object"}` lists `item_bomb` and `item_medkit` as placeable objects next to the scenery.
 - Workaround: `scripts/build-assets.mjs` (FB-104) also counts a sprite declared with `"scale": "fit"` / `"tile": null` as an icon.
 - Suggested change: write the meta (at least `scale`) for every kind; leave `scale: "fit"` sprites out of `placeable` (or mark them `ui: true`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-105 · `shoulder_fire`: the front hand doesn't hold the tube
 - Severity: polish        Milestone: wave 11
@@ -945,7 +945,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the stock sits by the right cheek and the tube points the right way, but the left arm reaches forward with an open hand a hand's width under the tube in every direction (it reads as pointing). With the bazooka the tube passes in front of the face rather than over the shoulder.
 - Workaround: none (it reads as a launcher at the game's scale).
 - Suggested change: IK the off hand to the weapon's second grip (a `grip_front` socket from `ssg grip`, or the front-most part with role `trigger`/`grip`), and lift the tube by the model's height above the stock so it rests on the shoulder.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-106 · `set_part_role` takes only a numeric asset id
 - Severity: polish        Milestone: wave 11
@@ -954,4 +954,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `Input validation error: … "asset" Expected number, received string`; with `931` it works.
 - Workaround: look the id up with `get_asset` / `ssg parts` first.
 - Suggested change: accept `number | string` like `preview_sprite`, `get_asset`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
