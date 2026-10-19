@@ -5,7 +5,7 @@ made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-gen
 tools, from Synty POLYGON 3D models.
 
 **▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop keyboard, or touch on phones and tablets) ·
-**[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: gameplay video, screenshots, map previews, every sprite animated live, tilesets.
+**[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: the documentary *FROM NOTHING*, gameplay video, screenshots, map previews, every sprite animated live, tilesets.
 
 ![Mission 4: the pump station at dusk](docs/screenshots/mission4-station.png)
 
