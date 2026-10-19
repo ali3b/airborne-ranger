@@ -69,7 +69,7 @@ class Photo implements Objective {
     const me = v.worldOf(v.ranger);
     const at = v.worldOf(this.subject.at);
     v.facing = dirFromWorld(at.x - me.x, at.y - me.y);
-    if (!v.play(v.ranger, 'ranger_ops', 'camera_kneel_shoot', v.facing, false)) v.play(v.ranger, 'ranger_kit', 'rifle_crouch_idle', v.facing, false);
+    if (!v.play(v.ranger, 'ranger_ops', 'camera_kneel_shoot', v.facing, false)) v.play(v.ranger, 'ranger', 'rifle_idle', v.facing, false);
     sfx.click();
   }
 

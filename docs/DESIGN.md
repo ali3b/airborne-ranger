@@ -244,28 +244,31 @@ A pod holds at most **21 items** and **45 weight** (STANDARD fills both). The **
 
 **Weapons** (Space / FIRE uses the selected one; 1–6 or Q select, the touch item bar above FIRE selects, and FIRE
 shows its name):
-- **Carbine:** 30-round magazines; firing on empty reloads (R reloads any time; the `ranger_kit` reload clip, a
+- **Carbine:** 30-round magazines; firing on empty reloads (R reloads any time; the `rifle_reload` clip, a
   1.5 s pause when prone); no magazines left: a dry click.
 - **Grenade** (2, or G as before).
-- **LAW** (3): the Ranger kneels with the launcher (`ranger_law`, kneel_shoot); on its `shoot` event a slow
+- **LAW** (3): the Ranger kneels with a bazooka on his shoulder (`law_shoulder_fire`); on its `shoot` event a slow
   `law_rocket` (16 m/s, 30 m, smoke trail) flies straight on and explodes on the first prop or soldier it meets: 300
   damage to what it hits (tanks, bunkers, vehicles have 200–300 HP), plus a 2.5 m splash. It is loud.
-- **Time bomb** (4): he crouches and sets the C4 (`time_bomb`) at his feet; the fuse counts 10 s above it (ticking,
+- **Time bomb** (4): he kneels and sets the C4 (`bomb_kneel_place`; the `time_bomb` sprite lies where his hand let go); the fuse counts 10 s above it (ticking,
   blinking in the last 3 s), then a 5 m blast does 400 damage: it destroys any installation. Get clear.
-- **Knife** (5): he turns to the nearest soldier within 1.4 m and stabs (`ranger_knife`, Knife_Stab_Fore); the
+- **Knife** (5): he turns to the nearest soldier within 1.4 m and stabs (`knife_Knife_Stab_Fore`); the
   clip's `hit` event kills him. Silent: no noise, nobody is alerted by it.
-- **First aid** (6, or H, or the AID button): +50 HP, one kit.
+- **First aid** (6, or H, or the AID button): +50 HP, one kit; he kneels with the kit (`medkit_kneel_place`).
 
 **Installations:** besides the mission targets, every object with a destroyed state (crates, tents, containers…)
 and bunkers, tanks, trucks, hangars, towers have hit points, so LAW rockets, bombs and grenades destroy them; each
 counts as an installation (+50 merit), and kills by knife, LAW or bomb count as before. The game records what
 destroyed what (`killedBy` / `destroyedBy`), and the end screen lists LAW shots, bombs, knife kills and first aid.
 
-**Sprites (all generator, ssg.assets.json):** `ranger_kit` (rifle reload, crouch), `ranger_knife` (Palm City knife,
-Knife_Stab_Fore trimmed to 0.9 s), `ranger_law` (BattleRoyale RPG, kneel_shoot), `law_rocket` (RPG rocket,
-`projectile`, 8 directions), `time_bomb` (BattleRoyale C4), `supply_pod` (Apocalypse duffle bag), and the loadout
-icons `item_mag`, `item_grenade`, `item_medkit`, `item_law`, `item_bomb` at a close-up scale (FB-070). Gaps:
-FB-070–075.
+**Sprites (all generator, ssg.assets.json):** one `ranger` sheet carries every loadout (wave 11, per-clip `with` /
+`as`, FB-074): the carbine moves (`rifle_*`, incl. reload) and `grenade_throw` (POLYGON_War grenade in hand),
+`law_shoulder_fire` (POLYGON_War American bazooka, `shoulder_fire:kneel=1`), `bomb_kneel_place` (C4),
+`medkit_kneel_place` (BattleRoyale medical box), `knife_Knife_Stab_Fore` (Palm City knife, trimmed to 0.9 s); the
+carbine is put away in those clips. `law_rocket` (RPG rocket, `projectile`, 8 directions), `time_bomb` (BattleRoyale
+C4), `supply_pod` (Apocalypse duffle bag), and the loadout icons `item_mag`, `item_grenade`, `item_medkit`,
+`item_law`, `item_bomb` out of the tile lock (`"tile": null, "scale": "fit"`, FB-070). `scripts/ranger-shots.mjs`
+checks the Ranger's clips and takes the `g11-ranger-*` screenshots. Gaps: FB-103–106.
 
 ## Mission objectives, missions 5–8 (G8, lane g8a)
 `MissionConfig.objective` names an objective kind (`src/objectives/index.ts`: `start`, `update` → pending / done /

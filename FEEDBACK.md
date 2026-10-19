@@ -550,7 +550,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: call it without `kind`.
 - Suggested change: let `kind: "object"` mean "placeable with a footprint" (objects and vehicles with an `object` block), or add `placeable: true`; or say in the answer that vehicles were filtered out.
 - Re-test (G5 wave 9, 2026-10-18, not fixed yet): it leaves out more than vehicles. On mission 4, `kind: "object"` lists 10 sprites (bush, fern, guard_tower, hangar, palm, rock, rock_big, tanktrap, tree, tree_small), while the unfiltered list shows `pipe`, `pipe_valve`, `searchlight`, `radar_spin`, `tent`, `crate`… also as `"kind": "object"` with footprints. It looks like the filter keeps only one-state stills.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works. `map_sprites {map: "mission3", kind: "object"}` now lists the planes, `plane_big`, the truck and every multi-state object (pipe_valve, tent, crate…) as well as the stills. (It also lists the UI icons `item_bomb` / `item_medkit`: FB-104.)
+- Status: verified
 
 ## FB-054 · The text picture still lets zone marks overwrite object cells
 - Severity: polish        Milestone: G4
@@ -559,7 +560,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the spawn digits `1`, `2` replace two of the plane's `P` cells and the patrol's `3` replaces its last column, so the plane looks 8 cells wide. FB-046's labels fix applies to `map_preview`; the text picture is unchanged.
 - Workaround: none (read the object list for sizes).
 - Suggested change: draw objects over zone outlines (zones only on empty cells), or mark shared cells with a combined symbol listed in the legend.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works. `get_map {map: "mission3", region: "40,4,100,44"}`: the plane `A` cells stay whole where the `apron loop` patrol line crosses them, and the answer says "Objects are drawn over zones: a zone shows only on cells without an object".
+- Status: verified
 
 ## FB-055 · An `fps` change is reported as "View or size changed"
 - Severity: polish        Milestone: G4
@@ -568,7 +570,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `smoke: would update · render: View or size changed`.
 - Workaround: none needed.
 - Suggested change: a reason of its own for fps (and for each sprite key that marks a render outdated).
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works: the dry run of the smoke at `"fps": 12` says `render: Fps changed (10 → 12)`.
+- Status: verified
 
 ## FB-056 · Object states are stills only: a sprite can't both drive (or spin) and be destroyed
 - Severity: workaround        Milestone: G5
@@ -577,7 +580,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite apply --help`: "states … (no anim/template/set/class)"; README: "With `states` the states are the sprite's moves: `"template": "still"` … other moves are refused". Each state is one still frame per direction.
 - Workaround: two sprites of the same model, `truck_drive` (template `drive`, 8 directions) and `truck_wreck` (`auto,destroyed@destroy`, `dirs: 8`, `facings: 0`). Their anchors per direction are identical, so `src/scenes/Mission.ts` (`// FB-056`) plays `truck_drive/drive_<dir>` while it moves and swaps to `truck_wreck/intact_to_destroyed_<dir>` on the same sprite when a grenade kills it. The spinning dish (`radar_spin`) is scenery only.
 - Suggested change: let a state carry its own moves (`"intact": {"template": "drive"}` or `"intact": "@spin"`), or allow `template`/`anim` next to `states` and render them on the same sheet with the shared framing (transitions start from the state's first frame).
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): the declaration is accepted: `truck_drive` with `"states": "auto,intact:drive,destroyed@destroy"` (dry run) would render `intact` (the drive loop), `destroyed` and `intact_to_destroyed` on one sheet. Not rendered or switched over this wave: the vehicles live in `Mission.ts`, which other lanes are editing; the two-sprite workaround stays until a vehicles pass.
+- Status: fixed (accepted by the dry run; workaround still in Mission.ts)
 
 ## FB-057 · `flag_wave` can't wave a single-mesh flag, and POLYGON_War's flags are all single meshes
 - Severity: polish        Milestone: G5
@@ -586,7 +590,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `Error: none of the set applies to this asset`. `get_asset` shows no parts, so `set_part_role` can't mark one as `flag`. The only models with a `flag` part are POLYGON_Dark_Fortress banners (9.6 m wide).
 - Workaround: none (no flag in mission 4).
 - Suggested change: a vertex-bend `flag_wave` for single meshes (bend the vertices beyond the pole's bounding box, or the thin plane part of the mesh, by distance from the pole), or let `set_part_role` take a vertex region / material as a part.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works: `preview_sprite {asset: "POLYGON_War/SM_Env_Flag_Pole_Germany_01", templates: ["flag_wave"]}` renders 10 frames of the single-mesh flag bending (no error). No flag placed in a mission yet.
+- Status: verified
 
 ## FB-058 · `set_part_role` accepts an unknown part name silently
 - Severity: polish        Milestone: G5
@@ -595,7 +600,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `isError: false` and the parts list back with `role: null` unchanged; only reading it showed that the part is `SM_Prop_Searchlight_Head_01`. The retry worked and `turret_sweep` sweeps the head nicely. Also, `get_asset` gives the head's `bbox_min/max` as ±0.005 m on a 1.46 m model (probably model-local units), which doesn't help to find the part either.
 - Workaround: none needed (re-read and retried).
 - Suggested change: refuse unknown parts (`no part "…": parts are SM_Prop_Searchlight_Head_01`), accept the `local` name (`Head_01`) too, and give part boxes in metres.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works: `set_part_role {asset: 931, part: "SM_Prop_Searchlight_Base_01_Head_01"}` → `Error: no part … (did you mean SM_Prop_Searchlight_Head_01?)` with `isError: true`; `ssg parts` gives the boxes in metres (0.90×1.07×0.96). Only the asset must be a numeric id there (FB-106).
+- Status: verified
 
 ## FB-059 · Vehicle routes: a patrol zone can't say which vehicle drives it
 - Severity: workaround        Milestone: G5
@@ -605,7 +611,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/scenes/Mission.ts` (`// FB-059`) turns a patrol zone with a `vehicle` property into a driving vehicle instead of a soldier.
 - Suggested change: a `sprite` (or `vehicle`) property on patrol/route zones that is validated like `place`'s `sprite`, exported as `sprite` on the Tiled object, and drawn by `map_preview` (the sprite at the first point, facing along the route).
 - Re-test (G6, 2026-10-18): works. Mission 4's two truck routes use `addZone {vehicle: "truck_drive", speed: 3}`; the export writes `vehicle` (name) + `vehicleId` + `speed`, which `Mission.spawnVehicle` reads unchanged. The wreck sprite and hit points are still free-form `properties` (`wreck`, `hp`).
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works as described in the G6 re-test; `Mission.spawnVehicle` reads the exported `vehicle` / `speed` and needs no game-side fix-up any more (the `wreck` name stays a free-form property until FB-056 is switched over).
+- Status: verified
 
 ## FB-060 · Dusk and night: tilesets can be tinted, sprites can't be lit or tinted
 - Severity: workaround        Milestone: G5
@@ -614,7 +621,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: nothing in `sprite apply --help`, `list_options` or the project settings.
 - Workaround: `Mission.dusk()` (FB-060 in src/scenes/Mission.ts and src/missions.ts): a blue multiply rectangle over the world under the HUD; additive effects (fire, explosions) are lifted above it so they still glow; searchlights get an additive glow ellipse.
 - Suggested change: a render-time light preset per project or sprite (`"light": "dusk" | {ambient, sun: {colour, elevation, azimuth}}`) applied to every sprite and tileset of the project, as one more variant key (so a game can ship day and night sheets).
-- Status: fixed (generator wave 9: `light` presets on sprites and tilesets; re-test and drop the blue overlay)
+- Re-test (wave 11, 2026-10-19): not re-tested in the game: the `light` key (day, dusk, night…) is in `sprite apply --help` and `ssg sprite light`, but dropping the blue overlay means re-rendering every mission-4 sprite and tileset and changing `Mission.dusk()` (another lane's file). Left for a mission-4 pass.
+- Status: fixed (generator wave 9; not yet adopted)
 
 ## FB-061 · Re-applying an unchanged tileset with `"pairs": "all"` adds hundreds of mix tiles without saying why
 - Severity: polish        Milestone: G5
@@ -623,7 +631,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `tileset desert: would update · 868 → 1036 tiles (would create 168)` and `arctic: 1264 → 1744 (would create 480)`. `tileset show arctic` afterwards says `mixes: auto (every 3–4-terrain mix: 5 terrains or fewer), 480 mixed tiles`, so wave 8's `auto` default creates every mix for small tilesets. That is fine, but the dry run reads as if the file changed, and the arctic atlas grew 38 % for a map that has no three-terrain cells.
 - Workaround: none (accepted the larger arctic atlas).
 - Suggested change: give the update a reason (`mixes: auto now adds every mix (5 terrains or fewer)`), and maybe let `auto` add only the mixes the project's maps use.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works: a dry run of all four tilesets says `unchanged` (temperate 1118, desert 1036, arctic 1744, jungle 1036 tiles).
+- Status: verified
 
 ## FB-062 · `"dirs": "1"` on an object sprite switches the view to "custom"
 - Severity: polish        Milestone: G5
@@ -632,7 +641,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the dry run said `view custom · dirs 1` (the FX sprites' straight-on single view), not `iso8 · facings 1`.
 - Workaround: left `dirs` out; objects default to one facing.
 - Suggested change: for an object in a view with facings, read `dirs: 1` as `facings: 1`, or warn that it leaves the project's view.
-- Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+- Re-test (wave 11, 2026-10-19): works: the searchlight with `"dirs": "1"` dry-runs as `view iso8 · dirs 8 (facings 1)`, reason `Facings changed (none → 1)`.
+- Status: verified
 
 ## FB-063 · Maps can't be resized; "make it bigger" means delete and re-create under the same name
 - Severity: workaround        Milestone: G6
@@ -715,7 +725,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite apply --dry-run` printed `tile 64x32 (1 m/tile)` for them: the project's tile lock wins and the sprite's `ppm` is dropped without a word; `"tile": null` is refused (`Bad tile size "null"`). At the map scale a grenade is ~5 px.
 - Workaround: the `item_*` sprites declare `"tile": "64x32", "metresPerTile": 0.125` (8× the map scale, 362 px/m); `scripts/build-assets.mjs` (FB-070) leaves sprites with their own `metresPerTile` out of the shared-grid check and the game's ppm.
 - Suggested change: warn when a sprite's `ppm` loses to the tile lock, and accept `"tile": false` (or `"scale": "free"`/`"ui": true`) on one sprite to render it at its own ppm, marked in the manifest so a game can tell icons from map sprites.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (wave 11, 2026-10-19): works. The five `item_*` icons are declared with `"tile": null, "scale": "fit"` (no `metresPerTile` 0.125 hack); the dry run says `fit · frame 128x128` and each renders the model filling a 128 px frame. `scripts/build-assets.mjs` no longer singles them out by `metresPerTile`: it reads the meta's `scale.mode: "fit"`. Gap left: weapon models (`item_grenade`, `item_law`) are exported without a `.meta.json`, so their scale record is missing (FB-104).
+- Status: verified
 
 ## FB-071 · POLYGON_War's American grenade renders 100× too big (centimetre units)
 - Severity: workaround        Milestone: G7
@@ -724,7 +735,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a 3630×6126 px frame. `get_asset` gives the parts' `bbox_min/max` around ±0.05 but `minM/maxM/sizeM` 100× larger (`sizeM [8.23, 14.98, 3.26]` for the clip), so the model is read as a 15 m object (like FB-048's props at 100+ m).
 - Workaround: `item_grenade` uses POLYGON_BattleRoyale/SM_Wep_Grenade_01.
 - Suggested change: detect centimetre-scaled weapons/props on ingest (a held weapon over 3 m, or parts whose metre size is 100× their bbox) and rescale them; flag the outliers in `search_assets`.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (wave 11, 2026-10-19): works: `ssg scale POLYGON_War/SM_Wep_American_Grenade_01` → `×1 (automatic) · 0.098 × 0.166 × 0.084 m`; `item_grenade` is the American (POLYGON_War) grenade again, and it is the grenade in the Ranger's hand in `grenade_throw`. `search_assets` flags the outliers it can't fix (`SM_Wep_German_RocketLauncher_01`: `sizeSuspect`, `suggestedScale`). No manual scale needed in this game.
+- Status: verified
 
 ## FB-072 · No shoulder-fired launcher pose, and the launcher's rocket can't leave the tube
 - Severity: workaround        Milestone: G7
@@ -733,7 +745,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: kneel_shoot holds the tube like a rifle at chest height (it reads as a launcher only side-on), and the rocket part stays drawn in the tube on every frame after the shot. There is no American LAW (M72) model either; the RPG stands in.
 - Workaround: `ranger_law` (kneel_shoot + RPG) for the shot, and a separate `law_rocket` sprite (SM_Wep_RPG_Rocket_Active_01, `projectile` template, 8 directions) spawned at the `weapon_tip` socket on `shoot` (`src/scenes/Field.ts` `fireLaw`, FB-072).
 - Suggested change: a `shoulder_fire` character template (tube on the right shoulder, head along it, kneeling or standing) using the weapon's grip, and a `hide` (or `detach`) of a `projectile` part from the weapon at the clip's `shoot` event.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (wave 11, 2026-10-19): works. `{"template": "shoulder_fire:kneel=1", "with": "POLYGON_War/SM_Wep_American_RocketLauncher_01", "as": "law"}` on the one `ranger` sprite: he kneels with the bazooka's stock on his shoulder and the tube along his line of sight, `shoot` on frame 1. With the RPG (preview) the warhead visibly leaves the tube after the `shoot` frame (the `projectile` part is hidden); the bazooka's rocket is inside the tube, so nothing shows either way. `fireLaw` plays `ranger/law_shoulder_fire_<dir>` and the `law_rocket` sprite flies from its `weapon_tip` socket (that is the flying rocket, not a workaround). Polish left: the front hand reaches out open instead of holding the tube (FB-105).
+- Status: verified
 
 ## FB-073 · No clip or template to kneel and place something (time bomb, pick-up, first aid)
 - Severity: workaround        Milestone: G7
@@ -743,7 +756,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: the rifle moveset's `crouch_idle` loop (`ranger_kit`) plays for 0.8 s, then the bomb appears at the Ranger's feet (`placeBomb`, FB-073); first aid uses the same crouch.
 - Suggested change: a procedural `kneel_place` template (crouch, reach the free hand to the ground in front, stand) with `place` at the lowest reach, and maybe `use_item` (hands to the chest) for first aid.
 - Re-test (G8 lane g8b, 2026-10-19): works. `ranger_ops` has `{ "template": "kneel_place", "with": "POLYGON_BattleRoyale/SM_Prop_C4_01", "as": "plant" }` → `plant_kneel_place` with a `release` event (frame 6); `placeBomb` plays it and sets the bomb on `release` (the crouch stand-in stays only for a build without `ranger_ops`).
-- Status: verified for the time bomb (lane g8b; first aid still uses the crouch)
+- Re-test (wave 11, 2026-10-19): works: `kneel_place` (1.4 s, `release` event on frame 6; the event is called `release`, not `place`). The Ranger sets the time bomb with `bomb_kneel_place` (C4 in hand; the bomb sprite appears at his hand socket on `release`) and uses first aid with `medkit_kneel_place` (the medical box in hand). The 0.8 s `crouch_idle` stand-in and the `ranger_kit` sprite are gone. Gap: the item stays in his hand after `release` (FB-103).
+- Status: verified (time bomb and first aid: one-sheet Ranger `bomb_kneel_place` / `medkit_kneel_place`)
 
 ## FB-074 · One character, different held items per clip, needs one sprite per item
 - Severity: workaround        Milestone: G7
@@ -752,7 +766,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `with` is per sprite, so the Ranger is now four sprites of the same model and helmet: `ranger` (carbine), `ranger_kit` (reload, crouch), `ranger_knife`, `ranger_law`, each with its own sheet, frame size and anim prefix (the old `ranger` even keeps the `Character_American_Soldier_01/` prefix, the new ones `ranger_kit/`…). An outfit change has to be repeated on four sprites.
 - Workaround: the game plays the other sprites' animations on the Ranger's sprite (`src/scenes/Field.ts`, FB-074); per-frame pivots line them up.
 - Suggested change: per-clip `with` (and per-clip "hands empty") in `anim` entries and in `add_moves`, rendered into the one sheet; or sprite "variants" that share a name and prefix.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (wave 11, 2026-10-19): works. One `ranger` sprite (one 178×212 sheet, prefix `ranger/`) with the carbine moves plus `knife_Knife_Stab_Fore` (knife), `grenade_throw` (grenade), `law_shoulder_fire` (bazooka), `bomb_kneel_place` (C4) and `medkit_kneel_place` (medical box) via per-clip `with` / `as`; the carbine is put away in those clips and the helmet stays. `ranger_kit`, `ranger_knife` and `ranger_law` are no longer declared; `Field.ts` plays every Ranger clip from the one sheet (`RANGER_CLIP`), `scripts/ranger-shots.mjs` checks all 7 one-shot clips × 8 directions exist on it.
+- Status: verified
 
 ## FB-075 · `search_assets` doesn't match everyday names: "first aid", "explosive", "bazooka" find nothing
 - Severity: polish        Milestone: G7
@@ -761,7 +776,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `{"total":0}` for each; only the exact name fragments ("medkit", "C4", "RPG", "duffle") work.
 - Workaround: guessed the names.
 - Suggested change: a small synonym list (first aid → medkit/medical/bandage, explosive → C4/bomb/dynamite, bazooka/launcher → RPG/rocket, duffel ↔ duffle) and fuzzy matching on tags.
-- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+- Re-test (wave 11, 2026-10-19): works: "first aid" → SM_Gen_Prop_Medkit_01 first (then bandages, 22 results); "explosive" → dynamite, SM_Prop_C4_01/02, bombs (17); "bazooka" → the rocket launchers incl. POLYGON_War's American one (36; that is how the Ranger got a real bazooka); "duffel" → SM_Item_Duffle_Bag_01.
+- Status: verified
 
 ## FB-076 · No surrender (hands up) clip or template for a captured soldier
 - Severity: workaround        Milestone: G8
@@ -903,4 +919,39 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: kneel_shoot holds the camera at arm's length like a pistol; at 1 m per tile the 18 cm camera is a dark dot in the hands, so it reads as aiming, not photographing. No camera/binocular clips found.
 - Workaround: the kneel_shoot clip plus a white flash circle when the exposure completes (`src/objectives/photo.ts`).
 - Suggested change: a `raise_to_eyes` character template (hands to the face, head slightly forward, optional kneel) with a `look` event, usable for cameras, binoculars, radios.
+
+## FB-103 · A per-clip held item stays in the hand after the clip's `release` (thrown grenade, placed bomb)
+- Severity: polish        Milestone: wave 11
+- Tried: the one-sheet Ranger (FB-074): `{"template": "throw", "with": "POLYGON_War/SM_Wep_American_Grenade_01", "as": "grenade"}` and `{"template": "kneel_place", "with": "POLYGON_BattleRoyale/SM_Prop_C4_01", "as": "bomb"}` (also the medical box for first aid).
+- Wanted: the grenade gone from the hand from the `release` frame on (the game spawns the flying grenade there), and the C4 left on the ground (or hidden) when `kneel_place` releases it, like FB-072's launcher hides its `projectile` part at `shoot`.
+- Got: the item is drawn in the hand on every frame to the end of the clip: after the throw he stands with the grenade still in his hand, and he stands up from `kneel_place` holding the C4 while the game's time bomb already lies at his feet. These items are single meshes with no parts, so `set_part_role … projectile` can't help.
+- Workaround: none (it is a few frames; the grenade is ~5 px at the map scale).
+- Suggested change: for a per-clip `with` item on a clip with a `release` event, hide the item from that frame (an option `"release": "hide" | "drop" | "keep"`; `drop` leaves it on the ground where the hand let go for the rest of the clip).
+- Status: open
+
+## FB-104 · `scale: "fit"` weapon sprites are exported without a `.meta.json`; fit icons are listed as placeable map objects
+- Severity: polish        Milestone: wave 11
+- Tried: the loadout icons with `"tile": null, "scale": "fit"` (FB-070): `item_mag`, `item_medkit`, `item_bomb` (props) and `item_grenade`, `item_law` (weapon models), `sprite apply --download`.
+- Wanted: every sprite's download carrying its `scale` record (`mode: "fit"`), so a game can tell UI icons from map sprites; and icons left out of `map_sprites` (default `placeable`).
+- Got: the props' folders have `<base>.meta.json` with `scale: {mode: "fit", pixelsPerMetre: null}`, the weapons' folders only the atlas and anims (no meta, no scale record). `map_sprites {kind: "object"}` lists `item_bomb` and `item_medkit` as placeable objects next to the scenery.
+- Workaround: `scripts/build-assets.mjs` (FB-104) also counts a sprite declared with `"scale": "fit"` / `"tile": null` as an icon.
+- Suggested change: write the meta (at least `scale`) for every kind; leave `scale: "fit"` sprites out of `placeable` (or mark them `ui: true`).
+- Status: open
+
+## FB-105 · `shoulder_fire`: the front hand doesn't hold the tube
+- Severity: polish        Milestone: wave 11
+- Tried: `shoulder_fire:kneel=1` with POLYGON_War's American bazooka and with BattleRoyale's RPG (`preview_sprite`, 4 directions at 180 px/m).
+- Wanted: the right hand on the trigger grip, the left hand on the front grip (or under the tube), the tube resting on the right shoulder.
+- Got: the stock sits by the right cheek and the tube points the right way, but the left arm reaches forward with an open hand a hand's width under the tube in every direction (it reads as pointing). With the bazooka the tube passes in front of the face rather than over the shoulder.
+- Workaround: none (it reads as a launcher at the game's scale).
+- Suggested change: IK the off hand to the weapon's second grip (a `grip_front` socket from `ssg grip`, or the front-most part with role `trigger`/`grip`), and lift the tube by the model's height above the stock so it rests on the shoulder.
+- Status: open
+
+## FB-106 · `set_part_role` takes only a numeric asset id
+- Severity: polish        Milestone: wave 11
+- Tried: `set_part_role {asset: "POLYGON_War/SM_Prop_Searchlight_Base_01", part: …, role: "turret"}` (re-testing FB-058).
+- Wanted: the same asset references as the other tools (`Pack/Name`, exact name or id).
+- Got: `Input validation error: … "asset" Expected number, received string`; with `931` it works.
+- Workaround: look the id up with `get_asset` / `ssg parts` first.
+- Suggested change: accept `number | string` like `preview_sprite`, `get_asset`.
 - Status: open

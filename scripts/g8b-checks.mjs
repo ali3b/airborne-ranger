@@ -240,7 +240,7 @@ export async function objectiveChecks(page, scene, kind) {
       return { targets: m.targets.length, fuses, anim, state, ...end };
     });
     console.log('sabotage:', JSON.stringify(r));
-    if (r.targets < 2 || r.fuses.some((f) => f < 100) || !/plant_kneel_place/.test(r.anim ?? '') || r.state.charged !== r.targets || r.outcome !== 'accomplished') {
+    if (r.targets < 2 || r.fuses.some((f) => f < 100) || !/kneel_place/.test(r.anim ?? '') || r.state.charged !== r.targets || r.outcome !== 'accomplished') {
       fail('SABOTAGE CHECK FAILED (want: kneel_place, a delayed fuse on every fuel target, accomplished)');
     }
   }

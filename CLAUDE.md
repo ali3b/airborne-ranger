@@ -35,4 +35,6 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
   needs no page errors, and it writes `test-results/<scene>.png`.
 - Big maps (G6): `node scripts/route-check.mjs [--walk <url>]` (the shortest walkable route per mission, and running it
   in the game) and `node scripts/perf-check.mjs <url> [missions] [--phone] [--gpu]` (frame rate and CPU per frame).
+- The Ranger's sheet: `node scripts/ranger-shots.mjs <url> [outDir]` checks every clip the game plays exists on the one
+  `ranger` sheet in 8 directions and takes the `g11-ranger-*` screenshots (LAW, time bomb, first aid, grenade).
 - Update `FEEDBACK.md`, and commit in this repo.
