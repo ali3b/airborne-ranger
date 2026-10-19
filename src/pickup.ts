@@ -14,7 +14,8 @@ import type { G9 } from './enemies/index';
  * mission is accomplished, otherwise it goes round and comes back (GO_ROUND s). The clock still runs: the plane leaves
  * for good when it's out.
  */
-const FLY_IN = 4; // seconds of the approach on screen
+const FLY_IN = 6; // seconds of the approach (and of the climb-out)
+const SPEED = 300; // px per second on screen (about 13 m/s north–south: slow enough to watch)
 const ALTITUDE = 240; // px above the ground
 const GO_ROUND = 12; // seconds
 const BOARD = 1.2; // seconds of the lift
@@ -108,8 +109,7 @@ export class Pickup {
 
   private fly() {
     // Ground point of the plane: eta seconds of flight north of the zone (screen up), the approach FLY_IN s long.
-    const speed = 420; // px per second on screen
-    const y = this.over.y - this.eta * speed;
+    const y = this.over.y - this.eta * SPEED;
     this.plane?.setPosition(this.over.x, y - ALTITUDE);
     this.shadow?.setPosition(this.over.x + 40, y);
     if (this.eta > 0) return;
@@ -143,7 +143,7 @@ export class Pickup {
     const s = this.shadow;
     this.plane = this.shadow = undefined;
     if (!p) return;
-    this.host.tweens.add({ targets: [p, s], y: `+=${FLY_IN * 420}`, duration: FLY_IN * 1000, onComplete: () => [p, s].forEach((o) => o?.destroy()) });
+    this.host.tweens.add({ targets: [p, s], y: `+=${FLY_IN * SPEED}`, duration: FLY_IN * 1000, onComplete: () => [p, s].forEach((o) => o?.destroy()) });
   }
 
   private say(text: string) {

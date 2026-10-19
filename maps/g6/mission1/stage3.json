@@ -1,6 +1,9 @@
-{"map":"mission1","project":"Airborne Ranger","detail":"brief","ops":[
-  {"op":"scatter","seed":"big-trees","objects":[{"sprite":"tree"}],"density":0.35,"spacing":7,"cluster":0.5,"clusterScale":30,"avoidTerrains":["water","sand","road","mud"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
-  {"op":"scatter","seed":"woods","objects":[{"sprite":"tree_small","weight":3},{"sprite":"bush","weight":1}],"density":2.6,"spacing":3,"cluster":0.7,"clusterScale":22,"avoidTerrains":["water","sand","road","mud"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
-  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock"}],"density":0.25,"spacing":5,"avoidTerrains":["water","road","mud"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
-  {"op":"scatter","seed":"big-rocks","objects":[{"sprite":"rock_big"}],"count":10,"spacing":20,"avoidTerrains":["water","road","mud","sand"],"avoidZones":["all"],"avoidMargin":2}
-]}
+{"map": "mission1", "project": "Airborne Ranger", "detail": "brief", "ops": [
+  {"op": "place", "sprite": "mg_nest", "x": 51, "y": 100, "facing": "SW", "state": "intact", "id": "g9_nest1", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 33, "y": 48, "facing": "SW", "state": "intact", "id": "g9_nest2", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 98, "y": 26, "facing": "SW", "state": "intact", "id": "g9_nest3", "properties": {"kind": "mg_nest"}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[60, 80], [80, 74], [82, 80], [62, 86]], "properties": {"minefield": true, "mines": 8}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[94, 30], [106, 26], [108, 32], [96, 36]], "properties": {"minefield": true, "mines": 6}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_trench1", "name": "trench", "shape": "polyline", "points": [[0, 95.6], [16, 90], [36, 83]], "properties": {"trench": true, "width": 2.2}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_trench2", "name": "trench", "shape": "polyline", "points": [[50, 78], [76, 70], [102, 62], [127.9, 56.2]], "properties": {"trench": true, "width": 2.2}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_tank1", "name": "tank route", "shape": "polyline", "points": [[60, 42], [84, 37], [104, 31]], "properties": {"tank": true, "speed": 1.8}}]}

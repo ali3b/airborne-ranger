@@ -41,6 +41,67 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
   `Sand_01` tinted `#eef4ff` (Fantasy Village's own `Snow_01` reads green-grey), its ice is `Generic_Water` tinted pale
   blue and its rock is a grey-tinted `Generic_Rock`. Snow-covered pines and rocks come from POLYGON_Adventure_Pack.
 
+## Enemies and difficulty (G9)
+The systems live in `src/enemies/*` (one `G9` object per field scene, `Field.g9`), `src/pickup.ts`,
+`src/difficulty.ts` and `src/campaign.ts`; Field.ts and Mission.ts only call them from hooks marked `// G9`.
+Map data comes from the generator maps (`maps/g6/<mission>/stage3.json`, applied over MCP before the scatters).
+
+- **Machine-gun nests** (`mg_nest`: POLYGON_War curved sandbag wall with intact/destroyed states; `mg_gunner`: a German
+  soldier kneeling with the heavy MG): placed as map objects, the facing is the arc covered (±65°, 18 m). The gunner
+  fires 6-round bursts (0.09 s apart, 1.7 s pause), 30 % per round before range, prone, cover and difficulty. Rifle
+  fire stops on the sandbags; a grenade (two), a LAW or a time bomb destroys the nest and the gunner (+50 installation).
+  Two or three per map.
+- **Mines** (`mine`: POLYGON_War landmine): `custom` zones with `minefield`, `mines` = count, laid by a seeded random
+  (FB-095). Hidden; seen within 2.2 m (4.5 m prone or crawling), then they stay visible with a red ring. Stepping on
+  one: a blast, 85 damage at the centre (less within 1.8 m). Blasts (grenade, LAW, bomb, tank shell) set off the mines
+  around them. Two minefields per map (6–8 mines each).
+- **Trenches:** `custom` polyline zones with `trench`, `width` over mission 1's dug trench lines (FB-100). Inside one
+  the Ranger moves at 65 %, enemies see him from half as far and hit him 40 % as often; he stands in it waist deep.
+- **Tanks** (`tank_drive`: the German tank with `drive` and `fire` in 8 directions; `tank_wreck`: its states): a
+  `custom` polyline zone with `tank`, `speed` (m/s) is driven there and back. Seeing the Ranger (22 m, all round) it
+  stops, swings its hull to him (FB-096), aims 1.6 s and fires a shell (24 m/s, stops on the first prop) that bursts:
+  3 m radius, 70 damage at the centre. It reloads 4.5 s. Only a LAW hit (300) or a time bomb (400) beats its 300 HP;
+  rifles and grenades do nothing. One per map on missions 1–3 (none in mission 4's jungle).
+- **Sight lines:** besides props' colliders (buildings, walls, trunks, rocks) tree canopies (the export's
+  `canopyPolygon`, the middle 70 %) hide the Ranger. The view range is ×0.7 at dusk (×0.5 at night), ×0.6 prone,
+  ×0.5 in a trench, and by difficulty.
+- **Alerts and the alarm:** an alerted soldier shouts: awake soldiers within 12 m are alerted 0.5–1.1 s later
+  (a red "!"), facing his last known position. Three alerts within 12 s, one soldier keeping him in sight for 6 s,
+  a machine-gun nest or tank seeing him, or the plane's radio call raise the **ALARM** (siren, HUD): the difficulty's
+  number of reinforcements (the nearest idle soldiers 12–90 m away, then new ones 30–42 m off) head for the last known
+  position and search around it; far ones are walked there while they sleep. After 40 s without a sighting the sent
+  soldiers return to their rounds.
+- **The plane:** with the objective done, in the extraction zone, **C** (or the CALL PLANE touch button) radios the
+  plane. It raises the alarm; the plane (`plane_pickup`: the C-47 transport at full scale, propellers spinning, one
+  direction, FB-098) arrives after the difficulty's wait, flying in from the north with its shadow, and lifts the
+  Ranger if he's in the zone; otherwise it goes round (12 s). Only then is the mission accomplished.
+- **Difficulty** (mission select, **D** or the button; saved in `ar.difficulty.v1`; `?difficulty=` for links):
+
+| | Easy | Normal | Hard |
+|---|---|---|---|
+| soldiers on the map | ×0.7 | ×1 | ×1.35 (a second man on patrols) |
+| hit chance | ×0.6 | ×1 | ×1.3 |
+| reaction, burst pause, tank aim | ×1.5 | ×1 | ×0.7 |
+| sight range | ×0.85 | ×1 | ×1.15 |
+| supply pod contents | ×1.5 | ×1 | ×0.6 (at least 1 of what was packed) |
+| alarm reinforcements | 2 | 3 | 5 |
+| plane's wait | 15 s | 20 s | 25 s |
+| mission merit | ×0.75 | ×1 | ×1.3 (a merit line) |
+
+- **Campaign** (mission select, **C** or the button): the missions in order with the same Ranger, his merit, rank and
+  medals carrying on. The state is on his roster record (`campaign`: next mission, campaign merit, missions done,
+  status). An accomplished campaign mission moves it on (the debriefing says what's next); the last one completes it
+  (+500 merit); a KIA or capture ends it. A mission picked from the list is flown outside the campaign.
+- **Performance** (perf-check `--gpu`, Intel UHD, after the G9 rebuild): 1280×720 58.5–59.6 fps, 2.8–3.8 ms CPU per
+  frame; phone (`--phone`, missions 1 and 4) 59.6–59.7 fps, 5.3–5.6 ms. Routes (route-check): 374–459 m.
+- **Screenshots:** `docs/screenshots/g9-nest.png`, `g9-mines.png`, `g9-trench.png`, `g9-tank.png`, `g9-call.png`,
+  `g9-plane.png`, `g9-call-phone.png`, `g9-missions.png`, `g9-field-tank-wreck.png`.
+- **Checks:** `node scripts/load-check.mjs <url> g9` (the test field: mine hidden then seen then wounding, trench,
+  nest bursts then destroyed by grenades, tank driving, firing, shrugging off a grenade and destroyed by a LAW, an
+  alert spreading, the alarm's reinforcements, dusk); the mission checks count each map's nests, minefields, trenches
+  and tanks and finish through the plane call; the title check cycles the difficulty and starts and advances a
+  campaign.
+
 ## Original-scale maps (G6)
 The original scrolls over a long area: drop in the south, objective far north, extraction elsewhere, with a map
 screen. Missions 1–4 are now **128 × 256 m** (128 × 256 tiles at 1 m), up from 48 × 40.
@@ -189,3 +250,4 @@ FB-070–075.
 | G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |
 | G6 | large-map readiness (MCP region views, fast scatter) | original-scale 128×256 m maps for missions 1–4, overview map, HUD compass, culling and AI sleep for phones |
 | G7 | — (gaps FB-070–075) | supply pod loadout screen, limited ammo and reload, LAW rockets, time bombs, knife, first aid; keyboard and touch item bar |
+| G9 | — (gaps FB-094–101) | machine-gun nests, mines, trenches, tanks, sight lines, spreading alerts and the alarm, the plane's recall and pickup, difficulty, campaign |

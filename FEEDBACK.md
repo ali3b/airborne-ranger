@@ -682,7 +682,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none (accepted the mix).
 - Suggested change: keep drawing by weight until each sprite's share is met (or give up per sprite), and report the asked vs. placed share per sprite.
 - Re-test (generator large-map update, 2026-10-19): faster (mission 4's three scatters re-applied in 3.2 s), weights still inverted: `{tree: 123, palm: 183}`.
-- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
+- Re-test (G9, 2026-10-19, missions 1–4 rebuilt with the G9 stage): works. Mission 4's canopy reports `byObject {tree: 204, palm: 102}` with `byObjectAsked {tree: 204, palm: 102}`; the undergrowth `{bush: 275, tree_small: 138, fern: 276}` as asked. The maps' scatters changed accordingly (the route and perf checks were run again).
+- Status: verified
 
 ## FB-068 · No way to mirror or rotate a map (or a region) after authoring it
 - Severity: polish        Milestone: G6
@@ -758,3 +759,75 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: guessed the names.
 - Suggested change: a small synonym list (first aid → medkit/medical/bandage, explosive → C4/bomb/dynamite, bazooka/launcher → RPG/rocket, duffel ↔ duffle) and fuzzy matching on tags.
 - Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+
+## FB-094 · A template asked for with a class comes back as a different, class-named move
+- Severity: polish        Milestone: G9
+- Tried: `mg_gunner` in ssg.assets.json: `"class": "rifle", "anim": ["crouch_idle", "death"], "template": ["kneel_shoot:twoHanded=1,kick=6"]` with the German heavy machine gun.
+- Wanted: a clip named `kneel_shoot` (the template, with its parameters), as `ranger_law` gets when there's no class.
+- Got: the dry run and the export list `rifle_crouch_shoot` instead, with no note that the template was swapped for the rifle moveset's crouch shoot (were `twoHanded` / `kick` used?). It does kneel and has a `shoot` event, so the game uses it.
+- Workaround: src/enemies/mgnest.ts plays `rifle_crouch_shoot`.
+- Suggested change: keep the asked-for template (named as asked) or say in the dry run / apply report "template kneel_shoot → rifle_crouch_shoot (class rifle has it)" and which parameters were dropped.
+- Status: open
+
+## FB-095 · No way to put game-only markers (mines) on a map: a placed object always collides
+- Severity: workaround        Milestone: G9
+- Tried: hidden mines on missions 1–4. `place {sprite: "mine"}` makes a solid object (the export's collision polygon goes into the .tmj), and a scatter of mines would be the same.
+- Wanted: scatter / place "markers": objects without collision (or with `collision: false`), so a minefield can be authored over MCP as N mine positions inside a zone with the generator's spacing and terrain rules, visible in the map preview for the author.
+- Got: only solid objects, or zones.
+- Workaround: a `custom` zone with `minefield: true, mines: N` (maps/g6/<mission>/stage3.json); the game lays the mines inside it with a seeded random (src/enemies/mines.ts `addField`, avoiding blocked cells and props).
+- Suggested change: `place` / `scatter` with `collision: false` (written to the .tmj as a property, no collision layer cells), or a `markers` scatter that writes point objects.
+- Status: open
+
+## FB-096 · A tank's turret can't aim apart from its hull
+- Severity: workaround        Milestone: G9
+- Tried: `tank_drive` (POLYGON_War German tank, `drive` + `fire` templates, 8 directions). The model has `turret` and `barrel` parts (`ssg parts`).
+- Wanted: the hull driving one way while the turret points at the target: either a turret layer (8 turret directions over each hull direction, aligned at the turret ring) or a `turret_aim` move per direction.
+- Got: one baked sheet per hull direction; the `turret_sweep` template only sweeps.
+- Workaround: the tank stops and swings its whole hull to the Ranger's 8-direction before it fires (src/enemies/tanks.ts `face`).
+- Suggested change: `layered` parts for vehicles (hull and turret+barrel as separate aligned sheets, the turret's pivot given), or a `turret_dirs` option.
+- Status: open
+
+## FB-097 · Vehicle `fire` is a loop with no event and no muzzle socket
+- Severity: workaround        Milestone: G9
+- Tried: `"template": ["drive", "fire:duration=0.6"]` on `tank_drive`, to fire a shell from the barrel.
+- Wanted: a one-shot fire move with a `shoot` event on the recoil frame and a `muzzle` / `barrel_tip` socket per frame in the meta (like a character's `weapon_tip`), so the shell and flash start at the barrel's end.
+- Got: `fire` loops (repeat −1), its clip has no events, and object/vehicle metas carry no sockets.
+- Workaround: the game plays `fire` for 0.6 s and puts the muzzle 4.2 m in front of the anchor, 1.9 m up (src/enemies/tanks.ts `BARREL`, `MUZZLE_H`).
+- Suggested change: `fire:once=1` with a `shoot` event, and sockets for vehicle parts with roles (`barrel` tip, `turret`), exported like character sockets.
+- Status: open
+
+## FB-098 · `dirs: "1"` on a vehicle picks S; you can't say which single direction
+- Severity: polish        Milestone: G9
+- Tried: `plane_pickup` (the C-47 transport, `propeller_spin`, at full tile-locked scale: 1474×1064 px frames), `"dirs": "1"` to keep the atlas small.
+- Wanted: one chosen direction (the plane flies in over the extraction zone; E/W or N would suit some maps better).
+- Got: `S` only (it suits flying down the screen, so it's used that way).
+- Workaround: the plane always flies north → south over the zone (src/pickup.ts).
+- Suggested change: `"dirs": "E"` / `["N", "S"]` (names), the same as a list of directions elsewhere.
+- Status: open
+
+## FB-099 · A curved sandbag wall collides with its convex hull, so nobody can stand inside the curve
+- Severity: workaround        Milestone: G9
+- Tried: `mg_nest` (POLYGON_War `SM_Env_Sandbag_Wall_Curved_01`, 4 facings, states).
+- Wanted: a collider that follows the wall (a concave polygon, or the wall as a thick polyline), so a gunner can kneel inside the half-circle.
+- Got: a D-shaped convex hull (`SE`: flat side at u = −1.12, bulge to +u) that also covers the inside of the curve.
+- Workaround: the gunner kneels just behind the open side, 1.9 m from the anchor (src/enemies/mgnest.ts `BEHIND`).
+- Suggested change: `collision: "concave"` (an alpha shape of the ground slice) for walls and fences.
+- Status: open
+
+## FB-100 · A `path` trench leaves no trace the game can read
+- Severity: workaround        Milestone: G9
+- Tried: making mission 1's trenches (painted by `path {terrain: "mud", width: 1.5, jitter: 0.6, seed: "trench-w"}` in G6) into cover the Ranger can drop into.
+- Wanted: the path's centreline and width in the export (a zone or a polyline object written by the path op, e.g. `path {…, zone: {kind: "custom", properties: {trench: true}}}`), so the game knows where the trench runs without copying its points.
+- Got: only the painted terrain (mud is also used for tracks and fords elsewhere, so the tiles don't say "trench").
+- Workaround: `custom` polyline zones with `trench: true, width: 2.2` on the same points (maps/g6/mission1/stage3.json).
+- Suggested change: an optional `zone` on `path` that records the (jittered) centreline and width.
+- Status: open
+
+## FB-101 · Placing after a scatter: overlaps are refused, but there's no "clear the spot" option
+- Severity: workaround        Milestone: G9
+- Tried: `edit_map place mg_nest` on the finished mission maps (after the G6 scatter stage).
+- Wanted: `place {…, clear: true}` removing the scatter objects (trees, bushes) under the new footprint, as a level designer would.
+- Got: `g9_nest1 would overlap o174 (tree_small) at (51.5, 98.5); …` for every nest; the scatter's object ids change on each rebuild, so removing them by id isn't stable.
+- Workaround: the G9 ops are a stage *before* the scatters (maps/g6/<mission>/stage3.json; the scatters moved to stage4), so the scatter avoids them; the maps' scatter results changed with it.
+- Suggested change: `clear: true` on `place` / `stamp` (only removing objects from scatter ops, reported), or a `clearRect` / `clearZone` op for objects.
+- Status: open

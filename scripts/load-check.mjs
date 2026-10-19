@@ -150,6 +150,39 @@ try {
       ok = false;
       console.log(`NO MISSION SELECT FOR THE RANGER (picked ${picked}, saved rangers ${saved}, want 3 missions)`);
     }
+    // G9: difficulty (D cycles it, saved) and the campaign (C starts it at mission 1; an accomplished campaign mission
+    // moves it on, persisted with the roster).
+    const diff = [];
+    for (let k = 0; k < 3; k++) {
+      diff.push(await page.evaluate(() => window.game.scene.getScene('missions').difficultyBtn?.text ?? null));
+      await page.keyboard.press('d');
+      await page.waitForTimeout(150);
+    }
+    const savedDiff = await page.evaluate(() => localStorage.getItem('ar.difficulty.v1'));
+    console.log('difficulty:', JSON.stringify(diff), savedDiff);
+    if (!diff.every(Boolean) || new Set(diff).size !== 3 || savedDiff !== 'normal') {
+      ok = false;
+      console.log('NO DIFFICULTY CHOICE (want three levels cycling on D, saved)');
+    }
+    await page.screenshot({ path: 'test-results/g9-missions.png' }).catch(() => undefined);
+    await page.keyboard.press('c');
+    const camp = await until(page, () => window.game.scene.isActive('loadout'), null, 15000);
+    const c0 = await page.evaluate(() => ({ map: window.game.scene.getScene('loadout').cfg?.map, campaign: JSON.parse(localStorage.getItem('ar.roster.v1'))[0]?.campaign }));
+    // The campaign's bookkeeping through the real award() (the module the game runs, from the dev server).
+    const c1 = await page.evaluate(async () => {
+      const roster = await import('/src/roster.ts');
+      const r = roster.loadRoster()[0];
+      const res = { mission: 1, title: 'X', outcome: 'accomplished', objectiveDone: true, kills: 2, enemies: 20, installations: 3, targets: 3, secondsLeft: 300, seconds: 600, alertAt: null, objectiveAt: 100 };
+      const a = roster.award(r.id, res);
+      window.game.scene.getScene('loadout').scene.start('missions');
+      await new Promise((ok) => setTimeout(ok, 800));
+      return { note: a.campaignNote, campaign: roster.loadRoster()[0].campaign, label: window.game.scene.getScene('missions').campaignBtn?.text, score: roster.loadRoster()[0].score };
+    });
+    console.log('campaign:', JSON.stringify({ started: camp, ...c0 }), JSON.stringify(c1));
+    if (!camp || c0.map !== 'mission1' || !c0.campaign?.playing || c1.campaign?.next !== 1 || !(c1.campaign?.merit > 0) || !/mission 2/.test(c1.label ?? '') || !c1.note) {
+      ok = false;
+      console.log('CAMPAIGN CHECK FAILED (C starts mission 1; an accomplished mission moves the campaign to mission 2, saved)');
+    }
   }
   if (isMission) {
     // G3: the mission comes only from the generator map: tiles drawn, objects spawned from the object layer, the
@@ -214,6 +247,18 @@ try {
     if (!g6.open || !g6.closed || !/\d+ m$/.test(g6.compass ?? '') || g6.awake >= g6.enemies || g6.visibleProps >= g6.props) {
       ok = false;
       console.log('G6 CHECK FAILED (want: the overview opens and closes, a compass distance, far enemies asleep, off-screen props hidden)');
+    }
+    // G9: the map's machine-gun nests (manned), minefields, trenches and tanks; the difficulty.
+    const g9 = await page.evaluate(() => {
+      const g = window.game.scene.getScene('mission').g9;
+      if (!g) return { error: 'no g9' };
+      return { difficulty: g.difficulty, nests: g.nests.list.length, mines: g.mines.list.length, minefields: g.mines.stats.fields, trenches: g.trenches.list.length, tanks: g.tanks.list.length, canopy: g.sight.canopyCells, adjust: g.adjust };
+    });
+    console.log('g9:', JSON.stringify(g9));
+    const want = { mission1: { tanks: 1, trenches: 2 }, mission2: { tanks: 1 }, mission3: { tanks: 1 } }[missionMap] ?? {};
+    if (g9.error || g9.nests < 2 || g9.mines < 6 || g9.minefields < 2 || g9.tanks < (want.tanks ?? 0) || g9.trenches < (want.trenches ?? 0)) {
+      ok = false;
+      console.log('G9 MAP CHECK FAILED (want >= 2 manned nests, 2 minefields with >= 6 mines, the tanks and trenches the map has)');
     }
     if (s.vehicles) {
       // Vehicles far from the Ranger don't drive (G6): stand him 10 m north of the first one.
@@ -287,14 +332,37 @@ try {
         const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
         // The zone centre in map cells → screen (iso projection, origin at the map's top corner).
         m.ranger.setPosition((cx - cy) * 32, (cx + cy) * 16);
-        const t0 = performance.now();
-        while (performance.now() - t0 < 10000 && !m.outcome) await new Promise((r) => setTimeout(r, 100));
-        return { outcome: m.outcome, objectiveDone: m.objectiveDone };
+        // G9: no extraction without the plane: the call is offered in the zone (C), the plane flies in and lifts him.
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const t1 = performance.now();
+        while (performance.now() - t1 < 10000 && !m.g9?.pickup.canCall) await wait(100);
+        const offered = { canCall: !!m.g9?.pickup.canCall, hud: m.hud.text.split('\n')[0] };
+        return { offered };
       });
+      console.log('pickup offered:', JSON.stringify(end.offered));
+      await page.keyboard.press('c');
+      await page.waitForTimeout(300);
+      Object.assign(
+        end,
+        await page.evaluate(async () => {
+          const m = window.game.scene.getScene('mission');
+          const p = m.g9.pickup;
+          const called = p.state;
+          // Shorten the wait (the plane's approach itself still plays).
+          p.eta = Math.min(p.eta, 5);
+          let plane = false;
+          const t0 = performance.now();
+          while (performance.now() - t0 < 60000 && !m.outcome) {
+            plane ||= m.children.list.some((o) => o.texture?.key === 'plane_pickup' && o.visible);
+            await new Promise((r) => setTimeout(r, 100));
+          }
+          return { called, plane, passes: p.stats.passes, outcome: m.outcome, objectiveDone: m.objectiveDone };
+        }),
+      );
       console.log('end:', JSON.stringify(end));
-      if (end.outcome !== 'accomplished') {
+      if (end.outcome !== 'accomplished' || !end.offered?.canCall || end.called !== 'called' || !end.plane) {
         ok = false;
-        console.log('NO MISSION ACCOMPLISHED (depot targets left, or the extraction zone not detected)');
+        console.log('NO MISSION ACCOMPLISHED (depot targets left, the extraction zone not detected, or no plane call / pickup)');
       }
       await page.waitForTimeout(500);
       await page.screenshot({ path: `test-results/${scene}-end.png` }).catch(() => undefined);

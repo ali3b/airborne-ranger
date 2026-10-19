@@ -1,7 +1,7 @@
-{"map":"mission2","project":"Airborne Ranger","detail":"brief","ops":[
-  {"op":"scatter","seed":"oasis","objects":[{"sprite":"palm"}],"count":22,"spacing":3.5,"region":{"rect":[73,104,103,136]},"avoidTerrains":["road"],"avoidZones":["custom","patrol"],"avoidMargin":1},
-  {"op":"scatter","seed":"palms","objects":[{"sprite":"palm"}],"density":0.12,"spacing":6,"cluster":0.7,"clusterScale":24,"avoidTerrains":["road","rock"],"avoidZones":["all"],"avoidMargin":1.5},
-  {"op":"scatter","seed":"ridge-rocks","objects":[{"sprite":"rock_big"}],"density":0.06,"spacing":10,"avoidTerrains":["road"],"avoidZones":["all"],"avoidMargin":2},
-  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock"}],"density":0.45,"spacing":4,"cluster":0.4,"clusterScale":16,"avoidTerrains":["road"],"avoidZones":["all"],"avoidMargin":1},
-  {"op":"scatter","seed":"scrub","objects":[{"sprite":"bush"}],"density":0.9,"spacing":3,"cluster":0.6,"clusterScale":18,"avoidTerrains":["road","rock"],"avoidZones":["all"],"avoidMargin":1.5}
-]}
+{"map": "mission2", "project": "Airborne Ranger", "detail": "brief", "ops": [
+  {"op": "place", "sprite": "mg_nest", "x": 46, "y": 120, "facing": "SW", "state": "intact", "id": "g9_nest1", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 36, "y": 52, "facing": "SW", "state": "intact", "id": "g9_nest2", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 104, "y": 104, "facing": "NW", "state": "intact", "id": "g9_nest3", "properties": {"kind": "mg_nest"}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[60, 158], [80, 154], [82, 164], [62, 168]], "properties": {"minefield": true, "mines": 8}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[36, 62], [46, 60], [48, 72], [38, 74]], "properties": {"minefield": true, "mines": 6}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_tank1", "name": "tank route", "shape": "polyline", "points": [[118, 161], [88, 154], [62, 149]], "properties": {"tank": true, "speed": 2}}]}
