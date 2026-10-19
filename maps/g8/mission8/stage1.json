@@ -1,0 +1,12 @@
+{"map":"mission8","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"clear"},
+  {"op":"generate","biome":{"base":"grass","layers":[]},"seed":"mission8"},
+  {"op":"path","points":[[129,182],[100,172],[76,166],[50,152],[24,146],[-1,136]],"terrain":"water","width":4,"jitter":2,"seed":"river","jitterScale":22,"collision":true,"edge":"mud","edgeWidth":1.5},
+  {"op":"path","points":[[129,96],[96,92],[64,86],[30,80],[-1,74]],"terrain":"road","width":3,"jitter":1,"seed":"road"},
+  {"op":"path","points":[[70,257],[72,226],[66,196],[70,170],[64,140],[56,110],[44,82],[30,56],[22,40]],"terrain":"mud","width":2,"jitter":1.5,"seed":"track"},
+  {"op":"path","points":[[70,156],[68,178]],"terrain":"mud","width":4,"jitter":0,"seed":"ford-mid","smooth":false,"collision":false},
+  {"op":"path","points":[[101,164],[99,182]],"terrain":"mud","width":4,"jitter":0,"seed":"ford-e","smooth":false,"collision":false},
+  {"op":"path","points":[[25,138],[23,156]],"terrain":"mud","width":4,"jitter":0,"seed":"ford-w","smooth":false,"collision":false},
+  {"op":"rect","x0":4,"y0":2,"x1":48,"y1":42,"terrain":"mud"},
+  {"op":"generate","biome":"jungle","seed":"mission8","keep":["water","road","mud"]}
+]}

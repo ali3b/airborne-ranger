@@ -48,7 +48,9 @@ for (const name of names) {
   const zones = layer('zones');
   const centre = (z) => (z.width ? [Math.floor((z.x + z.width / 2) / th), Math.floor((z.y + z.height / 2) / th)] : [Math.floor(z.x / th), Math.floor(z.y / th)]);
   const drop = zones.find((z) => z.type === 'spawn' && props(z).team === 'ranger');
-  const obj = zones.find((z) => z.type === 'objective');
+  // G8: a custom zone with `route` marks where the objective is really reached (the code book, the officer, the
+  // P.O.W. camp's exit), when the objective zone's centre is inside a building or behind wire.
+  const obj = zones.find((z) => z.type === 'custom' && props(z).route) ?? zones.find((z) => z.type === 'objective');
   const ex = zones.find((z) => z.type === 'extraction');
   const astar = ([sx, sy], [gx, gy]) => {
     // Start and goal may lie in the clearance band: they and the 3 cells around them count as free.

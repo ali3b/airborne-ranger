@@ -1,0 +1,6 @@
+{"map":"mission5","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"scatter","seed":"big-trees","objects":[{"sprite":"tree"}],"density":0.35,"spacing":7,"cluster":0.5,"clusterScale":30,"avoidTerrains":["water","sand","road","mud","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom","trigger"],"avoidMargin":1.5},
+  {"op":"scatter","seed":"woods","objects":[{"sprite":"tree_small","weight":3},{"sprite":"bush","weight":1}],"density":2.4,"spacing":3,"cluster":0.7,"clusterScale":22,"avoidTerrains":["water","sand","road","mud","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom","trigger"],"avoidMargin":1.5},
+  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock"}],"density":0.25,"spacing":5,"avoidTerrains":["water","road","mud"],"avoidMargin":1,"avoidZones":["spawn","objective","extraction","patrol","custom","trigger"]},
+  {"op":"scatter","seed":"big-rocks","objects":[{"sprite":"rock_big"}],"count":10,"spacing":20,"avoidTerrains":["water","road","mud","sand"],"avoidZones":["all"],"avoidMargin":2}
+]}

@@ -1,6 +1,6 @@
 // Applies a mission's staged edit_map batches (maps/g6/<map>/stage*.json) through the generator's MCP in one
 // session, and writes their sum to maps/<map>.ops.json (what scripts/build-maps.mjs replays).
-//   node scripts/g6-stages.mjs mission1 [--dry]
+//   node scripts/g6-stages.mjs mission1 [--dry]      (maps/g6/<map>/ or maps/g8/<map>/)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const map = process.argv[2];
-const dir = path.join(root, 'maps/g6', map);
+// G8 maps (missions 5–8) keep their stages in maps/g8/<map>/.
+const dir = ['maps/g6', 'maps/g8'].map((d) => path.join(root, d, map)).find((d) => fs.existsSync(d)) ?? path.join(root, 'maps/g6', map);
 const stages = fs.readdirSync(dir).filter((f) => /^stage\d+\.json$/.test(f)).sort((a, b) => parseInt(a.slice(5)) - parseInt(b.slice(5)));
 const calls = stages.map((f) => ({ tool: 'edit_map', args: JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) }));
 const ops = calls.flatMap((c) => c.args.ops);

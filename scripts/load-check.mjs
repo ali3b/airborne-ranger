@@ -4,6 +4,9 @@
 // `mission2` (any mission<N> / map name) the mission scene with ?mission=<map>; both play to MISSION ACCOMPLISHED.
 // Every mission checks that each target collides with its whole hull (FB-050); a map with vehicles (mission 4) also
 // checks that one drives, that a grenade wrecks it and that looping props animate (G5).
+// G8: missions 5–8 (`mission5`…`mission8`) also reach their objective kind (src/objectives): the code book taken, the
+// officer surrendering and following, the SAM site's targets, the P.O.W. gate opened and the prisoners following; the
+// officer and P.O.W. missions then check that killing them fails the mission with a reason (the Ranger not captured).
 // `arsenal` (or `arsenal:mission2`) checks G7: the supply pod loadout screen (CLEAR / limits / STANDARD / DONE) into
 // the mission, the basic carry and a pod pickup, then the carbine's magazine and reload, first aid, the knife, a LAW
 // on a target and a time bomb on another; then the same by touch on an emulated iPhone in landscape.
@@ -156,16 +159,16 @@ try {
       const ys = m.dropArea.map((p) => p[1]);
       const inDrop = c.x >= Math.min(...xs) && c.x <= Math.max(...xs) && c.y >= Math.min(...ys) && c.y <= Math.max(...ys);
       const layers = m.children.list.filter((o) => o.type === 'TilemapLayer').length;
-      return { ...m.report, map: m.mapName, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
+      return { ...m.report, objective: m.cfg.objective ?? null, map: m.mapName, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
     });
     console.log('mission:', JSON.stringify(s));
     if (s.map !== missionMap) {
       ok = false;
       console.log(`WRONG MAP ${s.map} (want ${missionMap})`);
     }
-    if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || !s.targets) {
+    if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || (!s.targets && !s.objective)) {
       ok = false;
-      console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets)`);
+      console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets or an objective)`);
     }
     await page.screenshot({ path: `test-results/${scene}-drop.png` }).catch(() => undefined);
     // FB-050: every target collides with its whole hull (the anchor, the footprint centre, is inside its collider).
@@ -272,6 +275,17 @@ try {
       });
       console.log('targets destroyed:', destroyed);
       await page.waitForTimeout(1500);
+      // G8: the objective kinds (src/objectives): take the code book, make the officer surrender and follow, open the
+      // P.O.W. camp and gather the prisoners (the SAM site is its targets).
+      if (s.objective) {
+        const g8 = await page.evaluate(objectiveStep);
+        console.log('g8 objective:', JSON.stringify(g8));
+        if (!g8?.ok) {
+          ok = false;
+          console.log(`G8 OBJECTIVE CHECK FAILED (${s.objective})`);
+        }
+        await page.screenshot({ path: `test-results/${scene}-objective.png` }).catch(() => undefined);
+      }
       const end = await page.evaluate(async () => {
         const m = window.game.scene.getScene('mission');
         const xs = m.extractArea.map((p) => p[0]);
@@ -280,9 +294,14 @@ try {
         const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
         // The zone centre in map cells → screen (iso projection, origin at the map's top corner).
         m.ranger.setPosition((cx - cy) * 32, (cx + cy) * 16);
+        // G8: the officer / prisoners following him come along.
+        m.bystanders.filter((b) => b.alive && b.following).forEach((b, k) => {
+          b.sprite.setPosition(m.ranger.x + 30 + (k % 3) * 20, m.ranger.y + 10 + Math.floor(k / 3) * 14);
+          b.queue = [];
+        });
         const t0 = performance.now();
         while (performance.now() - t0 < 10000 && !m.outcome) await new Promise((r) => setTimeout(r, 100));
-        return { outcome: m.outcome, objectiveDone: m.objectiveDone };
+        return { outcome: m.outcome, objectiveDone: m.objectiveDone, stats: m.result?.stats ?? null };
       });
       console.log('end:', JSON.stringify(end));
       if (end.outcome !== 'accomplished') {
@@ -295,7 +314,9 @@ try {
       await page.evaluate(() => {
         const m = window.game.scene.getScene('mission');
         m.children.list.filter((o) => o.depth >= 1e9 && o !== m.hud).forEach((o) => o.setVisible(false));
-        const t = m.targets[0];
+        const o = m.objectiveArea;
+        const oc = [o.reduce((a, p) => a + p[0], 0) / o.length, o.reduce((a, p) => a + p[1], 0) / o.length];
+        const t = m.targets[0] ?? { at: { x: (oc[0] - oc[1]) * 32, y: (oc[0] + oc[1]) * 16 } };
         m.cameras.main.stopFollow();
         m.ranger.setPosition(t.at.x - 5 * m.ppm, t.at.y + 2 * m.ppm);
         m.cameras.main.centerOn(t.at.x - 60, t.at.y - 40);
@@ -318,6 +339,25 @@ try {
       }
       await page.screenshot({ path: `test-results/${scene}-debrief.png` }).catch(() => undefined);
       shotTaken = true;
+      // G8: the officer / every prisoner killed fails the mission with its reason (the Ranger is recalled).
+      if (s.objective === 'officer' || s.objective === 'pow') {
+        await page.goto(`${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`);
+        await page.waitForFunction(() => window.game?.scene?.getScene('mission')?.ranger && window.game.scene.getScene('mission').objective, null, { timeout: 90000 });
+        const fail = await page.evaluate(async () => {
+          const m = window.game.scene.getScene('mission');
+          m.god = true;
+          for (const b of m.bystanders) if (b.alive) m.explode({ x: b.sprite.x, y: b.sprite.y }, { radius: 1 });
+          const t0 = performance.now();
+          while (performance.now() - t0 < 15000 && !m.outcome) await new Promise((r) => setTimeout(r, 100));
+          return { outcome: m.outcome, reason: m.result?.reason ?? null, status: m.award?.status ?? null };
+        });
+        console.log('g8 fail:', JSON.stringify(fail));
+        if (fail.outcome !== 'failed' || !fail.reason || fail.status === 'captured') {
+          ok = false;
+          console.log('G8 FAILURE CHECK FAILED (want: failed, a reason, the Ranger not captured)');
+        }
+        await page.screenshot({ path: `test-results/${scene}-failed.png` }).catch(() => undefined);
+      }
     }
   }
 } catch (e) {
@@ -334,6 +374,50 @@ if (uniq.length) console.log('page errors:', uniq.slice(0, 5).join(' | '));
 console.log(ok && !uniq.length ? 'game loads ok' : 'FAILED');
 await browser.close();
 process.exit(ok && !uniq.length ? 0 : 1);
+
+// ---- G8 (lane g8a): reach each objective kind (runs in the page) ----
+async function objectiveStep() {
+  const m = window.game.scene.getScene('mission');
+  const o = m.objective;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const until = async (f, ms) => {
+    const t0 = performance.now();
+    while (performance.now() - t0 < ms && !f()) await wait(100);
+    return !!f();
+  };
+  const cellToScreen = ([i, j]) => ({ x: (i - j) * 32, y: (i + j) * 16 });
+  m.god = true;
+  const kind = m.cfg.objective;
+  if (kind === 'codebook') {
+    const p = cellToScreen(o.cell);
+    m.ranger.setPosition(p.x - 20, p.y + 6);
+    const done = await until(() => m.objectiveDone, 15000);
+    return { ok: done, kind, hud: m.hud.text.split('\n')[0], stats: o.stats() };
+  }
+  if (kind === 'officer') {
+    const off = o.officer;
+    const hud0 = o.hud(m);
+    m.ranger.setPosition(off.sprite.x - 1.5 * m.ppm, off.sprite.y + 0.5 * m.ppm);
+    const following = await until(() => off.following, 20000);
+    // He follows: walk the Ranger 6 m away and see the officer keep up.
+    const start = { x: off.sprite.x, y: off.sprite.y };
+    for (let k = 0; k < 12; k++) {
+      m.ranger.setPosition(m.ranger.x + 0.5 * m.ppm, m.ranger.y);
+      await wait(150);
+    }
+    const moved = await until(() => Math.hypot(off.sprite.x - start.x, off.sprite.y - start.y) > 1.5 * m.ppm, 20000);
+    return { ok: following && moved && off.alive && !m.objectiveDone, kind, hud0, hud: o.hud(m), following, moved };
+  }
+  if (kind === 'pow') {
+    const open = await until(() => o.open, 15000);
+    const ex = cellToScreen(o.exit);
+    m.ranger.setPosition(ex.x, ex.y + 3 * m.ppm * 0.5);
+    const joined = await until(() => o.escort.following.length === o.escort.alive.length, 60000);
+    return { ok: open && joined && o.escort.following.length > 0, kind, open, following: o.escort.following.length, alive: o.escort.alive.length, hud: o.hud(m) };
+  }
+  if (kind === 'sam') return { ok: m.objectiveDone, kind, hud: o.hud(m), stats: o.stats(m) };
+  return { ok: false, kind, error: 'unknown objective kind' };
+}
 
 // ---- G7: the arsenal (supply pod loadout, ammo, first aid, knife, LAW, time bomb), keyboard then touch ----
 

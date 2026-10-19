@@ -350,6 +350,84 @@
       "template": "still",
       "tile": "64x32",
       "metresPerTile": 0.125
+    },
+    {
+      "name": "officer",
+      "asset": "POLYGON_War/Character_Gernman_Officer_01",
+      "class": "unarmed",
+      "anim": [
+        "idle",
+        "walk",
+        "run"
+      ],
+      "dirs": "8",
+      "uniform": true,
+      "template": [
+        "hit_react",
+        "death_fall"
+      ]
+    },
+    {
+      "name": "pow_prisoner",
+      "asset": "POLYGON_Generic/SM_Gen_Chr_Prisoner_Male_01",
+      "class": "unarmed",
+      "anim": [
+        "idle",
+        "walk",
+        "run"
+      ],
+      "dirs": "8",
+      "uniform": true,
+      "template": [
+        "death_fall"
+      ]
+    },
+    {
+      "name": "code_book",
+      "asset": "POLYGON_Apocalypse/SM_Item_Book_01",
+      "template": "still"
+    },
+    {
+      "name": "hq_table",
+      "asset": "POLYGON_War/SM_Prop_Table_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "hq_hut_snow",
+      "asset": "POLYGON_Adventure_Pack/SM_Bld_Hut_01_Snow",
+      "template": "still"
+    },
+    {
+      "name": "sam_launcher",
+      "asset": "POLYGON_War/SM_Prop_German_Flak_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "sam_missiles",
+      "asset": "POLYGON_BattleRoyale/SM_Prop_MissileStack_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "pow_fence",
+      "asset": "POLYGON_War/SM_Prop_Fence_Wire_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "pow_gate",
+      "asset": "POLYGON_War/SM_Prop_Fence_Gate_01",
+      "template": "still",
+      "facings": 2,
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "pow_barracks",
+      "asset": "POLYGON_War/SM_Bld_Barracks_01",
+      "template": "still",
+      "facings": 2
     }
   ],
   "tilesets": [
@@ -559,6 +637,34 @@
       "tileset": "jungle",
       "ops": "maps/mission4.ops.json",
       "export": "public/assets/maps/mission4"
+    },
+    {
+      "name": "mission5",
+      "size": "128x256",
+      "tileset": "temperate",
+      "ops": "maps/mission5.ops.json",
+      "export": "public/assets/maps/mission5"
+    },
+    {
+      "name": "mission6",
+      "size": "128x256",
+      "tileset": "arctic",
+      "ops": "maps/mission6.ops.json",
+      "export": "public/assets/maps/mission6"
+    },
+    {
+      "name": "mission7",
+      "size": "128x256",
+      "tileset": "desert",
+      "ops": "maps/mission7.ops.json",
+      "export": "public/assets/maps/mission7"
+    },
+    {
+      "name": "mission8",
+      "size": "128x256",
+      "tileset": "jungle",
+      "ops": "maps/mission8.ops.json",
+      "export": "public/assets/maps/mission8"
     }
   ]
 }

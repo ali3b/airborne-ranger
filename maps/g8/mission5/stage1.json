@@ -1,0 +1,15 @@
+{"map":"mission5","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"clear"},
+  {"op":"generate","biome":{"base":"grass","layers":[]},"seed":"mission5"},
+  {"op":"path","points":[[-1,142],[24,134],[50,124],[76,128],[100,118],[129,110]],"terrain":"water","width":4,"jitter":2,"seed":"river","jitterScale":24,"collision":true,"edge":"sand","edgeWidth":2},
+  {"op":"path","points":[[70,257],[66,224],[60,196],[56,170],[50,146],[46,120],[40,92],[34,64],[28,44]],"terrain":"road","width":3,"jitter":1,"seed":"road-main"},
+  {"op":"path","points":[[46,120],[72,110],[100,100],[129,96]],"terrain":"road","width":3,"jitter":1,"seed":"road-east"},
+  {"op":"path","points":[[-1,186],[20,180],[42,176],[56,170]],"terrain":"dirt","width":2,"jitter":1.5,"seed":"track-west"},
+  {"op":"path","points":[[47,114],[49,136]],"terrain":"sand","width":5,"jitter":0,"seed":"ford-road","smooth":false,"collision":false},
+  {"op":"path","points":[[99,108],[101,128]],"terrain":"sand","width":4,"jitter":0,"seed":"ford-east","smooth":false,"collision":false},
+  {"op":"path","points":[[11,128],[13,148]],"terrain":"sand","width":4,"jitter":0,"seed":"ford-west","smooth":false,"collision":false},
+  {"op":"path","points":[[-1,96],[18,90],[34,86]],"terrain":"mud","width":1.5,"jitter":0.6,"seed":"trench-w","objects":[{"sprite":"wire","every":7,"offset":2,"side":"right","facing":"parallel","properties":{"kind":"wire"}}]},
+  {"op":"path","points":[[48,82],[76,76],[102,70],[129,64]],"terrain":"mud","width":1.5,"jitter":0.6,"seed":"trench-e","objects":[{"sprite":"wire","every":7,"offset":2,"side":"right","facing":"parallel","properties":{"kind":"wire"}}]},
+  {"op":"rect","x0":6,"y0":6,"x1":44,"y1":40,"terrain":"dirt"},
+  {"op":"generate","biome":"temperate","seed":"mission5","keep":["water","sand","road","mud","dirt"]}
+]}
