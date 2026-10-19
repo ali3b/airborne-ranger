@@ -642,7 +642,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `scripts/build-maps.mjs --resize` (`// FB-063`) re-creates a map with `--replace` when its size differs from ssg.assets.json; the op list then rebuilds it.
 - Suggested change: a resize op/command as above; or let `create_map {ifMissing: true}` with a different size offer `resize: true`.
 - Re-test (generator large-map update, 2026-10-19): unchanged; no resize command or op.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 ## FB-064 · The minimap shades blocked cells even without `collision`, so a river reads purple
 - Severity: workaround        Milestone: G6
@@ -652,7 +652,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `src/overview.ts` (`// FB-064`) draws the overview itself from the exported .tmj: each ground gid's average colour from the map's tileset atlas, object footprints darkened.
 - Suggested change: shade collision on the minimap only with `collision: true` / `--collision` (like the iso preview), and honour `layers`.
 - Re-test (generator large-map update, 2026-10-19): unchanged; `--minimap --no-zones --no-labels` still draws blocked water `rgb(105,54,75)`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 ## FB-065 · Large maps: the text picture is downsampled and neither picture can show a region
 - Severity: polish        Milestone: G6
@@ -662,7 +662,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: `picture: 256` and slicing rows/columns in a shell; the iso preview for layout only (until the region update below).
 - Suggested change: `region: [x0, y0, x1, y1]` on `get_map` (full resolution inside it) and on `map_preview` (crop, then scale to maxSize); say in the answer when a picture is downsampled and by how much.
 - Re-test (generator large-map update, 2026-10-19): mostly fixed. `get_map {region: "4,4,40,36"}` gives the depot at full resolution (2.3 s, 11 KB); `map_preview {region: "0,0,48,40", maxSize: 1280}` draws it at 0.45 scale, every tent, crate and wire readable (5.8 s). Object lists are capped at 200. Left: the whole-map picture is still silently downsampled (say so in the answer), and a region preview still takes ~6 s.
-- Status: partly fixed (generator large-map update: `region`); open for the downsampling note
+- Status: partly fixed (region windows, wave 10); header scale note triaged
 
 ## FB-066 · The exported object layer repeats each sprite's data on every object (866 KB of a 2 MB .tmj)
 - Severity: polish        Milestone: G6
@@ -672,7 +672,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none needed (the game skips empty tile layers when drawing).
 - Suggested change: an option to write per-sprite data once (Tiled object templates, or a `sprites` map property keyed by sprite + facing + state) and only position/state/facing per object; skip empty tile layers or write them as compressed base64.
 - Re-test (generator large-map update, 2026-10-19): the MCP object lists are capped now; the exported .tmj is unchanged.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 ## FB-067 · Scatter weights favour small sprites: weight 1 : 2 gave 181 palms to 126 trees
 - Severity: polish        Milestone: G6
@@ -682,7 +682,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: none (accepted the mix).
 - Suggested change: keep drawing by weight until each sprite's share is met (or give up per sprite), and report the asked vs. placed share per sprite.
 - Re-test (generator large-map update, 2026-10-19): faster (mission 4's three scatters re-applied in 3.2 s), weights still inverted: `{tree: 123, palm: 183}`.
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 ## FB-068 · No way to mirror or rotate a map (or a region) after authoring it
 - Severity: polish        Milestone: G6
@@ -692,7 +692,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: a throw-away script mirrored the staged op lists (x → 128 − x for points, rects, places, stamp corners and scatter regions) and the batches were re-applied over MCP (`maps/g6/mission2|4/stage*.json`).
 - Suggested change: a transform op as above (and `flip` on stamps).
 - Re-test (generator large-map update, 2026-10-19): unchanged (no transform op; stamps still turn only).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 ## FB-069 · Fords: clearing collision under a crossing also unblocks the water beside it
 - Severity: workaround        Milestone: G6
@@ -702,7 +702,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: tight rects (the ford's width + 1 cell) in maps/g6/mission1|4/stage1.json; a few water cells stay walkable.
 - Suggested change: `path {…, collision: false}` that clears the cells under it (a ford or bridge); or `rect {value: false, terrains: ["sand"]}` / a `paint`/`fill` filter by terrain; or make `path {collision: true}` re-derive blocking from the final terrain so a later sand path over the water unblocks exactly its cells.
 - Re-test (generator large-map update, 2026-10-19): unchanged (`rect` has no terrain filter, `path {collision}` only blocks).
-- Status: open
+- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
 
 
 ## FB-070 · A sprite can't leave the project's tile lock: UI icons get the map scale, `ppm` is ignored silently
@@ -712,7 +712,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `sprite apply --dry-run` printed `tile 64x32 (1 m/tile)` for them: the project's tile lock wins and the sprite's `ppm` is dropped without a word; `"tile": null` is refused (`Bad tile size "null"`). At the map scale a grenade is ~5 px.
 - Workaround: the `item_*` sprites declare `"tile": "64x32", "metresPerTile": 0.125` (8× the map scale, 362 px/m); `scripts/build-assets.mjs` (FB-070) leaves sprites with their own `metresPerTile` out of the shared-grid check and the game's ppm.
 - Suggested change: warn when a sprite's `ppm` loses to the tile lock, and accept `"tile": false` (or `"scale": "free"`/`"ui": true`) on one sprite to render it at its own ppm, marked in the manifest so a game can tell icons from map sprites.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
 
 ## FB-071 · POLYGON_War's American grenade renders 100× too big (centimetre units)
 - Severity: workaround        Milestone: G7
@@ -721,7 +721,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a 3630×6126 px frame. `get_asset` gives the parts' `bbox_min/max` around ±0.05 but `minM/maxM/sizeM` 100× larger (`sizeM [8.23, 14.98, 3.26]` for the clip), so the model is read as a 15 m object (like FB-048's props at 100+ m).
 - Workaround: `item_grenade` uses POLYGON_BattleRoyale/SM_Wep_Grenade_01.
 - Suggested change: detect centimetre-scaled weapons/props on ingest (a held weapon over 3 m, or parts whose metre size is 100× their bbox) and rescale them; flag the outliers in `search_assets`.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
 
 ## FB-072 · No shoulder-fired launcher pose, and the launcher's rocket can't leave the tube
 - Severity: workaround        Milestone: G7
@@ -730,7 +730,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: kneel_shoot holds the tube like a rifle at chest height (it reads as a launcher only side-on), and the rocket part stays drawn in the tube on every frame after the shot. There is no American LAW (M72) model either; the RPG stands in.
 - Workaround: `ranger_law` (kneel_shoot + RPG) for the shot, and a separate `law_rocket` sprite (SM_Wep_RPG_Rocket_Active_01, `projectile` template, 8 directions) spawned at the `weapon_tip` socket on `shoot` (`src/scenes/Field.ts` `fireLaw`, FB-072).
 - Suggested change: a `shoulder_fire` character template (tube on the right shoulder, head along it, kneeling or standing) using the weapon's grip, and a `hide` (or `detach`) of a `projectile` part from the weapon at the clip's `shoot` event.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
 
 ## FB-073 · No clip or template to kneel and place something (time bomb, pick-up, first aid)
 - Severity: workaround        Milestone: G7
@@ -739,7 +739,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: only kneeling bow clips and `Stand_ToCrouch` / `Crouch_ToStand` transitions; nothing with the hands going to the ground.
 - Workaround: the rifle moveset's `crouch_idle` loop (`ranger_kit`) plays for 0.8 s, then the bomb appears at the Ranger's feet (`placeBomb`, FB-073); first aid uses the same crouch.
 - Suggested change: a procedural `kneel_place` template (crouch, reach the free hand to the ground in front, stand) with `place` at the lowest reach, and maybe `use_item` (hands to the chest) for first aid.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
 
 ## FB-074 · One character, different held items per clip, needs one sprite per item
 - Severity: workaround        Milestone: G7
@@ -748,7 +748,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `with` is per sprite, so the Ranger is now four sprites of the same model and helmet: `ranger` (carbine), `ranger_kit` (reload, crouch), `ranger_knife`, `ranger_law`, each with its own sheet, frame size and anim prefix (the old `ranger` even keeps the `Character_American_Soldier_01/` prefix, the new ones `ranger_kit/`…). An outfit change has to be repeated on four sprites.
 - Workaround: the game plays the other sprites' animations on the Ranger's sprite (`src/scenes/Field.ts`, FB-074); per-frame pivots line them up.
 - Suggested change: per-clip `with` (and per-clip "hands empty") in `anim` entries and in `add_moves`, rendered into the one sheet; or sprite "variants" that share a name and prefix.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
 
 ## FB-075 · `search_assets` doesn't match everyday names: "first aid", "explosive", "bazooka" find nothing
 - Severity: polish        Milestone: G7
@@ -757,4 +757,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `{"total":0}` for each; only the exact name fragments ("medkit", "C4", "RPG", "duffle") work.
 - Workaround: guessed the names.
 - Suggested change: a small synonym list (first aid → medkit/medical/bandage, explosive → C4/bomb/dynamite, bazooka/launcher → RPG/rocket, duffel ↔ duffle) and fuzzy matching on tags.
-- Status: open
+- Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
