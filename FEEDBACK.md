@@ -885,6 +885,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `g9_nest1 would overlap o174 (tree_small) at (51.5, 98.5); …` for every nest; the scatter's object ids change on each rebuild, so removing them by id isn't stable.
 - Workaround: the G9 ops are a stage *before* the scatters (maps/g6/<mission>/stage3.json; the scatters moved to stage4), so the scatter avoids them; the maps' scatter results changed with it.
 - Suggested change: `clear: true` on `place` / `stamp` (only removing objects from scatter ops, reported), or a `clearRect` / `clearZone` op for objects.
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
+
 ## FB-085 · A destroyed state can't say how it collides: a blown gate keeps the whole panel as its collider
 - Severity: workaround        Milestone: G8
 - Tried: mission 10's stockade gate, `stockade_gate` (POLYGON_War `SM_Prop_Fence_High_02`) declared with `"states": "destroyed=@scorch:dark=0.9@collapse:blast=1"`, blown by a time bomb so the hostages can walk out.
@@ -919,6 +921,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: kneel_shoot holds the camera at arm's length like a pistol; at 1 m per tile the 18 cm camera is a dark dot in the hands, so it reads as aiming, not photographing. No camera/binocular clips found.
 - Workaround: the kneel_shoot clip plus a white flash circle when the exposure completes (`src/objectives/photo.ts`).
 - Suggested change: a `raise_to_eyes` character template (hands to the face, head slightly forward, optional kneel) with a `look` event, usable for cameras, binoculars, radios.
+- Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
 
 ## FB-103 · A per-clip held item stays in the hand after the clip's `release` (thrown grenade, placed bomb)
 - Severity: polish        Milestone: wave 11
