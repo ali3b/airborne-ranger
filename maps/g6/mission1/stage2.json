@@ -1,5 +1,4 @@
 {"map":"mission1","project":"Airborne Ranger","detail":"brief","ops":[
-  {"op":"rect","x0":52,"y0":128,"x1":57,"y1":154,"value":false},
   {"op":"place","sprite":"tent","x":10.5,"y":12.5,"id":"depot_tent1","properties":{"target":true,"hp":150}},
   {"op":"place","sprite":"tent","x":10.5,"y":22.5,"id":"depot_tent2","properties":{"target":true,"hp":150}},
   {"op":"place","sprite":"container","x":17.5,"y":12.5,"facing":"SE","state":"intact","id":"depot_container1","properties":{"target":true,"hp":150}},

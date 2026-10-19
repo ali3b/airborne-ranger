@@ -172,8 +172,10 @@ try {
     await page.keyboard.press('c');
     const camp = await until(page, () => window.game.scene.isActive('loadout'), null, 15000);
     const c0 = await page.evaluate(() => ({ map: window.game.scene.getScene('loadout').cfg?.map, campaign: JSON.parse(localStorage.getItem('ar.roster.v1'))[0]?.campaign }));
-    // The campaign's bookkeeping through the real award() (the module the game runs, from the dev server).
-    const c1 = await page.evaluate(async () => {
+    // The campaign's bookkeeping through the real award() (the module the game runs, from the dev server). G10: a built
+    // site (vite preview, GitHub Pages) has no /src/ modules, so that part is dev-only and skipped there.
+    const dev = await page.evaluate(() => !!document.querySelector('script[src*="@vite/client"]'));
+    const c1 = !dev ? null : await page.evaluate(async () => {
       const roster = await import('/src/roster.ts');
       const r = roster.loadRoster()[0];
       const res = { mission: 1, title: 'X', outcome: 'accomplished', objectiveDone: true, kills: 2, enemies: 20, installations: 3, targets: 3, secondsLeft: 300, seconds: 600, alertAt: null, objectiveAt: 100 };
@@ -183,9 +185,27 @@ try {
       return { note: a.campaignNote, campaign: roster.loadRoster()[0].campaign, label: window.game.scene.getScene('missions').campaignBtn?.text, score: roster.loadRoster()[0].score };
     });
     console.log('campaign:', JSON.stringify({ started: camp, ...c0 }), JSON.stringify(c1));
-    if (!camp || c0.map !== 'mission1' || !c0.campaign?.playing || c1.campaign?.next !== 1 || !(c1.campaign?.merit > 0) || !/mission 2/.test(c1.label ?? '') || !c1.note) {
+    if (!dev) console.log('built site: the campaign bookkeeping (award() from /src/roster.ts) is dev-only, skipped');
+    if (!camp || c0.map !== 'mission1' || !c0.campaign?.playing || (dev && (c1.campaign?.next !== 1 || !(c1.campaign?.merit > 0) || !/mission 2/.test(c1.label ?? '') || !c1.note))) {
       ok = false;
       console.log('CAMPAIGN CHECK FAILED (C starts mission 1; an accomplished mission moves the campaign to mission 2, saved)');
+    }
+    // G10: missions past 9 by keyboard: the hint names the keys, and 0 drops into mission 10 (- and = for 11, 12).
+    if (!dev) {
+      await page.evaluate(() => window.game.scene.getScene('loadout').scene.start('missions'));
+      await page.waitForTimeout(800);
+    }
+    const keys = await page.evaluate(() => {
+      const m = window.game.scene.getScene('missions');
+      const hint = m.children.list.find((o) => o.type === 'Text' && /to pick/.test(o.text))?.text ?? null;
+      return { hint, rows: m.rows.slice(9).map((t) => t.text) };
+    });
+    await page.keyboard.press('0');
+    const ten = await until(page, () => window.game.scene.getScene('loadout').cfg?.map === 'mission10', null, 15000);
+    console.log('mission keys:', JSON.stringify({ ...keys, zeroOpens: ten ? 'mission10' : null }));
+    if (keys.rows.length >= 3 && (!ten || !/0 - =/.test(keys.hint ?? '') || !/^\[0\] 10\./.test(keys.rows[0]))) {
+      ok = false;
+      console.log('MISSION KEYS FAILED (want the hint to name 0 - =, row 10 tagged [0], and 0 to open mission 10)');
     }
   }
   if (isMission) {
@@ -361,6 +381,8 @@ try {
       }
       const end = await page.evaluate(async () => {
         const m = window.game.scene.getScene('mission');
+        // G10: with the objective done (and the Ranger not yet in the zone) the HUD names the plane call.
+        const hudDone = m.objectiveDone && !m.cfg.planeWaiting ? m.hud.text.split('\n')[0] : null;
         const xs = m.extractArea.map((p) => p[0]);
         const ys = m.extractArea.map((p) => p[1]);
         const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
@@ -377,9 +399,14 @@ try {
         const t1 = performance.now();
         while (performance.now() - t1 < 10000 && !m.g9?.pickup.canCall) await wait(100);
         const offered = { canCall: !!m.g9?.pickup.canCall, hud: m.hud.text.split('\n')[0] };
-        return { offered };
+        return { offered, hudDone };
       });
       console.log('pickup offered:', JSON.stringify(end.offered));
+      console.log('hud once done:', JSON.stringify(end.hudDone));
+      if (end.hudDone !== null && !/C: call the plane/.test(end.hudDone)) {
+        ok = false;
+        console.log('HUD PLANE HINT MISSING (want "C: call the plane" once the objective is done)');
+      }
       await page.keyboard.press('c');
       await page.waitForTimeout(300);
       Object.assign(
