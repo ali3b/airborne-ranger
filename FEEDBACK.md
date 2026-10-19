@@ -604,6 +604,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: patrol zones are generic; `properties: {"vehicle": "truck_drive", "wreck": "truck_wreck", "speed": 3}` are free-form, so a misspelt sprite name only shows when the game runs, and the picture shows just a patrol line. `map_sprites` lists `truck_drive` with per-facing footprints (E 7×7, SE 8×4…), but nothing ties it to the zone.
 - Workaround: `src/scenes/Mission.ts` (`// FB-059`) turns a patrol zone with a `vehicle` property into a driving vehicle instead of a soldier.
 - Suggested change: a `sprite` (or `vehicle`) property on patrol/route zones that is validated like `place`'s `sprite`, exported as `sprite` on the Tiled object, and drawn by `map_preview` (the sprite at the first point, facing along the route).
+- Re-test (G6, 2026-10-18): works. Mission 4's two truck routes use `addZone {vehicle: "truck_drive", speed: 3}`; the export writes `vehicle` (name) + `vehicleId` + `speed`, which `Mission.spawnVehicle` reads unchanged. The wreck sprite and hit points are still free-form `properties` (`wreck`, `hp`).
 - Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
 
 ## FB-060 · Dusk and night: tilesets can be tinted, sprites can't be lit or tinted
@@ -632,4 +633,67 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: left `dirs` out; objects default to one facing.
 - Suggested change: for an object in a view with facings, read `dirs: 1` as `facings: 1`, or warn that it leaves the project's view.
 - Status: fixed (generator wave 9, branch wave-9; re-test and remove workaround)
+
+## FB-063 · Maps can't be resized; "make it bigger" means delete and re-create under the same name
+- Severity: workaround        Milestone: G6
+- Tried: growing missions 1–4 from 48×40 to 128×256 over MCP: `create_map` / `edit_map` / `list_maps` have no size change, `set {target: "map", key: "width"}` is only a custom property, and `ssg map create mission1 --if-missing --size 128x256` warns "exists but differs … it was left as it is".
+- Wanted: `resize_map {map, width, height, anchor: "top-left" | "centre", fill: terrain}` (MCP and `ssg map resize`) that keeps the id, layers, objects and zones (dropping or reporting what falls outside).
+- Got: `create_map {replace: true}` deletes the map and makes a new one under the name: a new id (mission1 4 → 11, mission2 5 → 13, mission3 6 → 14, mission4 9 → 15), the revision history and undo gone. It was harmless here only because the op lists rebuild everything from `clear`.
+- Workaround: `scripts/build-maps.mjs --resize` (`// FB-063`) re-creates a map with `--replace` when its size differs from ssg.assets.json; the op list then rebuilds it.
+- Suggested change: a resize op/command as above; or let `create_map {ifMissing: true}` with a different size offer `resize: true`.
+- Status: open
+
+## FB-064 · The minimap shades blocked cells even without `collision`, so a river reads purple
+- Severity: workaround        Milestone: G6
+- Tried: a clean minimap for the in-game overview map: `ssg map preview mission1 --minimap --no-zones --no-labels --scale 2` and the same with `--layers ground,objects` (also MCP `map_preview {minimap: true}`; `collision` defaults to false).
+- Wanted: ground and objects only; water drawn as water.
+- Got: every blocked water cell is `rgb(105,54,75)` (purple), while the fords where collision was cleared are `rgb(83,117,147)` (blue). Blocked rock ridges (missions 2 and 3) are tinted the same way. `--layers ground,objects` doesn't change it, so the collision tint can't be turned off.
+- Workaround: `src/overview.ts` (`// FB-064`) draws the overview itself from the exported .tmj: each ground gid's average colour from the map's tileset atlas, object footprints darkened.
+- Suggested change: shade collision on the minimap only with `collision: true` / `--collision` (like the iso preview), and honour `layers`.
+- Status: open
+
+## FB-065 · Large maps: the text picture is downsampled and neither picture can show a region
+- Severity: polish        Milestone: G6
+- Tried: reading 128×256 maps while authoring missions 1–4 (MCP, `scripts/mcp.mjs`; the calls are in test-results/mcp-calls.jsonl).
+- Wanted: a readable close-up of one area (a depot, a ford, an outpost) next to the overview.
+- Got (timings over MCP, mission1 with 977 objects): `get_map {detail: brief}` 1.2 s, 83 chars; `normal` 1.6 s, 17 KB, and its picture is the map **downsampled 4×** to 32×64 characters (the description says "bigger maps are shown in blocks"; it's one block, every 4×4 cells one character, so a 3×3 rock or a 1-cell ford disappears); `picture: 256` 1.7 s, 49 KB for the full 128×256 characters; `full` 1.7 s, 138 KB. `map_preview {maxSize: 1568}` 5.7 s, 881 KB PNG at 4 px per tile, where objects are specks (labels are readable); `ssg map preview --max 3072` 8.1 s. Neither tool takes a rectangle, so a close-up of the depot means the 49 KB full picture and counting columns. The rest is fast: create 1.5 s, a 16-op terrain batch 1.7 s, a 4-scatter batch (903 objects) 9 s, export 0.7 s, minimap 0.8 s.
+- Workaround: `picture: 256` and slicing rows/columns in a shell; the iso preview for layout only.
+- Suggested change: `region: [x0, y0, x1, y1]` on `get_map` (full resolution inside it) and on `map_preview` (crop, then scale to maxSize); say in the answer when a picture is downsampled and by how much.
+- Status: open
+
+## FB-066 · The exported object layer repeats each sprite's data on every object (866 KB of a 2 MB .tmj)
+- Severity: polish        Milestone: G6
+- Tried: `ssg map export mission1 -f tmj --embed` at 128×256 with 977 objects.
+- Wanted: a compact object layer; per-sprite data once.
+- Got: mission1.tmj is 1 987 KB: the object layer 866 KB (≈ 890 bytes per object: `asset`, `exportName`, `spriteId`, `footprintW/H`, `anchor`, `mapId` and the `collision` polygon string repeated on every tree of the same sprite and facing), the ground 121 KB, an all-zero decoration layer 66 KB, the embedded tileset 110 KB. It gzips to 58 KB, so download size is fine; parse time and memory on phones less so.
+- Workaround: none needed (the game skips empty tile layers when drawing).
+- Suggested change: an option to write per-sprite data once (Tiled object templates, or a `sprites` map property keyed by sprite + facing + state) and only position/state/facing per object; skip empty tile layers or write them as compressed base64.
+- Status: open
+
+## FB-067 · Scatter weights favour small sprites: weight 1 : 2 gave 181 palms to 126 trees
+- Severity: polish        Milestone: G6
+- Tried: mission 4's canopy, `scatter {objects: [{sprite: "palm", weight: 1}, {sprite: "tree", weight: 2}], density: 1.4, …}`.
+- Wanted: about twice as many trees as palms.
+- Got: `byObject {palm: 181, tree: 126}`. The tree's 6×6 footprint fails more darts than the palm's 4×4, and the retries refill with whatever fits, so the mix inverts. With equal footprints the weights hold (mission 1: tree_small 3 : bush 1 → 557 : 163).
+- Workaround: none (accepted the mix).
+- Suggested change: keep drawing by weight until each sprite's share is met (or give up per sprite), and report the asked vs. placed share per sprite.
+- Status: open
+
+## FB-068 · No way to mirror or rotate a map (or a region) after authoring it
+- Severity: polish        Milestone: G6
+- Tried: missions 2 and 4 came out with the drop in the west and the objective in the east; the design wants drop south, objective north (in the iso view: the map's bottom and top corners).
+- Wanted: `edit_map {op: "transform", flip: "x" | "y", rotate: 90…, region?}` over ground, collision, objects (positions and facings) and zones.
+- Got: nothing; stamps can turn in quarter steps but not mirror, and there is no whole-map transform.
+- Workaround: a throw-away script mirrored the staged op lists (x → 128 − x for points, rects, places, stamp corners and scatter regions) and the batches were re-applied over MCP (`maps/g6/mission2|4/stage*.json`).
+- Suggested change: a transform op as above (and `flip` on stamps).
+- Status: open
+
+## FB-069 · Fords: clearing collision under a crossing also unblocks the water beside it
+- Severity: workaround        Milestone: G6
+- Tried: rivers made with `path {terrain: "water", collision: true, edge: "sand"}` and a ford: `path {terrain: "sand", width: 4–5}` across, then `rect {value: false}` over the crossing (the old missions did the same).
+- Wanted: only the ford's cells walkable.
+- Got: the rect clears every cell in its box, so with a jittered river the water cells left and right of the sand bar become walkable too (the minimap shows them blue next to the purple blocked river, FB-064). A tighter rect misses part of the bar.
+- Workaround: tight rects (the ford's width + 1 cell) in maps/g6/mission1|4/stage1.json; a few water cells stay walkable.
+- Suggested change: `path {…, collision: false}` that clears the cells under it (a ford or bridge); or `rect {value: false, terrains: ["sand"]}` / a `paint`/`fill` filter by terrain; or make `path {collision: true}` re-derive blocking from the final terrain so a later sand path over the water unblocks exactly its cells.
+- Status: open
 
