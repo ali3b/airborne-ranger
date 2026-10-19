@@ -173,9 +173,10 @@ export class Alerts {
     const h = this.host;
     const rw = h.worldOf(h.ranger);
     const away = Math.atan2(gw.y - rw.y, gw.x - rw.x) + Math.PI; // behind the last known position, seen from him
-    for (let tries = 0; tries < 16; tries++) {
+    // Nearer in when the map ends (or water) is in the way.
+    for (let tries = 0; tries < 32; tries++) {
       const a = away + ((k * 0.7 + tries * 0.9) % (Math.PI * 2)) - Math.PI / 2;
-      const r = Phaser.Math.FloatBetween(SPAWN_AT[0], SPAWN_AT[1]);
+      const r = Phaser.Math.FloatBetween(SPAWN_AT[0], SPAWN_AT[1]) * (tries < 16 ? 1 : 0.5);
       const w = { x: gw.x + Math.cos(a) * r, y: gw.y + Math.sin(a) * r };
       const s = worldToScreenDelta(w.x, w.y, h.ppm);
       if (h.canStand(s.x, s.y) && !h.propAt(w)) return s;

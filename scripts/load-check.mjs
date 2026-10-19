@@ -718,8 +718,14 @@ async function g9Checks(page) {
   const mine = await page.evaluate(async () => {
     const { f, put, wait } = window.g9t;
     const m = f.g9.mines.list[0];
-    f.god = false;
-    f.hp = 100;
+    // Unhurtable (a stray enemy shot mustn't end the check): record the damage the mine deals instead.
+    f.god = true;
+    let mineDmg = 0;
+    const hurt = f.hurtRanger;
+    f.hurtRanger = (d) => {
+      mineDmg += d;
+      return hurt.call(f, d);
+    };
     put({ x: m.w.x - 3.2, y: m.w.y });
     await wait(400);
     const far = m.sprite.visible;
@@ -729,12 +735,11 @@ async function g9Checks(page) {
     put({ x: m.w.x, y: m.w.y });
     const t0 = performance.now();
     while (performance.now() - t0 < 8000 && m.live) await wait(100);
-    const hp = f.hp;
-    f.god = true;
-    return { far, near, live: m.live, hp, triggered: f.g9.mines.stats.triggered };
+    f.hurtRanger = hurt;
+    return { far, near, live: m.live, damage: mineDmg, triggered: f.g9.mines.stats.triggered };
   });
   console.log('g9 mine:', JSON.stringify(mine));
-  if (mine.far || !mine.near || mine.live || !(mine.hp < 100)) fail('mine (hidden at 3 m, seen at 1.8 m, stepping on it wounds)');
+  if (mine.far || !mine.near || mine.live || !(mine.damage >= 40)) fail('mine (hidden at 3 m, seen at 1.8 m, stepping on it wounds)');
   await page.waitForTimeout(800);
 
   // Trench: slower and in cover, waist deep.
@@ -882,10 +887,10 @@ async function g9Checks(page) {
     const t0 = performance.now();
     while (performance.now() - t0 < 15000 && b.state !== 'alert') await wait(30);
     const spread = { before, b: b.state, spreadAfter: f.g9.alerts.stats.spread };
-    const hunters0 = f.g9.alerts.hunters.size;
+    const sent0 = f.g9.alerts.stats.reinforcements;
     f.g9.alerts.alarm = false;
     f.g9.alerts.raiseAlarm({ x: f.ranger.x, y: f.ranger.y });
-    return { spread, alarm: f.g9.alerts.alarm, hunters: f.g9.alerts.hunters.size - hunters0, stats: f.g9.alerts.stats, hud: f.hud.text.split('\n')[0] };
+    return { spread, alarm: f.g9.alerts.alarm, hunters: f.g9.alerts.stats.reinforcements - sent0, stats: f.g9.alerts.stats, hud: f.hud.text.split('\n')[0] };
   });
   console.log('g9 alerts:', JSON.stringify(alerts));
   if (alerts.error || alerts.spread.b !== 'alert' || alerts.spread.before.b !== 'patrol' || !(alerts.spread.spreadAfter > alerts.spread.before.spread) || !alerts.alarm || alerts.hunters < 1) fail('alerts (spread to a neighbour, alarm sends reinforcements)');
