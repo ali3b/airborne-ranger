@@ -44,7 +44,9 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
 ## Enemies and difficulty (G9)
 The systems live in `src/enemies/*` (one `G9` object per field scene, `Field.g9`), `src/pickup.ts`,
 `src/difficulty.ts` and `src/campaign.ts`; Field.ts and Mission.ts only call them from hooks marked `// G9`.
-Map data comes from the generator maps (`maps/g6/<mission>/stage3.json`, applied over MCP before the scatters).
+Map data comes from the generator maps, placed before the scatters: missions 1–4 `maps/g6/<mission>/stage3.json`,
+5–8 `maps/g8/<mission>/stage3.json` (G10, the scatters moved to stage4), 9–12 `maps/g10/<mission>.json` (G10, spliced
+into `maps/<mission>.ops.json` before the first scatter), then `node scripts/build-maps.mjs <mission>` exports them.
 
 - **Machine-gun nests** (`mg_nest`: POLYGON_War curved sandbag wall with intact/destroyed states; `mg_gunner`: a German
   soldier kneeling with the heavy MG): placed as map objects, the facing is the arc covered (±65°, 18 m). The gunner
@@ -57,11 +59,23 @@ Map data comes from the generator maps (`maps/g6/<mission>/stage3.json`, applied
   around them. Two minefields per map (6–8 mines each).
 - **Trenches:** `custom` polyline zones with `trench`, `width` over mission 1's dug trench lines (FB-100). Inside one
   the Ranger moves at 65 %, enemies see him from half as far and hit him 40 % as often; he stands in it waist deep.
+  Missions 1 and 5 (over their dug trench lines) and 11 (a mud trench with wire south of the river, G10).
 - **Tanks** (`tank_drive`: the German tank with `drive` and `fire` in 8 directions; `tank_wreck`: its states): a
   `custom` polyline zone with `tank`, `speed` (m/s) is driven there and back. Seeing the Ranger (22 m, all round) it
   stops, swings its hull to him (FB-096), aims 1.6 s and fires a shell (24 m/s, stops on the first prop) that bursts:
   3 m radius, 70 damage at the centre. It reloads 4.5 s. Only a LAW hit (300) or a time bomb (400) beats its 300 HP;
-  rifles and grenades do nothing. One per map on missions 1–3 (none in mission 4's jungle).
+  rifles and grenades do nothing. One per map on missions 1–3, 5–7, 9–11 (none in the jungle: 4, 8, 12).
+- **Where they are (G10, missions 5–12):** three nests (two covering the way in, one on a flank), two minefields off the
+  shortest route (`scripts/route-check.mjs` prints each map's hazards per route leg and warns about mines on the
+  route; 0 on 5–12), tanks and trenches as above. Mission 9 (photograph, stealth): nothing covers the approach (every
+  nest 0 cells of the route, the tank 32 m off); mission 12 (sabotage, seen at the dump = failed): nests on the flanks
+  facing away; missions 6 and 8 keep the escort's way out clear of nests.
+- **Escorts under fire (G10, `src/enemies/escort.ts`):** the objective names who the enemy may shoot at besides the
+  Ranger (`Objective.exposed`): mission 6's officer once captured, mission 8's prisoners once the gate is open,
+  mission 10's freed hostages. An alerted soldier within 12 m with a clear line fires at one every 2.5 s, an alerted
+  machine-gun nest a 3-round burst inside its arc every 2.6 s; 35 % × the difficulty's accuracy of a round going true.
+  Any enemy bullet (also a miss aimed at the Ranger) passing within 0.45 m kills one. The officer killed: the mission
+  fails ("killed (enemy fire)" in the debriefing); prisoners and hostages: the count drops, all dead fails.
 - **Sight lines:** besides props' colliders (buildings, walls, trunks, rocks) tree canopies (the export's
   `canopyPolygon`, the middle 70 %) hide the Ranger. The view range is ×0.7 at dusk (×0.5 at night), ×0.6 prone,
   ×0.5 in a trench, and by difficulty.
@@ -96,11 +110,16 @@ Map data comes from the generator maps (`maps/g6/<mission>/stage3.json`, applied
   frame; phone (`--phone`, missions 1 and 4) 59.6–59.7 fps, 5.3–5.6 ms. Routes (route-check): 374–459 m.
 - **Screenshots:** `docs/screenshots/g9-nest.png`, `g9-mines.png`, `g9-trench.png`, `g9-tank.png`, `g9-call.png`,
   `g9-plane.png`, `g9-call-phone.png`, `g9-missions.png`, `g9-field-tank-wreck.png`.
+  G10: `g10-mission7-nest.png`, `g10-mission11-trench.png`, `g10-mission9-tank.png`, `g10-mission6-escort-fire.png`,
+  `g10-mission8-escort-fire.png`, `g10-mission10-escort-fire.png`. Phone (`--phone --gpu`, mission 5: 3 nests, 13 mines,
+  2 trenches, a tank) 48.7–52 fps, 9.2–9.6 ms, measured with the machine at load 39–46; mission 1 under the same load
+  45.6 fps, so the hazards cost nothing measurable.
 - **Checks:** `node scripts/load-check.mjs <url> g9` (the test field: mine hidden then seen then wounding, trench,
   nest bursts then destroyed by grenades, tank driving, firing, shrugging off a grenade and destroyed by a LAW, an
   alert spreading, the alarm's reinforcements, dusk); the mission checks count each map's nests, minefields, trenches
-  and tanks and finish through the plane call; the title check cycles the difficulty and starts and advances a
-  campaign.
+  and tanks and finish through the plane call (every mission 1–12 must carry them, G10); missions 6, 8 and 10 also
+  check an alerted soldier shooting the exposed escort dead (the officer fails the mission, a prisoner or hostage
+  lowers the count); the title check cycles the difficulty and starts and advances a campaign.
 
 ## Original-scale maps (G6)
 The original scrolls over a long area: drop in the south, objective far north, extraction elsewhere, with a map

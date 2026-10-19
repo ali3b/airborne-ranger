@@ -13,6 +13,8 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
     `maps/mission2.ops.json` / `maps/mission3.ops.json` their sum.
     G6 rebuilt missions 1–4 at 128×256 the same way: `maps/g6/<mission>/stage*.json`, applied (and summed into
     `maps/<mission>.ops.json`) by `node scripts/g6-stages.mjs <mission>`; G8's missions 5–8 live in `maps/g8/<mission>/`.
+    G10's hazards on missions 9–12 (which have no stages) are the batches `maps/g10/<mission>.json`, spliced into
+    `maps/<mission>.ops.json` before the first scatter; `node scripts/build-maps.mjs <mission>` applies and exports.
 - **Never** edit, import or copy code from the generator repo, and never read its database directly.
   If you can't get something through the CLI or MCP, that's a finding: write it in `FEEDBACK.md`.
 - Every asset the game uses is declared in `ssg.assets.json` and rebuilt by `npm run assets`

@@ -958,3 +958,21 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: look the id up with `get_asset` / `ssg parts` first.
 - Suggested change: accept `number | string` like `preview_sprite`, `get_asset`.
 - Status: triaged (TODO: Inbox, generator wave 11, synty-sprite-generator dcffb4f)
+
+## FB-110 · No walkable-route query on a map: "keep hazards off the objective path" is checked by the game's own A*
+- Severity: workaround        Milestone: G10
+- Tried: authoring the G9 hazards of missions 5–12 (`edit_map` batches `maps/g8/<mission>/stage3.json`, `maps/g10/<mission>.json`, exported with `ssg map edit` / export) so that no minefield lies on the shortest walk drop → objective → extraction, and mission 9's approach stays out of every nest's arc.
+- Wanted: the generator answering "what is the shortest walkable route between these two zones on this map" (cells and metres, through the collision layer and object footprints), e.g. `ssg map route <map> --from drop --to objective`, and a placement guard such as `avoidRoute: {from, to, margin}` on `place` / `addZone` / `scatter`.
+- Got: `get_map` / `map_preview` show the map, but nothing walks it; whether a minefield or a nest arc sits on the way in is invisible until the export is replayed in the game.
+- Workaround: `scripts/route-check.mjs` (G6's A* over the exported `.tmj`) now prints the hazards on each route (G10: minefield cells on the route, cells each nest covers per leg, a tank route's nearest approach) and warns `MINES ON THE ROUTE`; placements were iterated against it. It also shows missions 2 and 3 have mines on their shortest route.
+- Suggested change: a `route` read tool (MCP + CLI) over a map's walkability, and `avoidRoute` on the placing ops.
+- Status: open
+
+## FB-111 · `place` with a facing the sprite doesn't have fails the whole batch
+- Severity: polish        Milestone: G10
+- Tried: `{"op":"place","sprite":"mg_nest","x":52,"y":64,"facing":"W",…}` in mission 5's `edit_map` batch (the game reads `facing` as the arc a machine-gun nest covers).
+- Wanted: the nearest facing the sprite has (with a warning saying which), or an opt-in `"snapFacing": true`.
+- Got: `op 67 (place): sprite 121 has no facing "W" (facings: NE, NW, SW, SE)` and the whole atomic batch is refused (clear, generate, every other op), so one bad facing costs a full rebuild cycle. The error names the sprite by id, not by its name in the project.
+- Workaround: the nests use only NE/NW/SW/SE (the facings `mg_nest` was rendered with).
+- Suggested change: `snapFacing` (or snap by default with a warning) for `place` and stamp/path objects; name the sprite in the message (`mg_nest (121)`).
+- Status: open

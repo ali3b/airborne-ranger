@@ -34,7 +34,7 @@ retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them
 A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
 before the timer runs out, then call the plane and hold out until it picks you up. Machine-gun nests, hidden
 minefields, trenches, tanks (only a LAW or a time bomb stops them) and alerts that spread into an alarm stand in the
-way. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one Ranger). Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
+way, on every mission. Escorted people (the officer, the prisoners, the hostages) draw enemy fire too. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one Ranger). Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
 Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
 supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
 Missions 5–8 have their own objectives: walk up to the code book to take it; get close to the enemy officer and he
