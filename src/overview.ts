@@ -189,7 +189,7 @@ export class Overview {
     g.lineStyle(2, 0xffffff, 1).lineBetween(r.x, r.y, r.x + Math.cos(ang) * 12, r.y - Math.sin(ang) * 6);
     const dot = add(sc.add.circle(r.x, r.y, 6, 0xff4040).setStrokeStyle(2, 0xffffff));
     sc.tweens.add({ targets: dot, alpha: 0.25, yoyo: true, repeat: -1, duration: 350 });
-    add(sc.add.text(sw / 2, 12, `${info.title} · ${W}×${H} m`, { fontFamily: 'monospace', fontSize: '15px', color: '#e8d27a' }).setOrigin(0.5, 0));
+    add(sc.add.text(isTouch ? 16 : sw / 2, isTouch ? 64 : 12, `${info.title} · ${W}×${H} m`, { fontFamily: 'monospace', fontSize: '15px', color: '#e8d27a' }).setOrigin(isTouch ? 0 : 0.5, 0));
     const close = isTouch ? 'tap or MAP to return' : 'Tab / O to return';
     add(
       sc.add

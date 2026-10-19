@@ -68,7 +68,7 @@
   <p class="note">Plays on desktop (keyboard) and on phones and tablets (touch controls; best held sideways). Your roster is saved in this browser.</p>
 </header>
 <nav>
-  <a href="#video">Video</a><a href="#controls">Controls</a><a href="#missions">Missions</a><a href="#screens">Screens</a>
+  <a href="#video">Video</a><a href="#controls">Controls</a><a href="#missions">Missions</a><a href="#arsenal">Arsenal</a><a href="#screens">Screens</a>
   <a href="#maps">Maps</a><a href="#sprites">Sprites</a><a href="#tilesets">Tilesets</a><a href="#how">How it's made</a>
 </nav>
 <main>
@@ -90,6 +90,8 @@
       <tr><th>Prone / crawl</th><td><kbd>X</kbd></td></tr>
       <tr><th>Shoot</th><td><kbd>Space</kbd></td></tr>
       <tr><th>Grenade</th><td><kbd>G</kbd></td></tr>
+      <tr><th>Weapons and items</th><td><kbd>1</kbd>–<kbd>6</kbd> carbine, grenade, LAW, time bomb, knife, first aid (<kbd>Q</kbd> cycles, <kbd>Space</kbd> uses); <kbd>R</kbd> reload, <kbd>H</kbd> first aid</td></tr>
+      <tr><th>Overview map</th><td><kbd>Tab</kbd> or <kbd>O</kbd></td></tr>
       <tr><th>Sound on/off</th><td><kbd>M</kbd></td></tr>
       <tr><th>Menus</th><td><kbd>↑</kbd><kbd>↓</kbd> and <kbd>Enter</kbd>; <kbd>1</kbd>–<kbd>6</kbd> picks a Ranger</td></tr>
     </table>
@@ -98,6 +100,8 @@
       <tr><th>Move</th><td>Drag anywhere on the left half: a stick appears under your thumb</td></tr>
       <tr><th>Run</th><td>Push the stick to its edge (the knob turns orange)</td></tr>
       <tr><th>Shoot / grenade / prone</th><td>The FIRE (hold to keep firing), GRENADE and PRONE buttons, bottom right</td></tr>
+      <tr><th>Weapons and items</th><td>The item bar left of FIRE (RIFLE, GREN, LAW, BOMB, KNIFE, AID): tap to pick, FIRE uses it</td></tr>
+      <tr><th>Overview map</th><td>The MAP button under the compass</td></tr>
       <tr><th>Menus</th><td>Tap a row. Tap an empty slot, then tap it again to enlist; hold a row to retire a Ranger</td></tr>
       <tr><th>Sound / full screen</th><td>The buttons top right (full screen where the browser allows it)</td></tr>
     </table>
@@ -106,12 +110,30 @@
   <section id="missions">
     <h2>Missions</h2>
     <p class="lead">A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the
-      extraction zone before the timer runs out. Merit earns promotions (PFC to COL) and medals for a roster of six Rangers.</p>
+      extraction zone before the timer runs out. Merit earns promotions (PFC to COL) and medals for a roster of six Rangers.
+      Each mission area is 128×256 m, like the original's long scrolling areas: drop in the south, objective in the far north.</p>
     <div class="grid">
       <figure><img src="shots/mission.png" alt=""><figcaption><b>1 · Destroy a Munitions Depot</b> · temperate</figcaption></figure>
       <figure><img src="shots/mission2.png" alt=""><figcaption><b>2 · Knock Out Enemy Radar Array</b> · desert</figcaption></figure>
       <figure><img src="shots/mission3.png" alt=""><figcaption><b>3 · Disable Enemy Aircraft</b> · arctic</figcaption></figure>
       <figure><img src="shots/mission4.png" alt=""><figcaption><b>4 · Cut a Pipeline</b> · jungle at dusk</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="arsenal">
+    <h2>Supply pods and arsenal</h2>
+    <p class="lead">Before each drop, pack the supply pod like the original: carbine magazines, grenades, first-aid kits, LAW rockets
+      and time bombs, up to 21 items and a weight limit. Three pods drop with the Ranger along the route.</p>
+    <div class="grid">
+      <figure><img src="shots/g7-loadout.png" alt=""><figcaption><b>Supply pod loadout</b> with CLEAR / STANDARD / DONE.</figcaption></figure>
+      <figure><img src="shots/g7-law-hit.png" alt=""><figcaption><b>LAW rocket</b> hitting an installation.</figcaption></figure>
+      <figure><img src="shots/g7-touch.png" alt=""><figcaption><b>On a phone:</b> stick, item bar, FIRE, compass and MAP button.</figcaption></figure>
+    </div>
+    <h3>Overview map and compass</h3>
+    <div class="grid">
+      <figure><img src="shots/g6-mission1-overview.png" alt=""><figcaption><b>Overview map</b> (Tab / O / MAP): the whole area, pods, objective, extraction.</figcaption></figure>
+      <figure><img src="shots/g6-mission4-overview.png" alt=""><figcaption><b>Mission 4 overview</b> at dusk.</figcaption></figure>
+      <figure><img src="shots/g6-compass.png" alt=""><figcaption><b>HUD compass</b> with the distance to the objective.</figcaption></figure>
     </div>
   </section>
 
@@ -149,6 +171,13 @@
     <p class="lead">Each mission map was authored through the generator's MCP map tools (paint terrain, paths, scatter, place
       objects, zones), then exported to Tiled <code>.tmj</code>, which Phaser loads directly. These previews are rendered by the generator.</p>
     <div class="grid" id="mapGrid"></div>
+    <h3>Objectives up close</h3>
+    <div class="grid">
+      <figure><img src="shots/g6-mission1-objective.png" alt="" loading="lazy"><figcaption><b>Munitions depot</b> (mission 1)</figcaption></figure>
+      <figure><img src="shots/g6-mission2-objective.png" alt="" loading="lazy"><figcaption><b>Radar compound</b> (mission 2)</figcaption></figure>
+      <figure><img src="shots/g6-mission3-objective.png" alt="" loading="lazy"><figcaption><b>Airfield</b> (mission 3)</figcaption></figure>
+      <figure><img src="shots/g6-mission4-objective.png" alt="" loading="lazy"><figcaption><b>Pump station</b> (mission 4)</figcaption></figure>
+    </div>
   </section>
 
   <section id="sprites">

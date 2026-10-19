@@ -49,6 +49,7 @@ export function showFieldControls(a: TouchActions): () => void {
   actions = a;
   build();
   root!.style.display = 'block';
+  root!.classList.remove('mapview');
   mapBtn!.style.display = a.map ? 'block' : 'none';
   return () => {
     if (actions === a) actions = null;
@@ -85,8 +86,11 @@ function build() {
     #touch button.fire.down { background: #ff7060; color: #10140c; }
     #touch button.map { position: absolute; top: calc(max(10px, env(safe-area-inset-top)) + 100px); left: max(10px, env(safe-area-inset-left)); width: 68px; height: 40px;
       border-radius: 8px; pointer-events: auto; font-size: 13px; }
-    #touch .items { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 184px);
-      display: flex; gap: 6px; pointer-events: auto; touch-action: none; }
+    /* The item bar: a 3×2 block at the bottom, left of the action buttons, clear of the Ranger in the middle. */
+    /* While the overview map is open only the MAP button stays. */
+    #touch.mapview .pad, #touch.mapview .btns, #touch.mapview .items { display: none; }
+    #touch .items { position: absolute; right: calc(max(16px, env(safe-area-inset-right)) + 196px); bottom: max(16px, env(safe-area-inset-bottom));
+      display: grid; grid-template-columns: repeat(3, auto); gap: 6px; pointer-events: auto; touch-action: none; }
     #touch .items button { width: 52px; height: 44px; border-radius: 10px; font: bold 10px monospace; line-height: 1.25; }
     #touch .items button.sel { background: #e8d27a; color: #10140c; }
     #touch .items button.empty { opacity: 0.45; }
@@ -245,4 +249,9 @@ function rotateHint(on: boolean) {
   el.textContent = 'turn your phone sideways for the best view';
   el.style.cssText = 'position:fixed;left:0;right:0;bottom:max(16px, env(safe-area-inset-bottom));text-align:center;font:14px monospace;color:#e8d27a;z-index:6;pointer-events:none';
   document.body.appendChild(el);
+}
+
+/** Hide the stick, buttons and item bar while the overview map is open (the MAP button stays). */
+export function setMapView(on: boolean) {
+  root?.classList.toggle('mapview', on);
 }

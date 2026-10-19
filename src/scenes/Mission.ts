@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { isTouch } from '../touch';
+import { isTouch, setMapView } from '../touch';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
 import { Field, circleHitsPolygon, distW, RANGER_RADIUS, type Placed, type Pt } from './Field';
@@ -454,6 +454,7 @@ export class Mission extends Field {
     if (!this.overview || this.outcome || this.dead) return;
     if (this.overview.isOpen) {
       this.overview.close();
+      setMapView(false);
       this.anims.resumeAll();
       this.busy = this.busyBeforeMap;
       return;
@@ -461,6 +462,7 @@ export class Mission extends Field {
     this.busyBeforeMap = this.busy;
     this.busy = true;
     this.anims.pauseAll();
+    setMapView(true);
     const c = this.rangerCell();
     this.overview.open({
       ranger: [c.x, c.y],

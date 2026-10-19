@@ -19,16 +19,20 @@ tools, from Synty POLYGON 3D models.
 | Shoot | `Space` |
 | Grenade | `G` |
 | Sound on/off | `M` |
+| Weapons and items | `1`–`6` carbine, grenade, LAW, time bomb, knife, first aid; `Q` cycles; `R` reload; `H` first aid |
+| Overview map | `Tab` or `O` |
 | Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
-FIRE, GRENADE and PRONE buttons on the right. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
+FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid) beside them and a MAP button under the compass. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
 retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them off.
 
 ## The game
 
 A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
 before the timer runs out. Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
+Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
+supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
 
 | Mission | Climate | |
 |---|---|---|

@@ -317,6 +317,8 @@ export class Field extends Phaser.Scene {
       .text(10, 10, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8d27a', backgroundColor: '#10140ccc', padding: { x: 6, y: 4 } })
       .setScrollFactor(0)
       .setDepth(1e9);
+    // On touch screens the sound / full-screen buttons take the top right: wrap the HUD short of them.
+    if (isTouch) this.hud.setWordWrapWidth(Math.max(200, this.scale.width - 290));
   }
 
   /** The hand-made test field: generated ground, hand-placed props. Returns the Ranger's start (screen px). */
