@@ -15,8 +15,11 @@ const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
 const scene = process.argv[3] ?? 'title';
 const isMission = /^mission\d*$/.test(scene);
 const isArsenal = scene.startsWith('arsenal');
+// G9: `g9` checks the enemy systems on the test field (a machine-gun nest, mines, a trench, a tank, sight lines,
+// alerts spreading and the alarm's reinforcements).
+const isG9 = scene === 'g9';
 const arsenalMap = scene.split(':')[1] ?? 'mission1';
-const sceneKey = isMission ? 'mission' : isArsenal ? 'loadout' : scene;
+const sceneKey = isMission ? 'mission' : isArsenal ? 'loadout' : isG9 ? 'field' : scene;
 const missionMap = scene === 'mission' ? 'mission1' : scene;
 const env = { ...process.env };
 delete env.DISPLAY;
@@ -34,7 +37,7 @@ await page.goto(
       ? `${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`
       : isArsenal
         ? `${base}/?scene=loadout&mission=${encodeURIComponent(arsenalMap)}`
-        : `${base}/?scene=${encodeURIComponent(scene)}`,
+        : `${base}/?scene=${encodeURIComponent(isG9 ? 'field' : scene)}`,
 );
 let ok = true;
 let shotTaken = false;
@@ -111,6 +114,10 @@ try {
     }
   }
   if (isArsenal) ok = (await arsenalChecks(page)) && ok;
+  if (isG9) {
+    ok = (await g9Checks(page)) && ok;
+    shotTaken = true;
+  }
   if (scene === 'title') {
     // G4: the Ranger select shows the roster's six slots (a fresh browser: all vacant); enlist one in slot 1, choose
     // him, and the mission select lists every mission under his name.
@@ -145,6 +152,39 @@ try {
     if (!picked || rows.ranger !== 'LOADCHECK' || rows.missions.length < 3 || saved !== 1) {
       ok = false;
       console.log(`NO MISSION SELECT FOR THE RANGER (picked ${picked}, saved rangers ${saved}, want 3 missions)`);
+    }
+    // G9: difficulty (D cycles it, saved) and the campaign (C starts it at mission 1; an accomplished campaign mission
+    // moves it on, persisted with the roster).
+    const diff = [];
+    for (let k = 0; k < 3; k++) {
+      diff.push(await page.evaluate(() => window.game.scene.getScene('missions').difficultyBtn?.text ?? null));
+      await page.keyboard.press('d');
+      await page.waitForTimeout(150);
+    }
+    const savedDiff = await page.evaluate(() => localStorage.getItem('ar.difficulty.v1'));
+    console.log('difficulty:', JSON.stringify(diff), savedDiff);
+    if (!diff.every(Boolean) || new Set(diff).size !== 3 || savedDiff !== 'normal') {
+      ok = false;
+      console.log('NO DIFFICULTY CHOICE (want three levels cycling on D, saved)');
+    }
+    await page.screenshot({ path: 'test-results/g9-missions.png' }).catch(() => undefined);
+    await page.keyboard.press('c');
+    const camp = await until(page, () => window.game.scene.isActive('loadout'), null, 15000);
+    const c0 = await page.evaluate(() => ({ map: window.game.scene.getScene('loadout').cfg?.map, campaign: JSON.parse(localStorage.getItem('ar.roster.v1'))[0]?.campaign }));
+    // The campaign's bookkeeping through the real award() (the module the game runs, from the dev server).
+    const c1 = await page.evaluate(async () => {
+      const roster = await import('/src/roster.ts');
+      const r = roster.loadRoster()[0];
+      const res = { mission: 1, title: 'X', outcome: 'accomplished', objectiveDone: true, kills: 2, enemies: 20, installations: 3, targets: 3, secondsLeft: 300, seconds: 600, alertAt: null, objectiveAt: 100 };
+      const a = roster.award(r.id, res);
+      window.game.scene.getScene('loadout').scene.start('missions');
+      await new Promise((ok) => setTimeout(ok, 800));
+      return { note: a.campaignNote, campaign: roster.loadRoster()[0].campaign, label: window.game.scene.getScene('missions').campaignBtn?.text, score: roster.loadRoster()[0].score };
+    });
+    console.log('campaign:', JSON.stringify({ started: camp, ...c0 }), JSON.stringify(c1));
+    if (!camp || c0.map !== 'mission1' || !c0.campaign?.playing || c1.campaign?.next !== 1 || !(c1.campaign?.merit > 0) || !/mission 2/.test(c1.label ?? '') || !c1.note) {
+      ok = false;
+      console.log('CAMPAIGN CHECK FAILED (C starts mission 1; an accomplished mission moves the campaign to mission 2, saved)');
     }
   }
   if (isMission) {
@@ -210,6 +250,18 @@ try {
     if (!g6.open || !g6.closed || !/\d+ m$/.test(g6.compass ?? '') || g6.awake >= g6.enemies || g6.visibleProps >= g6.props) {
       ok = false;
       console.log('G6 CHECK FAILED (want: the overview opens and closes, a compass distance, far enemies asleep, off-screen props hidden)');
+    }
+    // G9: the map's machine-gun nests (manned), minefields, trenches and tanks; the difficulty.
+    const g9 = await page.evaluate(() => {
+      const g = window.game.scene.getScene('mission').g9;
+      if (!g) return { error: 'no g9' };
+      return { difficulty: g.difficulty, nests: g.nests.list.length, mines: g.mines.list.length, minefields: g.mines.stats.fields, trenches: g.trenches.list.length, tanks: g.tanks.list.length, canopy: g.sight.canopyCells, adjust: g.adjust };
+    });
+    console.log('g9:', JSON.stringify(g9));
+    const want = { mission1: { tanks: 1, trenches: 2 }, mission2: { tanks: 1 }, mission3: { tanks: 1 } }[missionMap] ?? {};
+    if (g9.error || g9.nests < 2 || g9.mines < 6 || g9.minefields < 2 || g9.tanks < (want.tanks ?? 0) || g9.trenches < (want.trenches ?? 0)) {
+      ok = false;
+      console.log('G9 MAP CHECK FAILED (want >= 2 manned nests, 2 minefields with >= 6 mines, the tanks and trenches the map has)');
     }
     if (s.vehicles) {
       // Vehicles far from the Ranger don't drive (G6): stand him 10 m north of the first one.
@@ -299,14 +351,37 @@ try {
           b.sprite.setPosition(m.ranger.x + 30 + (k % 3) * 20, m.ranger.y + 10 + Math.floor(k / 3) * 14);
           b.queue = [];
         });
-        const t0 = performance.now();
-        while (performance.now() - t0 < 10000 && !m.outcome) await new Promise((r) => setTimeout(r, 100));
-        return { outcome: m.outcome, objectiveDone: m.objectiveDone, stats: m.result?.stats ?? null };
+        // G9: no extraction without the plane: the call is offered in the zone (C), the plane flies in and lifts him.
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const t1 = performance.now();
+        while (performance.now() - t1 < 10000 && !m.g9?.pickup.canCall) await wait(100);
+        const offered = { canCall: !!m.g9?.pickup.canCall, hud: m.hud.text.split('\n')[0] };
+        return { offered };
       });
+      console.log('pickup offered:', JSON.stringify(end.offered));
+      await page.keyboard.press('c');
+      await page.waitForTimeout(300);
+      Object.assign(
+        end,
+        await page.evaluate(async () => {
+          const m = window.game.scene.getScene('mission');
+          const p = m.g9.pickup;
+          const called = p.state;
+          // Shorten the wait (the plane's approach itself still plays).
+          p.eta = Math.min(p.eta, 5);
+          let plane = false;
+          const t0 = performance.now();
+          while (performance.now() - t0 < 60000 && !m.outcome) {
+            plane ||= m.children.list.some((o) => o.texture?.key === 'plane_pickup' && o.visible);
+            await new Promise((r) => setTimeout(r, 100));
+          }
+          return { called, plane, passes: p.stats.passes, outcome: m.outcome, objectiveDone: m.objectiveDone, stats: m.result?.stats ?? null };
+        }),
+      );
       console.log('end:', JSON.stringify(end));
-      if (end.outcome !== 'accomplished') {
+      if (end.outcome !== 'accomplished' || !end.offered?.canCall || end.called !== 'called' || !end.plane) {
         ok = false;
-        console.log('NO MISSION ACCOMPLISHED (depot targets left, or the extraction zone not detected)');
+        console.log('NO MISSION ACCOMPLISHED (depot targets left, the extraction zone not detected, or no plane call / pickup)');
       }
       await page.waitForTimeout(500);
       await page.screenshot({ path: `test-results/${scene}-end.png` }).catch(() => undefined);
@@ -674,5 +749,246 @@ async function touchArsenal() {
   }
   if (errs.length) fail(`page errors: ${errs.slice(0, 3).join(' | ')}`);
   await ctx.close();
+  return ok;
+}
+
+// ---- G9: enemies (machine-gun nest, mines, trench, tank, sight, alerts, alarm) on the test field ----
+
+async function g9Checks(page) {
+  let ok = true;
+  const fail = (msg) => {
+    ok = false;
+    console.log('G9 CHECK FAILED:', msg);
+  };
+  // Helpers in the page: world <-> screen and a Ranger teleport (world metres).
+  await page.evaluate(() => {
+    const f = window.game.scene.getScene('field');
+    const scr = (w) => ({ x: w.x * f.ppm, y: -w.y * f.ppm * 0.5 });
+    window.g9t = {
+      f,
+      scr,
+      put(w, facing) {
+        const s = scr(w);
+        f.busy = false;
+        f.prone = false;
+        f.ranger.setPosition(s.x, s.y);
+        if (facing) f.facing = facing;
+      },
+      wait: (ms) => new Promise((r) => setTimeout(r, ms)),
+    };
+  });
+  const setup = await page.evaluate(() => {
+    const { f } = window.g9t;
+    const g = f.g9;
+    if (!g) return { error: 'no g9 on the field' };
+    return {
+      nests: g.nests.list.length,
+      gunner: g.nests.list[0]?.gunner.anims.currentAnim?.key ?? null,
+      mines: g.mines.list.length,
+      hidden: g.mines.list.filter((m) => !m.sprite.visible).length,
+      trenches: g.trenches.list.length,
+      tanks: g.tanks.list.length,
+      canopy: g.sight.canopyCells,
+      difficulty: g.difficulty,
+    };
+  });
+  console.log('g9 setup:', JSON.stringify(setup));
+  if (setup.error || setup.nests < 1 || !setup.gunner || setup.mines < 3 || setup.hidden !== setup.mines || setup.trenches < 1 || setup.tanks < 1 || setup.canopy < 10) {
+    fail('want a manned nest, >= 3 hidden mines, a trench, a tank and tree canopies');
+    return ok;
+  }
+
+  // Mines: hidden until close, then visible; stepping on one wounds the Ranger.
+  const mine = await page.evaluate(async () => {
+    const { f, put, wait } = window.g9t;
+    const m = f.g9.mines.list[0];
+    // Unhurtable (a stray enemy shot mustn't end the check): record the damage the mine deals instead.
+    f.god = true;
+    let mineDmg = 0;
+    const hurt = f.hurtRanger;
+    f.hurtRanger = (d) => {
+      mineDmg += d;
+      return hurt.call(f, d);
+    };
+    put({ x: m.w.x - 3.2, y: m.w.y });
+    await wait(400);
+    const far = m.sprite.visible;
+    put({ x: m.w.x - 1.8, y: m.w.y });
+    await wait(400);
+    const near = m.sprite.visible;
+    put({ x: m.w.x, y: m.w.y });
+    const t0 = performance.now();
+    while (performance.now() - t0 < 8000 && m.live) await wait(100);
+    f.hurtRanger = hurt;
+    return { far, near, live: m.live, damage: mineDmg, triggered: f.g9.mines.stats.triggered };
+  });
+  console.log('g9 mine:', JSON.stringify(mine));
+  if (mine.far || !mine.near || mine.live || !(mine.damage >= 40)) fail('mine (hidden at 3 m, seen at 1.8 m, stepping on it wounds)');
+  await page.waitForTimeout(800);
+
+  // Trench: slower and in cover, waist deep.
+  const trench = await page.evaluate(async () => {
+    const { f, put, wait } = window.g9t;
+    const t = f.g9.trenches.list[0];
+    const [i, j] = [(t.line[0][0] + t.line[1][0]) / 2, (t.line[0][1] + t.line[1][1]) / 2];
+    f.ranger.setPosition((i - j) * 32, (i + j) * 16);
+    f.busy = false;
+    f.prone = false;
+    await wait(500);
+    return { inside: f.g9.trenches.inside, speed: f.g9.speedScale(), view: f.g9.viewScale(), hit: f.g9.hitScale(), lip: !!f.g9.trenches.lip?.visible, hud: f.hud.text.split('\n')[0] };
+  });
+  console.log('g9 trench:', JSON.stringify(trench));
+  if (!trench.inside || !(trench.speed < 1) || !(trench.view < 1) || !(trench.hit < 1) || !/IN TRENCH/.test(trench.hud)) fail('trench (inside, slower, harder to see and hit, HUD)');
+  await page.screenshot({ path: 'test-results/g9-trench.png' }).catch(() => undefined);
+
+  // Machine-gun nest: the gunner fires bursts at the Ranger in his arc; two grenades destroy the nest and him.
+  const nest = await page.evaluate(async () => {
+    const { f, put, wait } = window.g9t;
+    const n = f.g9.nests.list[0];
+    const v = { x: Math.cos(n.facing), y: Math.sin(n.facing) };
+    const aw = f.worldOf(n.placed.at);
+    put({ x: aw.x + v.x * 9, y: aw.y + v.y * 9 });
+    const t0 = performance.now();
+    while (performance.now() - t0 < 30000 && f.g9.nests.stats.rounds < 3) await wait(100);
+    return { rounds: f.g9.nests.stats.rounds, bursts: f.g9.nests.stats.bursts, alarm: f.g9.alerts.alarm, anim: n.gunner.anims.currentAnim?.key };
+  });
+  console.log('g9 nest fires:', JSON.stringify(nest));
+  if (nest.rounds < 3) fail('the nest did not fire a burst at the Ranger in its arc');
+  await page.screenshot({ path: 'test-results/g9-nest.png' }).catch(() => undefined);
+  const nestDown = await page.evaluate(async () => {
+    const { f, put, wait } = window.g9t;
+    const n = f.g9.nests.list[0];
+    const v = { x: Math.cos(n.facing), y: Math.sin(n.facing) };
+    const aw = f.worldOf(n.placed.at);
+    // 8 m (the grenade's reach) out along the arc's centre, facing back at the nest.
+    const back = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'][((Math.round(Math.atan2(-v.y, -v.x) / (Math.PI / 4)) % 8) + 8) % 8];
+    f.grenadesLeft = 99;
+    for (let tries = 0; tries < 5 && n.alive; tries++) {
+      put({ x: aw.x + v.x * 8, y: aw.y + v.y * 8 }, back);
+      f.throwGrenade();
+      const t0 = performance.now();
+      await wait(200);
+      while (performance.now() - t0 < 20000 && (f.grenades.length || f.busy)) await wait(100);
+      await wait(300);
+    }
+    return { alive: n.alive, nest: n.placed.state, hp: n.placed.hp, gunner: n.gunner.anims.currentAnim?.key };
+  });
+  console.log('g9 nest destroyed:', JSON.stringify(nestDown));
+  if (nestDown.alive || !(nestDown.hp <= 0)) fail('grenades did not destroy the nest and its gunner');
+
+  // Tank: drives, sees the Ranger, fires shells that burst; a grenade does nothing, a LAW destroys it.
+  await page.evaluate(() => {
+    const { f, put } = window.g9t;
+    // A spot `r` m from the tank in one of the 8 directions with a clear view of it; the Ranger faces it.
+    window.g9t.spotNear = (t, r) => {
+      const D = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
+      const tw = f.worldOf(t.placed.at);
+      for (let k = 0; k < 8; k++) {
+        const a = (k * Math.PI) / 4;
+        const w = { x: tw.x - Math.cos(a) * r, y: tw.y - Math.sin(a) * r };
+        const s = window.g9t.scr(w);
+        if (!f.canStand(s.x, s.y) || f.propAt(w)) continue;
+        if (f.g9.tanks.sees(t, w)) return { w, facing: D[k] };
+      }
+      return null;
+    };
+    void put;
+  });
+  const tank = await page.evaluate(async () => {
+    const { f, put, wait, spotNear } = window.g9t;
+    const t = f.g9.tanks.list[0];
+    const tw0 = f.worldOf(t.placed.at);
+    put({ x: tw0.x + 30, y: tw0.y + 30 }); // out of sight (but near enough to be awake): it drives
+    const t0 = performance.now();
+    while (performance.now() - t0 < 30000 && t.travelled < 2) await wait(100);
+    const spot = spotNear(t, 12);
+    if (!spot) return { error: 'no clear spot 12 m from the tank', travelled: t.travelled };
+    put(spot.w, spot.facing);
+    const t1 = performance.now();
+    while (performance.now() - t1 < 40000 && f.g9.tanks.stats.blasts < 1) await wait(100);
+    return { travelled: +t.travelled.toFixed(2), mode: t.mode, shots: f.g9.tanks.stats.shots, blasts: f.g9.tanks.stats.blasts };
+  });
+  console.log('g9 tank fires:', JSON.stringify(tank));
+  if (tank.error || !(tank.travelled >= 2) || tank.shots < 1 || tank.blasts < 1) fail('tank (drives its route, fires a shell that bursts)');
+  await page.screenshot({ path: 'test-results/g9-tank.png' }).catch(() => undefined);
+  const armour = await page.evaluate(async () => {
+    const { f, put, wait, spotNear } = window.g9t;
+    const t = f.g9.tanks.list[0];
+    f.grenadesLeft = 99;
+    let spot = spotNear(t, 8);
+    if (spot) {
+      put(spot.w, spot.facing);
+      f.throwGrenade();
+      const t0 = performance.now();
+      await wait(200);
+      while (performance.now() - t0 < 20000 && (f.grenades.length || f.busy)) await wait(100);
+    }
+    const afterGrenade = t.hp;
+    f.lawsLeft = 9;
+    for (let tries = 0; tries < 3 && t.mode !== 'dead'; tries++) {
+      spot = spotNear(t, 10);
+      if (!spot) break;
+      put(spot.w, spot.facing);
+      f.fireLaw();
+      const t1 = performance.now();
+      await wait(200);
+      while (performance.now() - t1 < 20000 && (f.rockets.length || f.busy)) await wait(100);
+      await wait(300);
+    }
+    const t2 = performance.now();
+    while (performance.now() - t2 < 15000 && t.placed.state !== 'destroyed') await wait(100);
+    return { afterGrenade, armourHits: f.g9.tanks.stats.armourHits, mode: t.mode, state: t.placed.state, hp: t.placed.hp, by: t.placed.destroyedBy ?? null, anim: t.placed.sprite.anims.currentAnim?.key };
+  });
+  console.log('g9 tank armour:', JSON.stringify(armour));
+  if (armour.afterGrenade !== 300 || armour.armourHits < 1 || armour.mode !== 'dead' || armour.state !== 'destroyed' || armour.by !== 'law') fail('tank armour (a grenade does nothing, a LAW destroys it)');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: 'test-results/g9-tank-wreck.png' }).catch(() => undefined);
+
+  // Sight: a canopy between a soldier and the Ranger hides him. Alerts: an alerted soldier's neighbour follows; the
+  // alarm sends reinforcements to the last known position.
+  const alerts = await page.evaluate(async () => {
+    const { f, put, wait, scr } = window.g9t;
+    const live = f.enemies.filter((e) => e.state !== 'dead');
+    if (live.length < 2) return { error: 'fewer than 2 soldiers left' };
+    const [a, b] = live;
+    const aw = f.worldOf(a.sprite);
+    const bs = scr({ x: aw.x + 5, y: aw.y + 2 });
+    b.sprite.setPosition(bs.x, bs.y);
+    b.path = [bs];
+    b.next = 0;
+    a.path = [{ x: a.sprite.x, y: a.sprite.y }];
+    a.next = 0;
+    // The Ranger 20 m off: both awake, too far to be seen.
+    put({ x: aw.x - 20, y: aw.y });
+    for (const e of live) if (e !== a && e !== b) e.state = 'dead';
+    a.state = 'patrol';
+    b.state = 'patrol';
+    await wait(500);
+    const before = { a: a.state, b: b.state, spread: f.g9.alerts.stats.spread };
+    a.state = 'alert';
+    a.reaction = 0.7;
+    a.unseen = 0;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 15000 && b.state !== 'alert') await wait(30);
+    const spread = { before, b: b.state, spreadAfter: f.g9.alerts.stats.spread };
+    const sent0 = f.g9.alerts.stats.reinforcements;
+    f.g9.alerts.alarm = false;
+    f.g9.alerts.raiseAlarm({ x: f.ranger.x, y: f.ranger.y });
+    return { spread, alarm: f.g9.alerts.alarm, hunters: f.g9.alerts.stats.reinforcements - sent0, stats: f.g9.alerts.stats, hud: f.hud.text.split('\n')[0] };
+  });
+  console.log('g9 alerts:', JSON.stringify(alerts));
+  if (alerts.error || alerts.spread.b !== 'alert' || alerts.spread.before.b !== 'patrol' || !(alerts.spread.spreadAfter > alerts.spread.before.spread) || !alerts.alarm || alerts.hunters < 1) fail('alerts (spread to a neighbour, alarm sends reinforcements)');
+  // Night and dusk: the view shrinks.
+  const dusk = await page.evaluate(() => {
+    const g = window.g9t.f.g9;
+    const day = g.viewScale();
+    g.sight.light = 0.7;
+    const d = g.viewScale();
+    g.sight.light = 1;
+    return { day, dusk: d };
+  });
+  if (!(dusk.dusk < dusk.day)) fail('dusk does not shorten the view');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'test-results/g9.png' }).catch(() => undefined);
   return ok;
 }

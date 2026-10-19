@@ -108,7 +108,9 @@ export class Debrief extends Phaser.Scene {
     const yh = y + 10;
     steps.push(() => {
       if (status) this.add.text(cx, yh, status, { ...FONT, fontSize: '16px', color: '#ff9080' }).setOrigin(0.5, 0);
-      this.add.text(cx, yh + 34, isTouch ? 'tap to continue' : a.status === 'active' && !a.guest ? 'Enter: mission select · Esc: roster' : 'Enter: roster', { ...FONT, fontSize: '14px', color: DIM }).setOrigin(0.5, 0);
+      // G9: the campaign's progress.
+      if (a.campaignNote) this.add.text(cx, yh + (status ? 20 : 0), a.campaignNote, { ...FONT, fontSize: '15px', color: GOLD }).setOrigin(0.5, 0);
+      this.add.text(cx, yh + (a.campaignNote ? 58 : 34), isTouch ? 'tap to continue' : a.status === 'active' && !a.guest ? 'Enter: mission select · Esc: roster' : 'Enter: roster', { ...FONT, fontSize: '14px', color: DIM }).setOrigin(0.5, 0);
       this.shown = true;
     });
     // The lines appear one by one; a key shows the rest at once.

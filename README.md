@@ -21,16 +21,19 @@ tools, from Synty POLYGON 3D models.
 | Sound on/off | `M` |
 | Weapons and items | `1`–`6` carbine, grenade, LAW, time bomb, knife, first aid; `Q` cycles; `R` reload; `H` first aid |
 | Overview map | `Tab` or `O` |
-| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger |
+| Call the plane (extraction zone, objective done) | `C` |
+| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger; on the mission select `D` difficulty, `C` campaign |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
-FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid) beside them and a MAP button under the compass. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
+FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid) beside them, a MAP button under the compass and a CALL PLANE button under it in the extraction zone. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
 retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them off.
 
 ## The game
 
 A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
-before the timer runs out. Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
+before the timer runs out, then call the plane and hold out until it picks you up. Machine-gun nests, hidden
+minefields, trenches, tanks (only a LAW or a time bomb stops them) and alerts that spread into an alarm stand in the
+way. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one Ranger). Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
 Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
 supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
 Missions 5–8 have their own objectives: walk up to the code book to take it; get close to the enemy officer and he
@@ -53,6 +56,10 @@ the prisoners out (they follow you; the debriefing counts the rescued).
 | ![](docs/screenshots/title-roster.png) | ![](docs/screenshots/mission-drop.png) | ![](docs/screenshots/mission-debrief.png) |
 | **Truck patrol** | **Truck wrecked** | **Map preview from the generator's MCP** |
 | ![](docs/screenshots/mission4-road.png) | ![](docs/screenshots/mission4-truck.png) | ![](docs/screenshots/mcp-mission4-preview.png) |
+| **Machine-gun nest** | **Tank firing** | **The plane at the extraction** |
+| ![](docs/screenshots/g9-nest.png) | ![](docs/screenshots/g9-tank.png) | ![](docs/screenshots/g9-plane.png) |
+| **Mines spotted (prone)** | **In a trench** | **Difficulty and campaign** |
+| ![](docs/screenshots/g9-mines.png) | ![](docs/screenshots/g9-trench.png) | ![](docs/screenshots/g9-missions.png) |
 
 ## How it's made
 

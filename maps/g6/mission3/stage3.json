@@ -1,5 +1,7 @@
-{"map":"mission3","project":"Airborne Ranger","detail":"brief","ops":[
-  {"op":"scatter","seed":"pines","objects":[{"sprite":"pine_snow","weight":2},{"sprite":"pine_snow_small","weight":1}],"density":1.8,"spacing":3.5,"cluster":0.7,"clusterScale":24,"avoidTerrains":["ice","road","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
-  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock_snow"}],"density":0.35,"spacing":4,"avoidTerrains":["ice","road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
-  {"op":"scatter","seed":"airfield-rocks","objects":[{"sprite":"rock_snow"}],"count":8,"spacing":6,"region":{"rect":[2,66,76,74]},"avoidTerrains":["road"],"avoidZones":["custom","spawn"],"avoidMargin":0.5}
-]}
+{"map": "mission3", "project": "Airborne Ranger", "detail": "brief", "ops": [
+  {"op": "place", "sprite": "mg_nest", "x": 62, "y": 124, "facing": "SW", "state": "intact", "id": "g9_nest1", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 48, "y": 70, "facing": "SW", "state": "intact", "id": "g9_nest2", "properties": {"kind": "mg_nest"}}, 
+  {"op": "place", "sprite": "mg_nest", "x": 12, "y": 168, "facing": "NE", "state": "intact", "id": "g9_nest3", "properties": {"kind": "mg_nest"}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[76, 184], [90, 180], [92, 190], [78, 194]], "properties": {"minefield": true, "mines": 7}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[40, 70], [56, 68], [58, 76], [42, 78]], "properties": {"minefield": true, "mines": 7}}, 
+  {"op": "addZone", "kind": "custom", "id": "g9_tank1", "name": "tank route", "shape": "polyline", "points": [[70, 170], [66, 140], [60, 110]], "properties": {"tank": true, "speed": 1.8}}]}
