@@ -20,11 +20,12 @@ tools, from Synty POLYGON 3D models.
 | Grenade | `G` |
 | Sound on/off | `M` |
 | Weapons and items | `1`–`6` carbine, grenade, LAW, time bomb, knife, first aid; `Q` cycles; `R` reload; `H` first aid |
+| Camera (mission 9) | `C`: hold while the prototype is in view |
 | Overview map | `Tab` or `O` |
 | Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
-FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid) beside them and a MAP button under the compass. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
+FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid, and CAMERA in mission 9) beside them and a MAP button under the compass. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
 retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them off.
 
 ## The game
@@ -40,6 +41,10 @@ supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 2
 | 2 · Knock Out Enemy Radar Array | desert | ![](docs/screenshots/mission2.png) |
 | 3 · Disable Enemy Aircraft | arctic | ![](docs/screenshots/mission3.png) |
 | 4 · Cut a Pipeline | jungle, dusk | ![](docs/screenshots/mission4.png) |
+| 9 · Photograph an Experimental Aircraft: get the prototype in view unseen and hold the camera | arctic | ![](docs/screenshots/g8-mission9.png) |
+| 10 · Free the Hostages: blow the stockade gate, lead the hostages out alive | desert | ![](docs/screenshots/g8-mission10.png) |
+| 11 · Create a Diversion: hold fire until the buzzer, wreck the garrison, be at the border when the plane lands | temperate | ![](docs/screenshots/g8-mission11.png) |
+| 12 · Delayed Sabotage: time bombs on the fuel dump, long fuses, never seen there | jungle, night | ![](docs/screenshots/g8-mission12.png) |
 
 | Roster | Drop | Debriefing |
 |---|---|---|

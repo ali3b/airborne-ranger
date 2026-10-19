@@ -1,0 +1,5 @@
+{"map":"mission9","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"scatter","seed":"pines","objects":[{"sprite":"pine_snow","weight":2},{"sprite":"pine_snow_small","weight":1}],"density":1.8,"spacing":3.5,"cluster":0.7,"clusterScale":24,"avoidTerrains":["ice","road","dirt"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1.5},
+  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock_snow"}],"density":0.35,"spacing":4,"avoidTerrains":["ice","road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
+  {"op":"scatter","seed":"approach-cover","objects":[{"sprite":"pine_snow_small"},{"sprite":"rock_snow"}],"count":14,"spacing":5,"region":{"rect":[56,6,76,34]},"avoidTerrains":["road"],"avoidZones":["custom","spawn","patrol"],"avoidMargin":0.5}
+]}

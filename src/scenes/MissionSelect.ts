@@ -28,7 +28,9 @@ export class MissionSelect extends Phaser.Scene {
     const r = this.ranger;
     const { width, height } = fitMenu(this, 580, 520);
     const cx = width / 2;
-    const top = Math.max(30, height / 2 - 200);
+    // G8: up to 12 missions: rows shrink to fit the screen.
+    const step = Math.max(26, Math.min(38, Math.floor((height - 290) / MISSIONS.length)));
+    const top = Math.max(20, height / 2 - 120 - (MISSIONS.length * step) / 2);
     this.add.text(cx, top, 'AIRBORNE RANGER', { ...FONT, fontSize: '36px', color: GOLD }).setOrigin(0.5);
     this.add
       .text(cx, top + 52, `${RANK_NAMES[r.rank].toUpperCase()} ${r.name}  ·  ${r.score} pts  ·  ${r.missions} missions`, { ...FONT, fontSize: '17px', color: '#c8c8a0' })
@@ -37,7 +39,7 @@ export class MissionSelect extends Phaser.Scene {
     this.rows = MISSIONS.map((m, k) => {
       const done = r.accomplished?.includes(m.number) ? '  [done]' : '';
       const t = this.add
-        .text(cx, top + 150 + k * 38, `${m.number}. ${m.title}  (${m.climate})${done}`, { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 5 } })
+        .text(cx, top + 150 + k * step, `${m.number}. ${m.title}  (${m.climate})${done}`, { ...FONT, fontSize: step < 34 ? '16px' : '18px', color: GOLD, padding: { x: 10, y: step < 34 ? 2 : 5 } })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
       t.on('pointerover', (p: Phaser.Input.Pointer) => !p.wasTouch && this.select(k));
@@ -45,13 +47,13 @@ export class MissionSelect extends Phaser.Scene {
       return t;
     });
     this.add
-      .text(cx, top + 175 + MISSIONS.length * 38, isTouch ? 'tap a mission, then pack the supply pods' : `Up/Down or 1-${MISSIONS.length} to pick · Enter or click: supply pods · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
+      .text(cx, top + 165 + MISSIONS.length * step, isTouch ? 'tap a mission, then pack the supply pods' : `Up/Down or 1-${Math.min(9, MISSIONS.length)} to pick · Enter or click: supply pods · Esc: roster · M: sound`, { ...FONT, fontSize: '14px', color: DIM })
       .setOrigin(0.5);
     this.add
       .text(20, 20, '< ROSTER', { ...FONT, fontSize: '18px', color: GOLD, padding: { x: 10, y: 8 }, backgroundColor: '#1a2014' })
       .setInteractive({ useHandCursor: true })
       .on('pointerup', () => this.scene.start('title'));
-    this.add.text(cx, top + 200 + MISSIONS.length * 38, `rank ${RANKS[r.rank]}`, { ...FONT, fontSize: '12px', color: DIM }).setOrigin(0.5);
+    this.add.text(cx, top + 188 + MISSIONS.length * step, `rank ${RANKS[r.rank]}`, { ...FONT, fontSize: '12px', color: DIM }).setOrigin(0.5);
     this.pick = 0;
     this.select(0);
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {

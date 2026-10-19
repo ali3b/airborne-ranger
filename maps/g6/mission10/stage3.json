@@ -1,0 +1,7 @@
+{"map":"mission10","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"scatter","seed":"palms","objects":[{"sprite":"palm"}],"density":0.12,"spacing":6,"cluster":0.7,"clusterScale":24,"avoidTerrains":["road","rock","dirt"],"avoidZones":["all"],"avoidMargin":1.5},
+  {"op":"scatter","seed":"oasis","objects":[{"sprite":"palm"}],"count":16,"spacing":3.5,"region":{"rect":[66,128,90,152]},"avoidTerrains":["road","dirt"],"avoidZones":["custom","patrol","spawn"],"avoidMargin":1},
+  {"op":"scatter","seed":"ridge-rocks","objects":[{"sprite":"rock_big"}],"density":0.06,"spacing":10,"avoidTerrains":["road","dirt"],"avoidZones":["all"],"avoidMargin":2},
+  {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock"}],"density":0.45,"spacing":4,"cluster":0.4,"clusterScale":16,"avoidTerrains":["road","dirt"],"avoidZones":["all"],"avoidMargin":1},
+  {"op":"scatter","seed":"scrub","objects":[{"sprite":"bush"}],"density":0.9,"spacing":3,"cluster":0.6,"clusterScale":18,"avoidTerrains":["road","rock","dirt"],"avoidZones":["all"],"avoidMargin":1.5}
+]}

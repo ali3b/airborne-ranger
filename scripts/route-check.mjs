@@ -85,8 +85,10 @@ for (const name of names) {
     }
     return { m: Infinity, cells: [] };
   };
-  const ra = astar(centre(drop), centre(obj));
-  const rb = astar(centre(obj), centre(ex));
+  // G8: an objective inside an enclosure (mission 10's stockade) names the cell to reach in `approach` ("x,y").
+  const oc = props(obj).approach ? String(props(obj).approach).split(',').map((v) => Math.floor(Number(v))) : centre(obj);
+  const ra = astar(centre(drop), oc);
+  const rb = astar(oc, centre(ex));
   const a = ra.m;
   const b = rb.m;
   const total = a + b;

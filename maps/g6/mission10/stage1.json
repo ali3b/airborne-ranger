@@ -1,0 +1,15 @@
+{"map":"mission10","project":"Airborne Ranger","detail":"brief","ops":[
+  {"op":"clear"},
+  {"op":"generate","biome":{"base":"sand","layers":[]},"seed":"mission10"},
+  {"op":"path","points":[[129,120],[100,116],[72,122],[48,110],[24,104],[-1,98]],"terrain":"road","width":3,"jitter":1.2,"seed":"road-main"},
+  {"op":"path","points":[[48,110],[44,86],[40,62],[30,42],[24,30]],"terrain":"road","width":3,"jitter":1,"seed":"road-prison"},
+  {"op":"path","points":[[104,250],[98,222],[86,196],[80,170],[86,146],[92,124]],"terrain":"dirt","width":2,"jitter":1.5,"seed":"track"},
+  {"op":"path","points":[[24,30],[16,60],[10,100],[8,140],[12,156]],"terrain":"dirt","width":2,"jitter":1.5,"seed":"track-west"},
+  {"op":"path","points":[[129,186],[106,180],[88,176],[72,180]],"terrain":"rock","width":4,"jitter":1.5,"seed":"ridge-se","collision":true},
+  {"op":"path","points":[[56,180],[36,174],[18,178],[-1,170]],"terrain":"rock","width":4,"jitter":1.5,"seed":"ridge-sw","collision":true},
+  {"op":"path","points":[[100,78],[80,72],[56,66]],"terrain":"rock","width":4,"jitter":1.5,"seed":"ridge-n","collision":true},
+  {"op":"path","points":[[129,40],[110,46],[92,44]],"terrain":"rock","width":3,"jitter":1.2,"seed":"ridge-ne","collision":true},
+  {"op":"rect","x0":4,"y0":2,"x1":46,"y1":38,"terrain":"dirt"},
+  {"op":"rect","x0":4,"y0":146,"x1":20,"y1":164,"terrain":"dirt"},
+  {"op":"generate","biome":"desert","seed":"mission10","keep":["road","dirt","rock"]}
+]}

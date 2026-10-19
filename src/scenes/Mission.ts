@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { isTouch, setMapView } from '../touch';
+import { isTouch, setMapView, type TouchItem } from '../touch';
 import { animKey, props, type TiledMap, type TiledObject } from '../assets';
 import { tileToScreen, screenToTile, dirFromWorld, screenToWorldDelta, worldToScreenDelta, type Dir8 } from '../iso';
 import { Field, circleHitsPolygon, distW, RANGER_RADIUS, type Placed, type Pt } from './Field';
@@ -9,6 +9,8 @@ import { missionByKey, type MissionConfig } from '../missions';
 import { award, selected, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
 import { BASIC_CARRY, ITEMS, loadLoadout, sanitize, type Loadout } from '../loadout';
+import { makeObjective, type Objective } from '../objectives';
+import '../objectives/g8b';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -88,6 +90,11 @@ export class Mission extends Field {
   award: Award | null = null;
   /** G7: what each supply pod carries (from the loadout screen; a guest gets the last saved loadout). */
   loadout: Loadout = loadLoadout();
+  /** G8: the mission's objective kind (src/objectives), null = destroy every target; why it failed, if it did. */
+  objective: Objective | null = null;
+  failReason: string | null = null;
+  /** G8: touch item-bar entries an objective adds (its camera…), with what a tap does. */
+  touchExtras: (TouchItem & { action: () => void })[] = [];
   /** For scripts/load-check.mjs: how the map turned into the scene. */
   report = { tiles: 0, objects: 0, missingSprites: [] as string[], blockedCells: 0, enemies: 0, pods: 0, targets: 0, vehicles: 0, animatedProps: 0 };
 
@@ -126,6 +133,9 @@ export class Mission extends Field {
     this.alertAt = null;
     this.objectiveAt = null;
     this.restartOnR = false;
+    this.objective = null;
+    this.failReason = null;
+    this.touchExtras = [];
     // G7: the Ranger's own basic carry (one magazine is in the carbine).
     this.grenadesLeft = BASIC_CARRY.grenade;
     this.magsLeft = BASIC_CARRY.mag;
@@ -184,6 +194,8 @@ export class Mission extends Field {
     this.extractArea = ex ? this.area(ex) : [];
     for (const z of zones) if (z.type === 'custom' && props(z).pod) this.addPod(z);
     this.drawExtraction();
+    this.objective = makeObjective(this.cfg);
+    this.objective?.start(this);
     this.report.pods = this.pods.length;
     this.report.targets = this.targets.length;
 
@@ -445,7 +457,7 @@ export class Mission extends Field {
     const done = this.targets.filter((t) => (t.hp ?? 0) <= 0).length;
     const t = Math.max(0, Math.ceil(this.timeLeft));
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-    const goal = this.objectiveDone ? this.cfg.done : `${this.cfg.goal} (${done}/${this.targets.length})`;
+    const goal = this.objectiveDone ? this.cfg.done : this.objective ? this.objective.hud(this) : `${this.cfg.goal} (${done}/${this.targets.length})`;
     return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}${isTouch ? '' : '   Tab map'}`;
   }
 
@@ -482,6 +494,8 @@ export class Mission extends Field {
 
   /** Where the Ranger should head now: the objective, then the extraction zone (cell coordinates). */
   protected goalCell(): [number, number] | null {
+    const at = !this.objectiveDone && this.objective?.marker?.(this);
+    if (at) return [at.x, at.y];
     const a = this.objectiveDone ? this.extractArea : this.objectiveArea;
     return a.length ? centroid(a) : null;
   }
@@ -535,7 +549,13 @@ export class Mission extends Field {
       this.alertAt = elapsed;
       sfx.alert();
     }
-    if (!this.objectiveDone && this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0)) {
+    const state = this.objective ? this.objective.update(this, dt) : this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0) ? 'done' : 'pending';
+    if (typeof state === 'object') {
+      this.failReason = state.failed;
+      this.finish('failed');
+      return;
+    }
+    if (!this.objectiveDone && state === 'done') {
       this.objectiveDone = true;
       this.objectiveAt = elapsed;
       this.extractMarker?.setAlpha(1);
@@ -577,7 +597,8 @@ export class Mission extends Field {
     };
     this.award = award(this.rangerId, this.result);
     const head = ok ? 'MISSION ACCOMPLISHED' : outcome === 'kia' ? 'RANGER KILLED IN ACTION' : 'MISSION FAILED';
-    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : 'The plane left without you.';
+    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : (this.failReason ?? 'The plane left without you.');
+    const stats = Object.entries(this.objective?.stats?.(this) ?? {}).map(([k, v]) => `${k} ${v}`).join(' · ');
     this.add.rectangle(width / 2, height / 2, width, height, 0x10140c, 0.8).setScrollFactor(0).setDepth(1e9);
     this.add
       .text(
@@ -585,13 +606,25 @@ export class Mission extends Field {
         height / 2,
         `${head}\n\n${line}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n` +
-          `LAW fired ${this.arsenal.lawsFired} · time bombs ${this.arsenal.bombsPlaced} · knife kills ${this.arsenal.knifeKills} · first aid ${this.arsenal.heals}\n\n` +
+          `LAW fired ${this.arsenal.lawsFired} · time bombs ${this.arsenal.bombsPlaced} · knife kills ${this.arsenal.knifeKills} · first aid ${this.arsenal.heals}\n` +
+          (stats ? `${stats}\n` : '') +
+          '\n' +
           (isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing'),
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(1e9 + 1);
+  }
+
+  protected extraItems() {
+    return this.touchExtras;
+  }
+
+  protected itemAction(key: string) {
+    const it = this.touchExtras.find((x) => x.key === key);
+    it?.action();
+    return !!it;
   }
 
   /** Enter after the end: the debriefing. */

@@ -8,6 +8,7 @@
 // the mission, the basic carry and a pod pickup, then the carbine's magazine and reload, first aid, the knife, a LAW
 // on a target and a time bomb on another; then the same by touch on an emulated iPhone in landscape.
 import { chromium, devices } from '@playwright/test';
+import { objectiveChecks } from './g8b-checks.mjs';
 const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
 const scene = process.argv[3] ?? 'title';
 const isMission = /^mission\d*$/.test(scene);
@@ -156,14 +157,14 @@ try {
       const ys = m.dropArea.map((p) => p[1]);
       const inDrop = c.x >= Math.min(...xs) && c.x <= Math.max(...xs) && c.y >= Math.min(...ys) && c.y <= Math.max(...ys);
       const layers = m.children.list.filter((o) => o.type === 'TilemapLayer').length;
-      return { ...m.report, map: m.mapName, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
+      return { ...m.report, objective: m.cfg.objective ?? null, map: m.mapName, ranger: { x: +c.x.toFixed(2), y: +c.y.toFixed(2) }, inDrop, layers, anim: m.ranger.anims?.currentAnim?.key ?? null };
     });
     console.log('mission:', JSON.stringify(s));
     if (s.map !== missionMap) {
       ok = false;
       console.log(`WRONG MAP ${s.map} (want ${missionMap})`);
     }
-    if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || !s.targets) {
+    if (s.error || !s.inDrop || !s.tiles || !s.layers || s.objects < MIN_OBJECTS || s.missingSprites.length || s.enemies < 3 || (!s.targets && !s.objective)) {
       ok = false;
       console.log(`MISSION CHECK FAILED (want: Ranger in the drop zone, tiles drawn, >= ${MIN_OBJECTS} objects, no missing sprites, >= 3 enemies, targets)`);
     }
@@ -248,7 +249,26 @@ try {
       }
       await page.screenshot({ path: `test-results/${scene}-truck.png` }).catch(() => undefined);
     }
-    if (!s.error) {
+    // G8 (g8b): objective missions play their own objective (scripts/g8b-checks.mjs), then the debriefing.
+    if (!s.error && ['photo', 'hostages', 'diversion', 'sabotage'].includes(s.objective)) {
+      ok = (await objectiveChecks(page, scene, s.objective)) && ok;
+      await page.screenshot({ path: `test-results/${scene}.png` }).catch(() => undefined);
+      const deb = await page.evaluate(async () => {
+        const m = window.game.scene.getScene('mission');
+        if (!m.toDebrief()) return { error: 'toDebrief refused' };
+        const t0 = performance.now();
+        while (performance.now() - t0 < 15000 && !window.game.scene.getScene('debrief')?.shown) await new Promise((r) => setTimeout(r, 100));
+        const d = window.game.scene.getScene('debrief');
+        return { shown: !!d?.shown, points: d?.award?.points };
+      });
+      console.log('debrief:', JSON.stringify(deb));
+      if (!deb.shown || !(deb.points > 0)) {
+        ok = false;
+        console.log('NO DEBRIEFING (or no merit for an accomplished mission)');
+      }
+      shotTaken = true;
+    }
+    if (!s.error && !s.objective) {
       // Blow up the depot: stand 8 m (the grenade's range) west of each target's anchor facing east, unhurtable, and
       // throw until it's destroyed; then put the Ranger in the extraction zone and expect the end screen.
       const destroyed = await page.evaluate(async () => {

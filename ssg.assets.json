@@ -350,6 +350,86 @@
       "template": "still",
       "tile": "64x32",
       "metresPerTile": 0.125
+    },
+    {
+      "name": "prototype_rocket",
+      "asset": "POLYGON_War/SM_Veh_Rocket_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "hostage",
+      "asset": "POLYGON_War/Character_Resistance_Male_01",
+      "class": "unarmed",
+      "anim": [
+        "idle",
+        "walk",
+        "run"
+      ],
+      "template": [
+        "sit",
+        "death_fall"
+      ],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "prison_hut",
+      "asset": "POLYGON_War/SM_Bld_Shed_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "stockade",
+      "asset": "POLYGON_War/SM_Prop_Fence_High_01",
+      "template": "still",
+      "facings": 2
+    },
+    {
+      "name": "stockade_gate",
+      "asset": "POLYGON_War/SM_Prop_Fence_High_02",
+      "template": "still",
+      "facings": 2,
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "fuel_tank",
+      "asset": "POLYGON_Apocalypse/SM_Bld_WaterTank_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "fuel_bowser",
+      "asset": "POLYGON_Apocalypse/SK_Veh_Army_Truck_Tank_01",
+      "template": "still",
+      "facings": 2,
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1"
+    },
+    {
+      "name": "alarm_pole",
+      "asset": "POLYGON_War/SM_Prop_AlarmPole_01",
+      "template": "still"
+    },
+    {
+      "name": "ranger_ops",
+      "asset": "POLYGON_War/Character_American_Soldier_01",
+      "template": [
+        {
+          "template": "kneel_shoot:duration=1.5,twoHanded=1,kick=0",
+          "with": "POLYGON_Apocalypse/SM_Item_Camera_01",
+          "as": "camera"
+        },
+        {
+          "template": "kneel_place",
+          "with": "POLYGON_BattleRoyale/SM_Prop_C4_01",
+          "as": "plant"
+        }
+      ],
+      "with": [
+        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
+      ],
+      "dirs": "8",
+      "uniform": true
     }
   ],
   "tilesets": [
@@ -559,6 +639,34 @@
       "tileset": "jungle",
       "ops": "maps/mission4.ops.json",
       "export": "public/assets/maps/mission4"
+    },
+    {
+      "name": "mission9",
+      "size": "128x256",
+      "tileset": "arctic",
+      "ops": "maps/mission9.ops.json",
+      "export": "public/assets/maps/mission9"
+    },
+    {
+      "name": "mission10",
+      "size": "128x256",
+      "tileset": "desert",
+      "ops": "maps/mission10.ops.json",
+      "export": "public/assets/maps/mission10"
+    },
+    {
+      "name": "mission11",
+      "size": "128x256",
+      "tileset": "temperate",
+      "ops": "maps/mission11.ops.json",
+      "export": "public/assets/maps/mission11"
+    },
+    {
+      "name": "mission12",
+      "size": "128x256",
+      "tileset": "jungle",
+      "ops": "maps/mission12.ops.json",
+      "export": "public/assets/maps/mission12"
     }
   ]
 }
