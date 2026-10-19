@@ -18,6 +18,8 @@ export interface MissionConfig {
    * at a flat-out run, 5–6:30 walking; with the objective, pods, stealth and fights a mission takes about 6–10 minutes.
    */
   seconds: number;
+  /** G8: the objective kind (src/objectives); absent: destroy every target. */
+  objective?: string;
 }
 
 export const MISSIONS: MissionConfig[] = [
@@ -61,6 +63,52 @@ export const MISSIONS: MissionConfig[] = [
     done: 'PIPELINE CUT: get to the extraction zone',
     success: 'The pipeline is cut and burning. The Ranger made the pickup at dusk.',
     seconds: 12 * 60,
+  },
+  // G8 (lane g8a): missions 5–8, each with its own objective kind (src/objectives).
+  {
+    map: 'mission5',
+    number: 5,
+    title: 'STEAL A CODE BOOK',
+    climate: 'temperate',
+    objective: 'codebook',
+    goal: 'steal the code book from the headquarters',
+    done: 'CODE BOOK TAKEN: get to the extraction zone',
+    success: 'The code book is in our hands. The Ranger made the pickup.',
+    seconds: 10 * 60,
+  },
+  {
+    map: 'mission6',
+    number: 6,
+    title: 'CAPTURE AN ENEMY OFFICER',
+    climate: 'arctic',
+    objective: 'officer',
+    goal: 'capture the enemy officer',
+    done: 'OFFICER DELIVERED',
+    success: 'The officer was flown out for questioning. The Ranger made the pickup.',
+    seconds: 12 * 60,
+  },
+  {
+    map: 'mission7',
+    number: 7,
+    title: 'DISABLE SAM SITE',
+    climate: 'desert',
+    objective: 'sam',
+    goal: 'disable the SAM site',
+    done: 'SAM SITE DOWN: get to the extraction zone',
+    success: 'The SAM site is wrecked; the bombers can go in. The Ranger made the pickup.',
+    seconds: 11 * 60,
+  },
+  {
+    map: 'mission8',
+    number: 8,
+    title: 'LIBERATE A P.O.W. CAMP',
+    climate: 'jungle',
+    dusk: true,
+    objective: 'pow',
+    goal: 'liberate the P.O.W. camp',
+    done: 'PRISONERS OUT',
+    success: 'The prisoners are free and flown out at dusk. The Ranger made the pickup.',
+    seconds: 13 * 60,
   },
 ];
 

@@ -83,6 +83,10 @@ export interface MissionResult {
   alertAt: number | null;
   /** Mission seconds when the objective was done, or null. */
   objectiveAt: number | null;
+  /** G8: why it failed when it wasn't the clock (the Ranger is recalled, not captured). */
+  reason?: string;
+  /** G8: the objective's own numbers (prisoners rescued…). */
+  stats?: Record<string, string | number>;
 }
 
 export interface MeritLine {
@@ -208,7 +212,7 @@ export function award(rangerId: string | null, res: MissionResult): Award {
   if (posthumous) rank = Math.min(RANKS.length - 1, rank + 1);
   const promotedTo = rank > r.rank ? rank : null;
   r.rank = rank;
-  r.status = res.outcome === 'kia' ? 'KIA' : res.outcome === 'failed' ? 'captured' : 'active';
+  r.status = res.outcome === 'kia' ? 'KIA' : res.outcome === 'failed' && !res.reason ? 'captured' : 'active';
   if (!guest) {
     roster[slot] = r;
     saveRoster(roster);

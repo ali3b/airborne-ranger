@@ -37,7 +37,7 @@ export class Debrief extends Phaser.Scene {
     const left = cx - w / 2;
     let y = Math.max(24, height / 2 - 320);
     const ok = res.outcome === 'accomplished';
-    const head = ok ? 'MISSION ACCOMPLISHED' : res.outcome === 'kia' ? 'KILLED IN ACTION' : 'MISSION FAILED: CAPTURED';
+    const head = ok ? 'MISSION ACCOMPLISHED' : res.outcome === 'kia' ? 'KILLED IN ACTION' : res.reason ? 'MISSION FAILED' : 'MISSION FAILED: CAPTURED';
     this.add.text(cx, y, 'DEBRIEFING', { ...FONT, fontSize: '18px', color: DIM }).setOrigin(0.5, 0);
     y += 30;
     this.add.text(cx, y, `MISSION ${res.mission}: ${res.title}`, { ...FONT, fontSize: '20px', color: '#c8c8a0' }).setOrigin(0.5, 0);
@@ -47,6 +47,12 @@ export class Debrief extends Phaser.Scene {
     const name = `${RANKS[a.before.rank]} ${a.ranger.name}${a.guest ? ' (guest: not on the roster)' : ''}`;
     this.add.text(cx, y, name, { ...FONT, fontSize: '18px', color: GOLD }).setOrigin(0.5, 0);
     y += 40;
+    // G8: why it failed (not the clock) and the objective's own numbers.
+    const extra = [res.reason, Object.entries(res.stats ?? {}).map(([k, v]) => `${k}: ${v}`).join(' · ')].filter(Boolean).join('\n');
+    if (extra) {
+      this.add.text(cx, y - 8, extra, { ...FONT, fontSize: '15px', color: res.reason ? '#ff9080' : '#c8c8a0', align: 'center' }).setOrigin(0.5, 0);
+      y += 24 * extra.split('\n').length;
+    }
 
     const lines = a.lines.length ? a.lines : [{ label: 'No merit earned', points: 0 }];
     const steps: (() => void)[] = [];

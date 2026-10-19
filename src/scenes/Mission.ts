@@ -9,6 +9,8 @@ import { missionByKey, type MissionConfig } from '../missions';
 import { award, selected, type Award, type MissionResult } from '../roster';
 import { sfx } from '../sound';
 import { BASIC_CARRY, ITEMS, loadLoadout, sanitize, type Loadout } from '../loadout';
+import { makeObjective, type Objective } from '../objectives';
+import '../objectives/g8a';
 
 /**
  * A mission built only from a generator map (`ssg map export --embed`, see scripts/build-maps.mjs and
@@ -76,6 +78,10 @@ export class Mission extends Field {
   protected vehicles: Vehicle[] = [];
   protected timeLeft = 0;
   protected objectiveDone = false;
+  /** G8: the mission's own goal (src/objectives), or null for "destroy every target". */
+  objective: Objective | null = null;
+  /** G8: why the mission failed, when it wasn't the clock (the officer was killed…). */
+  protected failReason: string | null = null;
   /** 'accomplished' | 'failed' | 'kia' once the mission is over. */
   outcome: MissionResult['outcome'] | null = null;
   /** The Ranger on the roster playing this mission (null: a guest, see Title). */
@@ -120,6 +126,8 @@ export class Mission extends Field {
     this.blocked = new Set();
     this.timeLeft = this.cfg.seconds;
     this.objectiveDone = false;
+    this.objective = null;
+    this.failReason = null;
     this.outcome = null;
     this.result = null;
     this.award = null;
@@ -184,6 +192,8 @@ export class Mission extends Field {
     this.extractArea = ex ? this.area(ex) : [];
     for (const z of zones) if (z.type === 'custom' && props(z).pod) this.addPod(z);
     this.drawExtraction();
+    this.objective = makeObjective(this.cfg);
+    this.objective?.start(this);
     this.report.pods = this.pods.length;
     this.report.targets = this.targets.length;
 
@@ -445,7 +455,7 @@ export class Mission extends Field {
     const done = this.targets.filter((t) => (t.hp ?? 0) <= 0).length;
     const t = Math.max(0, Math.ceil(this.timeLeft));
     const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-    const goal = this.objectiveDone ? this.cfg.done : `${this.cfg.goal} (${done}/${this.targets.length})`;
+    const goal = this.objectiveDone ? this.cfg.done : this.objective ? this.objective.hud(this) : `${this.cfg.goal} (${done}/${this.targets.length})`;
     return `MISSION ${this.cfg.number} · ${clock}   HP ${this.hp}${alert ? '  ALERT' : ''}   ${goal}${isTouch ? '' : '   Tab map'}`;
   }
 
@@ -482,6 +492,8 @@ export class Mission extends Field {
 
   /** Where the Ranger should head now: the objective, then the extraction zone (cell coordinates). */
   protected goalCell(): [number, number] | null {
+    const mark = !this.objectiveDone && this.objective?.marker?.(this);
+    if (mark) return [mark.x, mark.y];
     const a = this.objectiveDone ? this.extractArea : this.objectiveArea;
     return a.length ? centroid(a) : null;
   }
@@ -502,11 +514,13 @@ export class Mission extends Field {
     const a = Math.atan2(at.y - this.ranger.y, at.x - this.ranger.x);
     const dx = Math.cos(a);
     const dy = Math.sin(a);
-    const col = this.objectiveDone ? 0xff80c0 : 0xffd040;
+    // G8: an objective can point at the extraction before it's done (an escort on the way out).
+    const toExtract = this.objectiveDone || (this.extractArea.length > 0 && inPolygon(goal, this.extractArea));
+    const col = toExtract ? 0xff80c0 : 0xffd040;
     g.fillStyle(col, 1).fillTriangle(cx + dx * 20, cy + dy * 20, cx - dx * 6 - dy * 7, cy - dy * 6 + dx * 7, cx - dx * 6 + dy * 7, cy - dy * 6 - dx * 7);
     const w = screenToWorldDelta(at.x - this.ranger.x, at.y - this.ranger.y, this.ppm);
     const m = Math.round(Math.hypot(w.x, w.y) / 5) * 5;
-    this.compassText.setPosition(cx + 30, cy).setText(`${this.objectiveDone ? 'EXTRACTION' : 'OBJECTIVE'} ${m} m`).setColor(this.objectiveDone ? '#ff80c0' : '#ffd040');
+    this.compassText.setPosition(cx + 30, cy).setText(`${toExtract ? 'EXTRACTION' : 'OBJECTIVE'} ${m} m`).setColor(toExtract ? '#ff80c0' : '#ffd040');
   }
 
   update(t: number, dtMs: number) {
@@ -535,7 +549,13 @@ export class Mission extends Field {
       this.alertAt = elapsed;
       sfx.alert();
     }
-    if (!this.objectiveDone && this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0)) {
+    const state = this.objectiveDone ? 'done' : this.objective ? this.objective.update(this, dt) : this.targets.length && this.targets.every((x) => (x.hp ?? 0) <= 0) ? 'done' : 'pending';
+    if (typeof state === 'object') {
+      this.failReason = state.failed;
+      this.finish('failed');
+      return;
+    }
+    if (!this.objectiveDone && state === 'done') {
       this.objectiveDone = true;
       this.objectiveAt = elapsed;
       this.extractMarker?.setAlpha(1);
@@ -574,10 +594,13 @@ export class Mission extends Field {
       seconds: this.cfg.seconds,
       alertAt: this.alertAt,
       objectiveAt: this.objectiveAt,
+      reason: this.failReason ?? undefined,
+      stats: this.objective?.stats?.(this),
     };
     this.award = award(this.rangerId, this.result);
     const head = ok ? 'MISSION ACCOMPLISHED' : outcome === 'kia' ? 'RANGER KILLED IN ACTION' : 'MISSION FAILED';
-    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : 'The plane left without you.';
+    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : (this.failReason ?? 'The plane left without you.');
+    const stats = Object.entries(this.result.stats ?? {}).map(([k, v]) => `${k} ${v}`).join(' · ');
     this.add.rectangle(width / 2, height / 2, width, height, 0x10140c, 0.8).setScrollFactor(0).setDepth(1e9);
     this.add
       .text(
@@ -585,7 +608,9 @@ export class Mission extends Field {
         height / 2,
         `${head}\n\n${line}\n` +
           `time ${Math.floor(used / 60)}:${String(Math.floor(used % 60)).padStart(2, '0')} · enemies ${kills}/${this.enemies.length} · grenades thrown ${this.grenadesThrown}\n` +
-          `LAW fired ${this.arsenal.lawsFired} · time bombs ${this.arsenal.bombsPlaced} · knife kills ${this.arsenal.knifeKills} · first aid ${this.arsenal.heals}\n\n` +
+          `LAW fired ${this.arsenal.lawsFired} · time bombs ${this.arsenal.bombsPlaced} · knife kills ${this.arsenal.knifeKills} · first aid ${this.arsenal.heals}\n` +
+          (stats ? `${stats}\n` : '') +
+          '\n' +
           (isTouch ? 'tap for the debriefing' : 'press Enter for the debriefing'),
         { fontFamily: 'monospace', fontSize: '22px', color: ok ? '#e8d27a' : '#ff7060', align: 'center' },
       )

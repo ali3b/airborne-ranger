@@ -154,6 +154,13 @@ interface Bullet {
   hits: boolean;
 }
 
+/** G8: someone on the field who isn't an enemy but can be shot or caught in a blast (`from`: the shot's world direction). */
+export interface Bystander {
+  sprite: Phaser.GameObjects.Sprite;
+  alive: boolean;
+  hit(cause: Cause, from: Pt): void;
+}
+
 export interface Enemy {
   sprite: Phaser.GameObjects.Sprite;
   path: Pt[]; // waypoints (screen px)
@@ -210,6 +217,8 @@ export class Field extends Phaser.Scene {
   /** Counters for the end screen and scripts/load-check.mjs. */
   arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
   private lastUseAt = 0;
+  /** G8: people who aren't enemies (a captured officer, prisoners): the Ranger's bullets and any blast reach them. */
+  bystanders: Bystander[] = [];
 
   constructor(key = 'field') {
     super(key);
@@ -255,6 +264,7 @@ export class Field extends Phaser.Scene {
     this.rounds = MAG_SIZE;
     this.weapon = 'carbine';
     this.arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
+    this.bystanders = [];
 
     const m = setupAssets(this);
     if (!m || !m.sprites.ranger) {
@@ -734,6 +744,12 @@ export class Field extends Phaser.Scene {
           if (e) {
             b.left = 0;
             this.killEnemy(e, b.dir, 'rifle');
+            break;
+          }
+          const by = this.bystanders.find((x) => x.alive && distW(b.pos, this.worldOf(x.sprite)) < 0.45);
+          if (by) {
+            b.left = 0;
+            by.hit('rifle', b.dir);
           }
         } else if (b.hits && !this.dead && distW(b.pos, rangerW) < 0.45) {
           b.left = 0;
@@ -972,6 +988,10 @@ export class Field extends Phaser.Scene {
       if (e.state === 'dead') continue;
       const ew = this.worldOf(e.sprite);
       if (distW(ew, w) < BLAST_RADIUS) this.killEnemy(e, { x: ew.x - w.x, y: ew.y - w.y }, cause);
+    }
+    for (const by of this.bystanders) {
+      const bw = this.worldOf(by.sprite);
+      if (by.alive && distW(bw, w) < BLAST_RADIUS) by.hit(cause, { x: bw.x - w.x, y: bw.y - w.y });
     }
     if (distW(this.worldOf(this.ranger), w) < BLAST_RADIUS * 0.7) this.hurtRanger(60);
     if (opts.direct && opts.direct.hp !== undefined && opts.direct.hp > 0) {
