@@ -33,6 +33,9 @@ A plane drops one Ranger and three supply pods behind enemy lines. Complete the 
 before the timer runs out. Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
 Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
 supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
+Missions 5–8 have their own objectives: walk up to the code book to take it; get close to the enemy officer and he
+surrenders and follows you (don't shoot him); blow the P.O.W. camp's gate or stand at it to cut the wire, then lead
+the prisoners out (they follow you; the debriefing counts the rescued).
 
 | Mission | Climate | |
 |---|---|---|
@@ -40,6 +43,10 @@ supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 2
 | 2 · Knock Out Enemy Radar Array | desert | ![](docs/screenshots/mission2.png) |
 | 3 · Disable Enemy Aircraft | arctic | ![](docs/screenshots/mission3.png) |
 | 4 · Cut a Pipeline | jungle, dusk | ![](docs/screenshots/mission4.png) |
+| 5 · Steal a Code Book | temperate | ![](docs/screenshots/g8-mission5-codebook.png) |
+| 6 · Capture an Enemy Officer | arctic | ![](docs/screenshots/g8-mission6-escort.png) |
+| 7 · Disable SAM Site | desert | ![](docs/screenshots/g8-mission7-sam.png) |
+| 8 · Liberate a P.O.W. Camp | jungle, dusk | ![](docs/screenshots/g8-mission8-prisoners.png) |
 
 | Roster | Drop | Debriefing |
 |---|---|---|

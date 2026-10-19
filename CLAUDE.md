@@ -12,7 +12,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
     Missions 2 and 3 were authored that way: `maps/mcp/stage*.json` / `maps/mcp3/stage*.json` are the edit_map batches,
     `maps/mission2.ops.json` / `maps/mission3.ops.json` their sum.
     G6 rebuilt missions 1–4 at 128×256 the same way: `maps/g6/<mission>/stage*.json`, applied (and summed into
-    `maps/<mission>.ops.json`) by `node scripts/g6-stages.mjs <mission>`.
+    `maps/<mission>.ops.json`) by `node scripts/g6-stages.mjs <mission>`; G8's missions 5–8 live in `maps/g8/<mission>/`.
 - **Never** edit, import or copy code from the generator repo, and never read its database directly.
   If you can't get something through the CLI or MCP, that's a finding: write it in `FEEDBACK.md`.
 - Every asset the game uses is declared in `ssg.assets.json` and rebuilt by `npm run assets`
@@ -29,7 +29,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 ## Checks before you finish a milestone
 - `npm run typecheck`
 - `npm run dev` (port 5195), then `node scripts/load-check.mjs http://localhost:5195 <scene>` for `title` (Ranger
-  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4` (each plays to the debriefing; mission 4 also checks the driving
+  select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4`, `mission5`…`mission8` (G8 objectives: code book, officer, SAM site, P.O.W. camp) (each plays to the debriefing; mission 4 also checks the driving
   truck, its wreck and the animated props), and `arsenal` (G7: the supply pod screen, pods, reload, first aid, knife, LAW,
   time bomb, then the same by touch on an emulated iPhone in landscape). It
   needs no page errors, and it writes `test-results/<scene>.png`.

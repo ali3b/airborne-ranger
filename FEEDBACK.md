@@ -702,7 +702,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: tight rects (the ford's width + 1 cell) in maps/g6/mission1|4/stage1.json; a few water cells stay walkable.
 - Suggested change: `path {…, collision: false}` that clears the cells under it (a ford or bridge); or `rect {value: false, terrains: ["sand"]}` / a `paint`/`fill` filter by terrain; or make `path {collision: true}` re-derive blocking from the final terrain so a later sand path over the water unblocks exactly its cells.
 - Re-test (generator large-map update, 2026-10-19): unchanged (`rect` has no terrain filter, `path {collision}` only blocks).
-- Status: triaged (TODO: Inbox, generator 2026-10-19 wave 10)
+- Re-test (G8 lane g8a, 2026-10-19): works. Missions 5 and 8 make their fords with `path {terrain, width, collision: false}` and no rect (maps/g8/mission5|8/stage1.json): the route check crosses on the fords, and its blocked-cell count rises by 211 / 270 against the old rects (the water beside the fords stays blocked).
+- Status: verified (missions 5 and 8; missions 1–4 still carry the old rects until they are rebuilt)
 
 
 ## FB-070 · A sprite can't leave the project's tile lock: UI icons get the map scale, `ppm` is ignored silently
@@ -758,3 +759,40 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Workaround: guessed the names.
 - Suggested change: a small synonym list (first aid → medkit/medical/bandage, explosive → C4/bomb/dynamite, bazooka/launcher → RPG/rocket, duffel ↔ duffle) and fuzzy matching on tags.
 - Status: fixed (generator wave 10, master c2fbd9b; re-test and drop the workaround)
+
+## FB-076 · No surrender (hands up) clip or template for a captured soldier
+- Severity: workaround        Milestone: G8
+- Tried: `search_animations` for surrender, hands up, hands (only HandsOnHips, phone and hair idles), and the character templates in `list_options`.
+- Wanted: mission 6's enemy officer raising his hands when the Ranger reaches him, then walking with them up (or behind his head) while he is led out; prisoners could use the same.
+- Got: nothing that lifts both arms above the head; the unarmed moveset has idle / walk / run only.
+- Workaround: the officer (`officer`, unarmed + `hit_react`) plays `hit_react` once as the "surrender" gesture with a "NICHT SCHIESSEN!" line, then follows with the normal unarmed walk (`src/objectives/officer.ts`, FB-076).
+- Suggested change: a procedural `hands_up` pose template (both upper arms raised, forearms up, loop) and a `hands_up_walk` (the walk clip with the arm bones overridden by the pose), or a generic "arms pose over a locomotion clip" layer.
+- Status: open
+
+## FB-077 · The unarmed moveset has no hit or death, and doesn't fall back to the templates like the gunner set
+- Severity: polish        Milestone: G8
+- Tried: `"class": "unarmed", "anim": ["idle", "walk", "run", "hit", "death"]` for the officer and the prisoners (ssg.assets.json).
+- Wanted: like `rifle` (builtin_gunner), `hit` and `death` filled by `hit_react` / `death_fall` when the pack has no unarmed clip.
+- Got: `sprite apply` refused the whole batch: `"hit" is no move of the moveset (idle, walk, run, place)`, suggesting sword clips (Hit_F_React_Sword, Death_B_01_Sword…).
+- Workaround: `"anim": ["idle", "walk", "run"], "template": ["hit_react", "death_fall"]` (the game looks the clip names up, `src/objectives/follower.ts`).
+- Suggested change: let builtin_locomotion (unarmed) fall back to `hit_react` / `death_fall` the way the combat sets do, or add hit/death to the unarmed moveset.
+- Status: open
+
+## FB-078 · Fences can't be laid end to end: footprints snap 5.12 m panels to 6 cells and overlaps are refused
+- Severity: workaround        Milestone: G8
+- Tried: mission 8's P.O.W. camp: `place pow_fence` (POLYGON_War SM_Prop_Fence_Wire_01, 5.12 m) every 5.12 m along each side of the camp, and the 2.64 m gate `pow_gate` in a gap.
+- Wanted: a closed wire fence (no gap the Ranger fits through) with one gate.
+- Got: `o2 would overlap o1 (pow_fence)…` for every second panel: the 5.12 m panel covers 6 cells, so panels can only stand 6 m apart, leaving 0.88 m gaps (the Ranger is 0.6 m wide). Path objects with `every` have the same limit.
+- Workaround: `snap: false, allowOverlap: true` on every panel and the gate, placed at computed centres (maps/g8/mission8/stage2.json); nothing checks that the fence is really closed.
+- Suggested change: a `fence` (or `wall`) op / path mode that lays a panel sprite end to end along a polyline by its real length (cut or scaled last panel), with `gaps: [{at, sprite: "pow_gate"}]`, exempting the panels from the overlap check against each other.
+- Status: open
+
+## FB-079 · No way to put a small object on top of another (a code book on a table)
+- Severity: workaround        Milestone: G8
+- Tried: mission 5: `place code_book` on the cell of `hq_table`.
+- Wanted: the book lying on the table top (0.82 m up), drawn over the table, and listed with the table in get_map.
+- Got: the overlap check refuses it; `allowOverlap` would only stand it on the ground inside the table's footprint. Objects have no elevation or "on top of" link.
+- Workaround: the book is a custom zone (`codebook`, `height: 0.82`) and the game draws `code_book` raised by that height (`src/objectives/codebook.ts`, FB-079).
+- Suggested change: `place {…, on: "<object id>"}` (or `elevation` metres) that puts a small prop on another's top surface (the support's height from its export), exported as an object property the engine can apply, and shown in the previews.
+- Status: open
+

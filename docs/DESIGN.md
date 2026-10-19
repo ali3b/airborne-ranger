@@ -178,6 +178,34 @@ Knife_Stab_Fore trimmed to 0.9 s), `ranger_law` (BattleRoyale RPG, kneel_shoot),
 icons `item_mag`, `item_grenade`, `item_medkit`, `item_law`, `item_bomb` at a close-up scale (FB-070). Gaps:
 FB-070–075.
 
+## Mission objectives, missions 5–8 (G8, lane g8a)
+`MissionConfig.objective` names an objective kind (`src/objectives/index.ts`: `start`, `update` → pending / done /
+`{ failed }`, `hud`, `marker` for the compass, `stats` for the end screen and debriefing); without one a mission is
+"destroy every target" as before. Mission 5–8's kinds are in `src/objectives/` (`codebook.ts`, `officer.ts`, `sam.ts`,
+`pow.ts`, registered by `g8a.ts`). People the Ranger leads out are `Follower`s (`follower.ts`): they walk the Ranger's
+own trail (the points he walked, so they go where he could), a lag behind him, walking or running to keep up; the
+Ranger's bullets and any blast kill them (`Field.bystanders`). A failed objective ends the mission with its reason; the
+Ranger is recalled (status stays active), not captured.
+
+| | objective | how | extraction | objects | enemies | shortest route | clock |
+|---|---|---|---|---|---|---|---|
+| 5 temperate | Steal a Code Book | the book lies on a table behind sandbags in the HQ (bunker, barracks, tents); walk up to it | west | 787 | 30 | 441 m | 10:00 |
+| 6 arctic | Capture an Enemy Officer | he stands at his HQ (snow huts); from 9 m he shouts for the guards, within 3 m he surrenders and follows; bring him to the extraction alive | east | 525 | 30 | 339 m | 12:00 |
+| 7 desert | Disable SAM Site | 4 launchers (`sam_launcher`, POLYGON_War flak), 3 missile stacks, radar dish and mast: 9 targets | west | 433 | 29 | 494 m | 11:00 |
+| 8 jungle, dusk | Liberate a P.O.W. Camp | a wire fence (`pow_fence`) with a gate (`pow_gate`): blow it, or stand at it 4 s to cut it; 5 prisoners walk out and join the Ranger within 7 m; the debriefing counts the rescued; all dead fails | east | 833 | 29 | 335 m | 13:00 |
+
+- **Maps:** 128 × 256 m, built over MCP like G6 (`maps/g8/<mission>/stage*.json` applied by `scripts/g6-stages.mjs`,
+  summed into `maps/<mission>.ops.json`): drop in the south, objective in the north, three pods, bunker nests and
+  outposts at the crossings, patrols. Fords use `path {collision: false}` (FB-069 verified). A custom zone with
+  `route` marks where the objective is reached for `scripts/route-check.mjs` (the book, the officer, the camp exit).
+- **Sprites:** `officer` (POLYGON_War German officer, unarmed + hit_react + death_fall), `pow_prisoner` (POLYGON_Generic
+  prisoner), `code_book`, `hq_table`, `hq_hut_snow`, `sam_launcher`, `sam_missiles`, `pow_fence`, `pow_gate`,
+  `pow_barracks`. Gaps: FB-076 (no surrender pose), FB-077 (unarmed has no hit/death), FB-078 (fences end to end),
+  FB-079 (no object on another).
+- **Screenshots:** `docs/screenshots/g8-mission<N>-map.png` (the generator's preview), `g8-mission5-codebook.png`,
+  `g8-mission6-surrender.png`, `g8-mission6-escort.png`, `g8-mission7-sam.png`, `g8-mission8-camp.png`,
+  `g8-mission8-prisoners.png`, `g8-mission6|8-phone.png` (by `scripts/g8-shots.mjs`).
+
 ## Milestones (they mirror the generator's TODO "Phase G")
 | | Needs from the generator | Delivers |
 |---|---|---|
@@ -189,3 +217,4 @@ FB-070–075.
 | G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |
 | G6 | large-map readiness (MCP region views, fast scatter) | original-scale 128×256 m maps for missions 1–4, overview map, HUD compass, culling and AI sleep for phones |
 | G7 | — (gaps FB-070–075) | supply pod loadout screen, limited ammo and reload, LAW rockets, time bombs, knife, first aid; keyboard and touch item bar |
+| G8 (g8a) | — (gaps FB-076–079) | missions 5–8 (code book, officer, SAM site, P.O.W. camp) with objective kinds (`src/objectives`), followers, 128×256 maps |
