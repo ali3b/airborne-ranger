@@ -259,8 +259,9 @@ try {
       return { difficulty: g.difficulty, nests: g.nests.list.length, mines: g.mines.list.length, minefields: g.mines.stats.fields, trenches: g.trenches.list.length, tanks: g.tanks.list.length, canopy: g.sight.canopyCells, adjust: g.adjust };
     });
     console.log('g9:', JSON.stringify(g9));
-    const want = { mission1: { tanks: 1, trenches: 2 }, mission2: { tanks: 1 }, mission3: { tanks: 1 } }[missionMap] ?? {};
-    if (g9.error || g9.nests < 2 || g9.mines < 6 || g9.minefields < 2 || g9.tanks < (want.tanks ?? 0) || g9.trenches < (want.trenches ?? 0)) {
+    // Missions 1–4 carry the G9 hazards so far (maps/g6/<mission>/stage3.json); 5–12 don't have them yet.
+    const want = { mission1: { tanks: 1, trenches: 2 }, mission2: { tanks: 1 }, mission3: { tanks: 1 }, mission4: {} }[missionMap];
+    if (g9.error || (want && (g9.nests < 2 || g9.mines < 6 || g9.minefields < 2 || g9.tanks < (want.tanks ?? 0) || g9.trenches < (want.trenches ?? 0)))) {
       ok = false;
       console.log('G9 MAP CHECK FAILED (want >= 2 manned nests, 2 minefields with >= 6 mines, the tanks and trenches the map has)');
     }
