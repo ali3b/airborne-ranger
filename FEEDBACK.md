@@ -969,7 +969,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `get_map` / `map_preview` show the map, but nothing walks it; whether a minefield or a nest arc sits on the way in is invisible until the export is replayed in the game.
 - Workaround: `scripts/route-check.mjs` (G6's A* over the exported `.tmj`) now prints the hazards on each route (G10: minefield cells on the route, cells each nest covers per leg, a tank route's nearest approach) and warns `MINES ON THE ROUTE`; placements were iterated against it. It also shows missions 2 and 3 have mines on their shortest route.
 - Suggested change: a `route` read tool (MCP + CLI) over a map's walkability, and `avoidRoute` on the placing ops.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 12)
 
 ## FB-111 · `place` with a facing the sprite doesn't have fails the whole batch
 - Severity: polish        Milestone: G10
@@ -978,7 +978,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `op 67 (place): sprite 121 has no facing "W" (facings: NE, NW, SW, SE)` and the whole atomic batch is refused (clear, generate, every other op), so one bad facing costs a full rebuild cycle. The error names the sprite by id, not by its name in the project.
 - Workaround: the nests use only NE/NW/SW/SE (the facings `mg_nest` was rendered with).
 - Suggested change: `snapFacing` (or snap by default with a warning) for `place` and stamp/path objects; name the sprite in the message (`mg_nest (121)`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 12)
 
 ## FB-120 · A ford cut with `path {collision: false}` still gets scattered bushes and rocks
 - Severity: workaround        Milestone: G10
@@ -987,7 +987,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: a bush at (69,163) and a 3×3 rock at (68..70, 161..163) landed on the middle ford, another bush/rock on each of the others; with the Ranger's clearance none of the three fords was passable and `scripts/route-check.mjs` reported no route (drop→objective `Infinity`). The old `rect {value: false}` hid this because it also opened the water beside the bar.
 - Workaround: the fords are width 5, and mission 4's `undergrowth` and `rocks` scatters add `mud` to `avoidTerrains` (maps/g6/mission4/stage1.json, stage4.json); that also keeps them off the jungle's mud tracks, which reads fine.
 - Suggested change: scatter (and generate's biome layers) avoid cells a `path {collision: false}` cleared (or any path marked `walkway: true`), or an `avoidPaths: ["ford-*"]` option by seed/id, with the reason counted in `rejected` (`path`).
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 12)
 
 ## FB-121 · Adding one clip to a character re-renders its whole sheet
 - Severity: polish        Milestone: G10
@@ -996,4 +996,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: batch 578 rendered all 1520 frames of the 15 clips (70 s on the CPU runner; minutes on a busy shared runner).
 - Workaround: none (it is render time only).
 - Suggested change: cache rendered frames per clip and direction keyed by everything that affects them (model, outfit, clip, template params, view, scale), render only the missing ones and re-pack the atlas.
-- Status: open
+- Status: triaged (TODO: Inbox, generator wave 12)
