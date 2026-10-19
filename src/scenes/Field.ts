@@ -6,6 +6,8 @@ import { DIRS8, dirFromWorld, tileToScreen, worldToScreenDelta, screenToWorldDel
 import { buildGround } from '../ground';
 import { PropGrid, type Rect } from '../world';
 import { sfx } from '../sound';
+import { G9 } from '../enemies'; // G9
+import type { FieldHost } from '../enemies/host'; // G9
 
 const MAP = 40; // tiles per side (1 m per tile)
 
@@ -210,6 +212,8 @@ export class Field extends Phaser.Scene {
   /** Counters for the end screen and scripts/load-check.mjs. */
   arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
   private lastUseAt = 0;
+  /** G9: machine-gun nests, mines, trenches, tanks, sight and alerts, difficulty, the plane (src/enemies/index.ts). */
+  g9?: G9;
 
   constructor(key = 'field') {
     super(key);
@@ -255,6 +259,7 @@ export class Field extends Phaser.Scene {
     this.rounds = MAG_SIZE;
     this.weapon = 'carbine';
     this.arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
+    this.g9 = undefined; // G9
 
     const m = setupAssets(this);
     if (!m || !m.sprites.ranger) {
@@ -319,6 +324,7 @@ export class Field extends Phaser.Scene {
       .setDepth(1e9);
     // On touch screens the sound / full-screen buttons take the top right: wrap the HUD short of them.
     if (isTouch) this.hud.setWordWrapWidth(Math.max(200, this.scale.width - 290));
+    this.g9 = new G9(this as unknown as FieldHost); // G9
   }
 
   /** The hand-made test field: generated ground, hand-placed props. Returns the Ranger's start (screen px). */
@@ -819,12 +825,13 @@ export class Field extends Phaser.Scene {
     const a = this.worldOf(e.sprite);
     const b = this.worldOf(this.ranger);
     const d = distW(a, b);
-    if (d > (this.prone ? ENEMY_VIEW_RANGE * 0.6 : ENEMY_VIEW_RANGE)) return false;
+    // G9: the view range also shrinks at dusk / night, in a trench, and with the difficulty.
+    if (d > (this.prone ? ENEMY_VIEW_RANGE * 0.6 : ENEMY_VIEW_RANGE) * (this.g9?.viewScale() ?? 1)) return false;
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
     if (Math.abs(Phaser.Math.Angle.Wrap(ang - e.angle)) > ENEMY_VIEW_HALF_ANGLE) return false;
     for (let t = 0.6; t < d - 0.4; t += 0.3) {
       const q = { x: a.x + ((b.x - a.x) * t) / d, y: a.y + ((b.y - a.y) * t) / d };
-      if (this.propAt(q)) return false;
+      if (this.propAt(q) || this.g9?.blocksSight(q, t, d)) return false; // G9: tree canopies hide him too
     }
     return true;
   }
@@ -896,6 +903,7 @@ export class Field extends Phaser.Scene {
         const d = distW(a, b);
         let chance = Phaser.Math.Clamp(0.65 - (d - 3) * 0.05, 0.2, 0.65);
         if (this.prone) chance *= 0.5;
+        chance *= this.g9?.hitScale() ?? 1; // G9: difficulty, trench cover
         const hits = Math.random() < chance;
         let ang = Math.atan2(b.y - a.y, b.x - a.x);
         if (!hits) ang += (Math.random() < 0.5 ? -1 : 1) * Math.atan2(0.9 + Math.random(), d);
@@ -968,6 +976,7 @@ export class Field extends Phaser.Scene {
     this.tweens.add({ targets: ring, displayWidth: r * 2, displayHeight: r, alpha: 0, duration: 600, onComplete: () => ring.destroy() });
     this.cameras.main.shake(180 * big, 0.006 * big);
     const w = this.worldOf(at);
+    this.g9?.onBlast(w, BLAST_RADIUS, cause, opts.direct); // G9: tank armour, mines set off
     for (const e of this.enemies) {
       if (e.state === 'dead') continue;
       const ew = this.worldOf(e.sprite);
@@ -1302,7 +1311,7 @@ export class Field extends Phaser.Scene {
       this.facing = dirFromWorld(dx, dy);
       const clip = this.prone ? 'rifle_crawl' : running ? 'rifle_run' : 'rifle_walk';
       const len = Math.hypot(dx, dy);
-      const speed = this.speedOf(clip);
+      const speed = this.speedOf(clip) * (this.g9?.speedScale() ?? 1); // G9: slower in a trench
       const step = worldToScreenDelta((dx / len) * speed * dt, (dy / len) * speed * dt, this.ppm);
       this.tryMove(step.x, step.y);
       this.play(this.ranger, 'ranger', clip, this.facing);
@@ -1316,10 +1325,11 @@ export class Field extends Phaser.Scene {
     this.updateBullets(dt);
     this.updateRockets(dt);
     this.updateBombs(dt);
+    this.g9?.update(dt); // G9
 
     // On touch the item bar shows the counts; the HUD keeps only a bomb's fuse (narrow phone screens).
     const arms = isTouch ? (this.bombs.length ? this.armsLine().replace(/^.*   /, '') : '') : this.armsLine();
-    this.hud.setText(`${this.hudLine()}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
+    this.hud.setText(`${this.hudLine()}${this.g9?.hud() ?? ''}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
     if (isTouch) setTouchItems(WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })));
   }
 

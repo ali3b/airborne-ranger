@@ -542,7 +542,8 @@ export class Mission extends Field {
       if (this.extractMarker) this.tweens.add({ targets: this.extractMarker, alpha: 0.4, yoyo: true, repeat: -1, duration: 500 });
     }
     const c = this.rangerCell();
-    if (this.objectiveDone && !this.dead && inPolygon([c.x, c.y], this.extractArea)) this.finish('accomplished');
+    // G9: in the extraction zone the Ranger calls the plane and is accomplished once it has picked him up (src/pickup.ts).
+    if (this.objectiveDone && !this.dead && (this.g9 ? this.g9.pickedUp() : inPolygon([c.x, c.y], this.extractArea))) this.finish('accomplished');
     else if (this.timeLeft <= 0) this.finish('failed');
   }
 

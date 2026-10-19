@@ -1,3 +1,6 @@
+import { campaignAfter, type CampaignState } from './campaign';
+import { DIFFICULTY, getDifficulty, type Difficulty } from './difficulty';
+
 /**
  * The persistent roster: six Ranger slots saved in localStorage, with name, rank, career score, medals and status.
  * The merit, promotion and medal rules are documented in docs/DESIGN.md ("Roster, merit, promotions and medals").
@@ -65,6 +68,8 @@ export interface Ranger {
   missions: number;
   /** Mission numbers accomplished (repeats allowed). */
   accomplished: number[];
+  /** G9: the campaign this Ranger is flying (src/campaign.ts). */
+  campaign?: CampaignState;
 }
 
 /** What a mission hands to the debriefing. */
@@ -83,6 +88,8 @@ export interface MissionResult {
   alertAt: number | null;
   /** Mission seconds when the objective was done, or null. */
   objectiveAt: number | null;
+  /** G9: the difficulty it was flown at (award() fills it in from src/difficulty.ts when missing). */
+  difficulty?: Difficulty;
 }
 
 export interface MeritLine {
@@ -101,6 +108,8 @@ export interface Award {
   status: Status;
   /** True when the Ranger is a guest (no roster slot: a mission entered with ?scene=mission). */
   guest: boolean;
+  /** G9: the campaign's progress after this mission, for the debriefing (null outside the campaign). */
+  campaignNote?: string | null;
 }
 
 const KEY = 'ar.roster.v1';
@@ -169,6 +178,10 @@ export function merit(res: MissionResult): MeritLine[] {
     lines.push({ label: 'Early alert (before the objective)', points: MERIT.earlyAlert });
     if (res.alertAt! < 120) lines.push({ label: 'Alert in the first two minutes', points: MERIT.veryEarlyAlert });
   }
+  // G9: the difficulty scales the mission's merit (Easy ×0.75, Hard ×1.3).
+  const d = DIFFICULTY[res.difficulty ?? 'normal'];
+  const sum = lines.reduce((s, l) => s + l.points, 0);
+  if (d.merit !== 1 && sum > 0) lines.push({ label: `Difficulty ${d.label} ×${d.merit}`, points: Math.round(sum * (d.merit - 1)) });
   return lines;
 }
 
@@ -193,9 +206,15 @@ export function award(rangerId: string | null, res: MissionResult): Award {
   const roster = loadRoster();
   const slot = rangerId ? roster.findIndex((r) => r?.id === rangerId) : -1;
   const guest = slot < 0;
-  const r: Ranger = guest ? guestRanger() : { ...roster[slot]!, medals: { ...roster[slot]!.medals }, accomplished: [...(roster[slot]!.accomplished ?? [])] };
+  const r: Ranger = guest
+    ? guestRanger()
+    : { ...roster[slot]!, medals: { ...roster[slot]!.medals }, accomplished: [...(roster[slot]!.accomplished ?? [])], campaign: roster[slot]!.campaign && { ...roster[slot]!.campaign! } };
   const before = { rank: r.rank, score: r.score, status: r.status };
+  res.difficulty ??= getDifficulty();
   const lines = merit(res);
+  // G9: a campaign mission moves the campaign on (and the last one adds the completion bonus).
+  const camp = guest ? { lines: [], note: null } : campaignAfter(r, res, Math.max(0, lines.reduce((s, l) => s + l.points, 0)));
+  lines.push(...camp.lines);
   const points = Math.max(0, lines.reduce((s, l) => s + l.points, 0));
   const medal = medalFor(res, points);
   r.score += points;
@@ -213,7 +232,7 @@ export function award(rangerId: string | null, res: MissionResult): Award {
     roster[slot] = r;
     saveRoster(roster);
   }
-  return { ranger: r, before, lines, points, medal, promotedTo, posthumous, status: r.status, guest };
+  return { ranger: r, before, lines, points, medal, promotedTo, posthumous, status: r.status, guest, campaignNote: camp.note };
 }
 
 /** The Ranger picked on the select screen (kept for the session). */

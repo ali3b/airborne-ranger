@@ -350,6 +350,61 @@
       "template": "still",
       "tile": "64x32",
       "metresPerTile": 0.125
+    },
+    {
+      "name": "mg_nest",
+      "asset": "POLYGON_War/SM_Env_Sandbag_Wall_Curved_01",
+      "template": "still",
+      "states": "destroyed=@scorch:dark=0.9@collapse:blast=1",
+      "facings": 4
+    },
+    {
+      "name": "mg_gunner",
+      "asset": "POLYGON_War/Character_German_Soldier_01",
+      "class": "rifle",
+      "anim": [
+        "crouch_idle",
+        "death"
+      ],
+      "template": [
+        "kneel_shoot:twoHanded=1,kick=6"
+      ],
+      "with": [
+        "POLYGON_War/SM_Wep_German_HeavyMachineGun_01",
+        "POLYGON_War/SM_Char_Attach_German_Helmet_01"
+      ],
+      "dirs": "8",
+      "uniform": true
+    },
+    {
+      "name": "mine",
+      "asset": "POLYGON_War/SM_Prop_Landmine_01",
+      "template": "still"
+    },
+    {
+      "name": "tank_drive",
+      "asset": "POLYGON_War/SM_Veh_German_Tank_01",
+      "template": [
+        "drive",
+        "fire:duration=0.6"
+      ],
+      "dirs": "8"
+    },
+    {
+      "name": "tank_wreck",
+      "asset": "POLYGON_War/SM_Veh_German_Tank_01",
+      "states": "auto,destroyed@destroy",
+      "template": "still",
+      "dirs": "8",
+      "facings": 0
+    },
+    {
+      "name": "plane_pickup",
+      "asset": "POLYGON_War/SM_Veh_American_Plane_Transport_01",
+      "template": [
+        "propeller_spin:duration=0.2"
+      ],
+      "dirs": "1"
     }
   ],
   "tilesets": [
