@@ -121,4 +121,12 @@ if (fs.existsSync(manifestPath)) {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 }
 console.error(`${Object.keys(built).length} map(s) built${failed.length ? `; FAILED: ${failed.join(', ')}` : ''}`);
+// FB-110: the minefields' `avoidRoute` guards one leg each when they are placed; the routes of the finished maps
+// (after the scatters) are checked again through the generator's `map route` for both legs.
+const missions = Object.keys(built).filter((k) => built[k].tmj && /^mission\d+$/.test(k));
+if (missions.length) {
+  console.error(`=== routes (scripts/route-check.mjs ${missions.join(' ')})`);
+  const rc = await new Promise((resolve) => spawn(process.execPath, [path.join(root, 'scripts/route-check.mjs'), ...missions], { cwd: root, stdio: 'inherit' }).on('close', resolve));
+  if (rc !== 0) failed.push('route-check');
+}
 process.exit(failed.length ? 1 : 0);

@@ -971,7 +971,9 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `get_map` / `map_preview` show the map, but nothing walks it; whether a minefield or a nest arc sits on the way in is invisible until the export is replayed in the game.
 - Workaround: `scripts/route-check.mjs` (G6's A* over the exported `.tmj`) now prints the hazards on each route (G10: minefield cells on the route, cells each nest covers per leg, a tank route's nearest approach) and warns `MINES ON THE ROUTE`; placements were iterated against it. It also shows missions 2 and 3 have mines on their shortest route.
 - Suggested change: a `route` read tool (MCP + CLI) over a map's walkability, and `avoidRoute` on the placing ops.
-- Status: triaged (TODO: Inbox, generator wave 12)
+- Re-test (wave 13, 2026-10-20): works. `ssg --json map route mission5 --from drop --to "code book" --cells` answers in 0.6 s with `found`, `metres`, `cells`, `waypoints` (and notes that every cell of the code book is blocked, so the route ends beside it); zone names, ids and `x,y` cells (mission 10's `approach` "22.5,33") all work. A route to or from a zone ends/starts at its nearest cell, not its centre, so the objective→extraction legs read 30–60 m shorter than the old A* from the zone centre. Every minefield `addZone` (maps/g6/mission1–4/stage3.json, maps/g8/mission5–8/stage3.json, maps/g10/mission9–12.json and the summed `maps/<mission>.ops.json`) now carries `avoidRoute: {from: "drop" | <objective>, to: <objective> | "extraction", margin: 3}` for its nearer leg; a minefield put back on mission 2's old spot is refused: `zone fbtest would be within 3 m of the route from drop to Radar array`. The generator's route showed mines on the shortest way in missions 1, 2, 3 and 11 (the old A* had flagged only 2 and 3): those six minefields moved 7–20 cells off the route. All twelve missions rebuilt with `node scripts/build-maps.mjs`; none has mines on either leg.
+- Workaround removed: `scripts/route-check.mjs` no longer has its own A* (collision cells, footprints, a clearance band): its legs come from `ssg map route`, it keeps only the hazard report (minefields, nest arcs, tanks) and the in-game `--walk`, and exits 1 on a missing route or mines on it. `scripts/build-maps.mjs` runs it on every mission it built. What is left is filed as FB-122 (one leg per `avoidRoute`) and FB-123 (the guard sees the map before the scatters).
+- Status: verified
 
 ## FB-111 · `place` with a facing the sprite doesn't have fails the whole batch
 - Severity: polish        Milestone: G10
@@ -1002,3 +1004,21 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Suggested change: cache rendered frames per clip and direction keyed by everything that affects them (model, outfit, clip, template params, view, scale), render only the missing ones and re-pack the atlas.
 - Re-test (wave 13, 2026-10-20): works. `pow_prisoner` (idle/walk/run + death_fall, 392 frames, CPU runner) got `hit_react` in `ssg.assets.json`; `node scripts/build-assets.mjs pow_prisoner` rendered batch 593 in 5.3 s (the full sheet before: 12.9 s) and `ssg batch status 593` says `done (reused 392 of 440 frames)`; the downloaded sheet has all five clips in 8 directions. The first render after the fix (batch 592) reused nothing: the cache fills from new renders only. Small gap: the reuse count is only in `batch status`, not in `sprite apply`'s progress lines or its `--json` result.
 - Status: verified
+
+## FB-122 · `avoidRoute` guards one leg; a hazard has to stay off drop → objective → extraction
+- Severity: polish        Milestone: wave 13
+- Tried: FB-110's `avoidRoute` on the minefield `addZone`s of missions 1–12 (`{"from": "drop", "to": "Hangar", "margin": 3}`).
+- Wanted: one guard for the whole way the Ranger walks: drop → objective (or the custom zone where it is really reached) → extraction.
+- Got: `avoidRoute` is one object with one `from`/`to`, so each minefield guards only the leg it is nearer to; a minefield beside the objective can sit on the other leg unnoticed. The refusal also says only "within 3 m" (not how close, nor which cells), so moving the zone is guesswork with `map route --cells`.
+- Workaround: `scripts/build-maps.mjs` runs `scripts/route-check.mjs` (both legs via `ssg map route --cells`, minefield cells counted) after the build; each minefield's `avoidRoute` names its nearer leg.
+- Suggested change: let `avoidRoute` take a list (`[{from, to}, …]`) or a chain (`{via: ["drop", "code book", "extraction"], margin}`), and put the closest distance and the cells in the refusal.
+- Status: open
+
+## FB-123 · `avoidRoute` on `addZone` is checked against the map before the batch's scatters
+- Severity: workaround        Milestone: wave 13
+- Tried: the same minefield `addZone`s, which come before the map's `scatter` ops so the scatters' `avoidZones: ["custom"]` keep bushes and rocks out of them (the order G10 needs).
+- Wanted: the guard to hold for the finished map's route (the one the Ranger walks, bent around the scattered trees and rocks).
+- Got: the route is computed where the op stands in the batch, on open ground. Missions 3, 5, 6 and 8 were refused although their minefields were 12–30 m off the finished map's route: mission 8's `g9_mines2` is 29 m from the final drop → camp exit route but within 3 m of the pre-scatter one (`op 81 (addZone): zone g9_mines2 would be within 3 m of the route from drop to camp exit`). The reverse also happens: a zone that passes the guard can end up on the final route once the scatters bend it.
+- Workaround: those four minefields were moved 2–10 cells more so they clear both routes (worked out by replaying the ops up to the zone on a scratch map and asking `map route`), and FB-122's post-build check covers the finished route.
+- Suggested change: an option to check after the whole batch (`avoidRoute: {…, at: "end"}`, refusing the batch then), or a `checkRoute` op that asserts at its place in the batch that the route from → to keeps clear of named zones (`avoid: ["g9_mines1", …]` or `{kind: "custom", property: "minefield"}`).
+- Status: open

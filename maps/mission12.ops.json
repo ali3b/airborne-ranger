@@ -58,8 +58,8 @@
   {"op":"place","sprite":"mg_nest","x":116,"y":140,"facing":"SE","state":"intact","id":"g9_nest1","properties":{"kind":"mg_nest"}},
   {"op":"place","sprite":"mg_nest","x":40,"y":66,"facing":"NW","state":"intact","id":"g9_nest2","properties":{"kind":"mg_nest"}},
   {"op":"place","sprite":"mg_nest","x":40,"y":200,"facing":"SE","state":"intact","id":"g9_nest3","properties":{"kind":"mg_nest"}},
-  {"op":"addZone","kind":"custom","id":"g9_mines1","name":"minefield","shape":"polygon","points":[[94,140],[106,136],[108,144],[96,148]],"properties":{"minefield":true,"mines":7}},
-  {"op":"addZone","kind":"custom","id":"g9_mines2","name":"minefield","shape":"polygon","points":[[44,130],[56,126],[58,134],[46,138]],"properties":{"minefield":true,"mines":6}},
+  {"op":"addZone","kind":"custom","id":"g9_mines1","name":"minefield","shape":"polygon","points":[[94,140],[106,136],[108,144],[96,148]],"properties":{"minefield":true,"mines":7},"avoidRoute":{"from":"drop","to":"Aviation fuel dump","margin":3}},
+  {"op":"addZone","kind":"custom","id":"g9_mines2","name":"minefield","shape":"polygon","points":[[44,130],[56,126],[58,134],[46,138]],"properties":{"minefield":true,"mines":6},"avoidRoute":{"from":"Aviation fuel dump","to":"extraction","margin":3}},
   {"op":"scatter","seed":"canopy","objects":[{"sprite":"palm","weight":1},{"sprite":"tree","weight":2}],"density":1.4,"spacing":3.5,"cluster":0.6,"clusterScale":20,"avoidTerrains":["water","road","mud"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1},
   {"op":"scatter","seed":"undergrowth","objects":[{"sprite":"fern","weight":2},{"sprite":"bush","weight":2},{"sprite":"tree_small","weight":1}],"density":2.2,"spacing":2,"cluster":0.5,"clusterScale":14,"avoidTerrains":["water","road","mud"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":0.5},
   {"op":"scatter","seed":"rocks","objects":[{"sprite":"rock"}],"density":0.12,"spacing":5,"avoidTerrains":["water","road"],"avoidZones":["spawn","objective","extraction","patrol","custom"],"avoidMargin":1}
