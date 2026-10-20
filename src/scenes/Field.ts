@@ -8,6 +8,7 @@ import { PropGrid, type Rect } from '../world';
 import { sfx } from '../sound';
 import { G9 } from '../enemies'; // G9
 import type { FieldHost } from '../enemies/host'; // G9
+import { MouseAim } from '../aim'; // G12
 
 const MAP = 40; // tiles per side (1 m per tile)
 
@@ -59,6 +60,7 @@ const PATROLS: [number, number][][] = [
 export const RANGER_RADIUS = 0.3; // metres
 const RANGER_HP = 100;
 const GRENADE_RANGE = 8; // metres
+const GRENADE_MIN = 2.5; // metres: an aimed throw lands at least this far (his own blast reaches 2.1 m)
 const GRENADE_FLIGHT = 0.9; // seconds
 const GRENADE_APEX = 70; // px above the straight line at mid-flight
 const BLAST_R = 3; // metres: a grenade's blast
@@ -232,6 +234,10 @@ export class Field extends Phaser.Scene {
   bystanders: Bystander[] = [];
   /** G9: machine-gun nests, mines, trenches, tanks, sight and alerts, difficulty, the plane (src/enemies/index.ts). */
   g9?: G9;
+  /** G12: mouse aim on desktop (src/aim.ts). */
+  aim?: MouseAim;
+  /** Keys pressed for movement this frame (mouse aim turns off after a while of keyboard-only movement). */
+  protected keyMoving = false;
 
   constructor(key = 'field') {
     super(key);
@@ -352,6 +358,46 @@ export class Field extends Phaser.Scene {
     // On touch screens the sound / full-screen buttons take the top right: wrap the HUD short of them.
     if (isTouch) this.hud.setWordWrapWidth(Math.max(200, this.scale.width - 290));
     this.g9 = new G9(this as unknown as FieldHost); // G9
+    this.aim = new MouseAim({
+      scene: this,
+      feet: () => (this.ranger ? { x: this.ranger.x, y: this.ranger.y } : null),
+      ppm: () => this.ppm,
+      targets: () => this.enemies.filter((e) => e.state !== 'dead' && e.sprite.visible).map((e) => e.sprite),
+      reach: () => {
+        const w = this.weapon;
+        return { metres: w === 'carbine' ? RANGER_BULLET_RANGE : w === 'grenade' ? GRENADE_RANGE : w === 'law' ? LAW_RANGE : 0, ring: w === 'grenade' || w === 'law' };
+      },
+      grenadeReach: GRENADE_RANGE,
+      paused: () => this.aimPaused(),
+      keyMoving: () => this.keyMoving,
+      fire: () => this.use(),
+      grenade: () => this.throwGrenade(),
+    });
+  }
+
+  /** G12: no mouse aim (and the system cursor back) while this is true. */
+  protected aimPaused() {
+    return this.dead;
+  }
+
+  /**
+   * G12: the world angle from a ground point (screen px, default the commando's feet) to the mouse aim point, or
+   * null when mouse aim is off or the cursor is on top of him.
+   */
+  aimAngle(from?: Pt): number | null {
+    const at = this.aim?.point();
+    if (!at || !this.ranger) return null;
+    const f = from ?? this.ranger;
+    const w = screenToWorldDelta(at.x - f.x, at.y - f.y, this.ppm);
+    return Math.hypot(w.x, w.y) < 0.3 ? null : Math.atan2(w.y, w.x);
+  }
+
+  /** G12: turn to face the mouse aim point (nearest of the 8 directions); false when mouse aim is off. */
+  protected faceAim() {
+    const a = this.aimAngle();
+    if (a === null) return false;
+    this.facing = dirFromWorld(Math.cos(a), Math.sin(a));
+    return true;
   }
 
   /** The hand-made test field: generated ground, hand-placed props. Returns the Ranger's start (screen px). */
@@ -705,7 +751,9 @@ export class Field extends Phaser.Scene {
   /** Ranger fires: the rifle shoot clip's `shoot` event spawns a bullet at the muzzle (`weapon_tip` socket). */
   protected shoot() {
     const clip = this.prone ? 'rifle_prone_shoot' : 'rifle_shoot';
-    if (!this.ranger || this.busy || this.dead || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
+    if (!this.ranger || this.busy || this.dead) return;
+    this.faceAim(); // G12: he turns to where the mouse points
+    if (!this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     // G7: an empty magazine reloads (or clicks when there's none left).
     if (this.rounds <= 0) {
       if (this.magsLeft > 0) this.reload();
@@ -725,7 +773,8 @@ export class Field extends Phaser.Scene {
         this.shotsFired++;
         sfx.shot();
         const muzzle = this.socket('ranger', clip, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -50 };
-        const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
+        // G12: with mouse aim the bullet flies from the muzzle to the cursor, else straight along his facing.
+        const a = this.aimAngle({ x: this.ranger.x + muzzle.x, y: this.ranger.y }) ?? (DIRS8.indexOf(dir) * Math.PI) / 4;
         this.fireBullet(this.ranger, muzzle, { x: Math.cos(a), y: Math.sin(a) }, RANGER_BULLET_RANGE, 'ranger', true);
         this.noise(this.ranger, NOISE_SHOT);
       },
@@ -957,7 +1006,10 @@ export class Field extends Phaser.Scene {
    */
   protected throwGrenade() {
     const clip = RANGER_CLIP.grenade;
-    if (!this.ranger || this.busy || this.prone || this.dead || this.grenadesLeft <= 0 || !this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
+    if (!this.ranger || this.busy || this.prone || this.dead || this.grenadesLeft <= 0) return;
+    this.faceAim(); // G12
+    const target = this.aim?.offset() ?? null; // G12: where the cursor was when he threw (world metres from his feet)
+    if (!this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     const dir = this.facing;
     this.busy = true;
     this.grenadesLeft--;
@@ -970,7 +1022,7 @@ export class Field extends Phaser.Scene {
       () => {
         const off = this.socket('ranger', clip, dir, 'release', ['hand_r', 'hand_l']) ?? { x: 0, y: -60 };
         sfx.throwWhoosh();
-        this.spawnGrenade(dir, off);
+        this.spawnGrenade(dir, off, target);
       },
       () => {
         this.busy = false;
@@ -978,11 +1030,16 @@ export class Field extends Phaser.Scene {
     );
   }
 
-  /** A grenade leaves the hand at `off` (screen px from the Ranger's feet) and arcs to a point ahead of him. */
-  protected spawnGrenade(dir: Dir8, off: Pt) {
+  /**
+   * A grenade leaves the hand at `off` (screen px from the Ranger's feet) and arcs to a point ahead of him: its full
+   * range along his facing, or (G12) the mouse aim point `target` (world metres from his feet), clamped to its range.
+   */
+  protected spawnGrenade(dir: Dir8, off: Pt, target: Pt | null = null) {
     this.grenadesThrown++;
     const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
-    const reach = worldToScreenDelta(Math.cos(a) * GRENADE_RANGE, Math.sin(a) * GRENADE_RANGE, this.ppm);
+    const d = target ? Math.hypot(target.x, target.y) : 0;
+    const k = d > 0.3 ? Phaser.Math.Clamp(d, GRENADE_MIN, GRENADE_RANGE) / d : 0;
+    const reach = k ? worldToScreenDelta(target!.x * k, target!.y * k, this.ppm) : worldToScreenDelta(Math.cos(a) * GRENADE_RANGE, Math.sin(a) * GRENADE_RANGE, this.ppm);
     const from = { x: this.ranger.x + off.x, y: this.ranger.y };
     const to = { x: this.ranger.x + reach.x, y: this.ranger.y + reach.y };
     const ball = this.add.circle(from.x, from.y + off.y, 3, 0x2c3a1c).setStrokeStyle(1, 0x101408);
@@ -1141,6 +1198,7 @@ export class Field extends Phaser.Scene {
   fireLaw() {
     if (!this.ranger || this.busy || this.dead || this.lawsLeft <= 0) return;
     if (this.prone) this.prone = false;
+    this.faceAim(); // G12
     const dir = this.facing;
     this.busy = true;
     this.lawsLeft--;
@@ -1155,8 +1213,9 @@ export class Field extends Phaser.Scene {
         this.arsenal.lawsFired++;
         sfx.launch();
         const tip = this.socket('ranger', RANGER_CLIP.law, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
-        const a = (DIRS8.indexOf(dir) * Math.PI) / 4;
         const ground = { x: this.ranger.x + tip.x, y: this.ranger.y };
+        // G12: with mouse aim it flies from the tube toward the cursor (on to its full range: a direct-fire weapon).
+        const a = this.aimAngle(ground) ?? (DIRS8.indexOf(dir) * Math.PI) / 4;
         const s = this.manifest.sprites.law_rocket;
         const key = s ? animKey(s, s.clips[0], dir) : '';
         const spr = this.anims.exists(key) ? this.add.sprite(ground.x, ground.y + tip.y, 'law_rocket').play(key) : this.add.rectangle(ground.x, ground.y + tip.y, 10, 4, 0x4a5a2a);
@@ -1363,6 +1422,7 @@ export class Field extends Phaser.Scene {
       dy = pad.dy;
     }
     const moving = dx !== 0 || dy !== 0;
+    this.keyMoving = moving && !pad;
     const running = (k.SHIFT.isDown || (!!pad && pad.run)) && !this.prone;
     setProneLit(this.prone);
 
@@ -1377,6 +1437,7 @@ export class Field extends Phaser.Scene {
       this.tryMove(step.x, step.y);
       this.play(this.ranger, 'ranger', clip, this.facing);
     } else if (!this.busy) {
+      this.faceAim(); // G12: standing, he faces the cursor
       this.play(this.ranger, 'ranger', this.prone ? 'rifle_prone_idle' : 'rifle_idle', this.facing);
     }
     this.ranger.setDepth(this.depthAt(this.ranger));
@@ -1390,7 +1451,7 @@ export class Field extends Phaser.Scene {
 
     // On touch the item bar shows the counts; the HUD keeps only a bomb's fuse (narrow phone screens).
     const arms = isTouch ? (this.bombs.length ? this.armsLine().replace(/^.*   /, '') : '') : this.armsLine();
-    this.hud.setText(`${this.hudLine()}${this.g9?.hud() ?? ''}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · Space use · 1-6/Q select · R reload · G grenade · H first aid · M sound'}`);
+    this.hud.setText(`${this.hudLine()}${this.g9?.hud() ?? ''}${arms ? `\n${arms}` : ''}${isTouch ? '' : '\nWASD move · Shift run · X prone · mouse aims: click use, right-click grenade · Space use · G grenade · 1-6/Q select · R reload · H aid · M sound'}`);
     if (isTouch) setTouchItems([...WEAPONS.map((k) => ({ key: k, label: WEAPON_LABEL[k] === 'GRENADE' ? 'GREN' : WEAPON_LABEL[k] === 'CARBINE' ? 'RIFLE' : WEAPON_LABEL[k], count: this.countOf(k), selected: k === this.weapon })), ...this.extraItems()]);
   }
 

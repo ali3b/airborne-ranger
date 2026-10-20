@@ -534,6 +534,11 @@ export class Mission extends Field {
     this.compassText.setPosition(cx + 30, cy).setText(`${toExtract ? 'EXTRACTION' : 'OBJECTIVE'} ${m} m`).setColor(toExtract ? '#ff80c0' : '#ffd040');
   }
 
+  /** G12: no mouse aim while the overview map or the end screen is up. */
+  protected aimPaused() {
+    return super.aimPaused() || !!this.outcome || !!this.overview?.isOpen;
+  }
+
   update(t: number, dtMs: number) {
     if (!this.ranger || this.outcome) return;
     const dt = dtMs / 1000;
