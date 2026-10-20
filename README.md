@@ -4,7 +4,7 @@ An isometric commando game in Phaser 3: one soldier, three supply pods and twelv
 sprite, tileset and map was made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator)
 through its `ssg` CLI and MCP tools, from Synty POLYGON 3D models.
 
-**▶ [Play in your browser](https://ali3b.github.io/solitary-strike/)** (desktop keyboard, or touch on phones and tablets) ·
+**▶ [Play in your browser](https://ali3b.github.io/solitary-strike/)** (desktop keyboard and mouse, or touch on phones and tablets) ·
 **[Gallery](https://ali3b.github.io/solitary-strike/gallery/)**: the documentary *FROM NOTHING*, gameplay video, screenshots, map previews, every sprite animated live, tilesets.
 
 The local folder and the generator project still use the earlier name (`airborne-ranger`, "Airborne Ranger") so map paths keep working.
@@ -18,13 +18,15 @@ The local folder and the generator project still use the earlier name (`airborne
 | Move | `W` `A` `S` `D` or arrow keys (8 directions) |
 | Run | `Shift` |
 | Prone / crawl | `X` |
-| Shoot | `Space` |
-| Grenade | `G` |
+| Aim | the mouse: the commando faces the cursor and fires toward it (keyboard only: he fires the way he faces) |
+| Shoot / use the selected weapon | left click (hold to keep firing) or `Space` |
+| Grenade | right click (lands at the cursor, up to 8 m) or `G` |
 | Sound on/off | `M` |
 | Weapons and items | `1`–`6` carbine, grenade, LAW, time bomb, knife, first aid; `Q` cycles; `R` reload; `H` first aid |
 | Camera (mission 9) | `C`: hold while the prototype is in view |
 | Overview map | `Tab` or `O` |
 | Call the plane (extraction zone, objective done) | `C` |
+| Crosshair | turns red where the selected weapon doesn't reach; its centre dot is green while a grenade reaches. With the grenade or LAW selected a ring on the ground shows the range (LAW rockets fly toward the cursor, up to 30 m) |
 | Menus | `↑` `↓` and `Enter`; `1`–`6` picks a commando; on the mission select `1`–`9`, then `0` `-` `=` for missions 10–12, `D` difficulty, `C` campaign |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the

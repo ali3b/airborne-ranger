@@ -73,6 +73,16 @@ export class Title extends Phaser.Scene {
       this.ribbons.push(this.add.graphics());
     }
     this.hint = this.add.text(cx, top + 165 + SLOTS * 44, '', { ...FONT, fontSize: '14px', color: DIM, align: 'center' }).setOrigin(0.5, 0);
+    // G12: the field controls, keyboard and mouse (touch players get the on-screen buttons).
+    if (!isTouch)
+      this.add
+        .text(cx, top + 220 + SLOTS * 44, 'IN THE FIELD  WASD / arrows move · Shift run · X prone · the mouse aims\nleft click: use the selected weapon (hold to keep firing) · right click: grenade · or Space / G', {
+          ...FONT,
+          fontSize: '13px',
+          color: '#c8c8a0',
+          align: 'center',
+        })
+        .setOrigin(0.5, 0);
     const k0 = this.roster.findIndex((r) => r !== null && r.id === selected.get());
     this.pick = k0 >= 0 ? k0 : 0;
     this.refresh();
