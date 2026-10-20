@@ -823,7 +823,7 @@ export class Field extends Phaser.Scene {
   protected onRangerDown() {
     const { width, height } = this.scale;
     this.add
-      .text(width / 2, height / 2, isTouch ? 'RANGER DOWN\ntap to restart' : 'RANGER DOWN\npress R to restart', {
+      .text(width / 2, height / 2, isTouch ? 'COMMANDO DOWN\ntap to restart' : 'COMMANDO DOWN\npress R to restart', {
         fontFamily: 'monospace',
         fontSize: '32px',
         color: '#ff7060',

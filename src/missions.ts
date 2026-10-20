@@ -32,7 +32,7 @@ export const MISSIONS: MissionConfig[] = [
     climate: 'temperate',
     goal: 'destroy the munitions depot',
     done: 'DEPOT DESTROYED: get to the extraction zone',
-    success: 'Munitions depot destroyed. The Ranger made the pickup.',
+    success: 'Munitions depot destroyed. The commando made the pickup.',
     seconds: 10 * 60,
   },
   {
@@ -42,7 +42,7 @@ export const MISSIONS: MissionConfig[] = [
     climate: 'desert',
     goal: 'knock out the radar array',
     done: 'RADAR ARRAY DOWN: get to the extraction zone',
-    success: 'The radar array is down. The Ranger made the pickup.',
+    success: 'The radar array is down. The commando made the pickup.',
     seconds: 10 * 60,
   },
   {
@@ -52,7 +52,7 @@ export const MISSIONS: MissionConfig[] = [
     climate: 'arctic',
     goal: 'destroy the aircraft on the airfield',
     done: 'AIRCRAFT DESTROYED: get to the extraction zone',
-    success: 'The enemy aircraft are burning. The Ranger made the pickup.',
+    success: 'The enemy aircraft are burning. The commando made the pickup.',
     seconds: 11 * 60,
   },
   {
@@ -63,7 +63,7 @@ export const MISSIONS: MissionConfig[] = [
     dusk: true,
     goal: 'blow the pipeline valves',
     done: 'PIPELINE CUT: get to the extraction zone',
-    success: 'The pipeline is cut and burning. The Ranger made the pickup at dusk.',
+    success: 'The pipeline is cut and burning. The commando made the pickup at dusk.',
     seconds: 12 * 60,
   },
   // G8 (lane g8a): missions 5–8, each with its own objective kind (src/objectives).
@@ -75,7 +75,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'codebook',
     goal: 'steal the code book from the headquarters',
     done: 'CODE BOOK TAKEN: get to the extraction zone',
-    success: 'The code book is in our hands. The Ranger made the pickup.',
+    success: 'The code book is in our hands. The commando made the pickup.',
     seconds: 10 * 60,
   },
   {
@@ -86,7 +86,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'officer',
     goal: 'capture the enemy officer',
     done: 'OFFICER DELIVERED',
-    success: 'The officer was flown out for questioning. The Ranger made the pickup.',
+    success: 'The officer was flown out for questioning. The commando made the pickup.',
     seconds: 12 * 60,
   },
   {
@@ -97,7 +97,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'sam',
     goal: 'disable the SAM site',
     done: 'SAM SITE DOWN: get to the extraction zone',
-    success: 'The SAM site is wrecked; the bombers can go in. The Ranger made the pickup.',
+    success: 'The SAM site is wrecked; the bombers can go in. The commando made the pickup.',
     seconds: 11 * 60,
   },
   {
@@ -109,7 +109,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'pow',
     goal: 'liberate the P.O.W. camp',
     done: 'PRISONERS OUT',
-    success: 'The prisoners are free and flown out at dusk. The Ranger made the pickup.',
+    success: 'The prisoners are free and flown out at dusk. The commando made the pickup.',
     seconds: 13 * 60,
   },
   // G8 (lane g8b): missions 9-12 with their own objectives (src/objectives/g8b.ts). g8a adds 5-8.
@@ -121,7 +121,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'photo',
     goal: 'photograph the prototype at the hangar',
     done: 'PHOTOGRAPHS TAKEN: get to the extraction zone',
-    success: 'The prototype is on film. The Ranger made the pickup.',
+    success: 'The prototype is on film. The commando made the pickup.',
     seconds: 11 * 60,
   },
   {
@@ -132,7 +132,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'hostages',
     goal: 'blow open the stockade gate',
     done: 'HOSTAGES WITH YOU: extraction',
-    success: 'The hostages are free. The Ranger brought them out.',
+    success: 'The hostages are free. The commando brought them out.',
     seconds: 12 * 60,
   },
   {
@@ -144,7 +144,7 @@ export const MISSIONS: MissionConfig[] = [
     planeWaiting: true,
     goal: 'reach the garrison, hold fire until the buzzer',
     done: 'THE PLANE IS DOWN: get to the border zone',
-    success: 'The garrison is in uproar. The Ranger slipped over the border.',
+    success: 'The garrison is in uproar. The commando slipped over the border.',
     seconds: 12 * 60,
   },
   {
@@ -156,7 +156,7 @@ export const MISSIONS: MissionConfig[] = [
     objective: 'sabotage',
     goal: 'plant time bombs on the fuel dump unseen',
     done: 'CHARGES SET: get clear and out before they blow',
-    success: 'The charges are ticking in the fuel dump. The Ranger made the pickup unseen.',
+    success: 'The charges are ticking in the fuel dump. The commando made the pickup unseen.',
     seconds: 12 * 60,
   },
 ];

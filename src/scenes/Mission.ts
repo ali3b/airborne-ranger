@@ -610,8 +610,8 @@ export class Mission extends Field {
       stats: this.objective?.stats?.(this),
     };
     this.award = award(this.rangerId, this.result);
-    const head = ok ? 'MISSION ACCOMPLISHED' : outcome === 'kia' ? 'RANGER KILLED IN ACTION' : 'MISSION FAILED';
-    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The Ranger fell behind enemy lines.' : (this.failReason ?? 'The plane left without you.');
+    const head = ok ? 'MISSION ACCOMPLISHED' : outcome === 'kia' ? 'COMMANDO KILLED IN ACTION' : 'MISSION FAILED';
+    const line = ok ? this.cfg.success : outcome === 'kia' ? 'The commando fell behind enemy lines.' : (this.failReason ?? 'The plane left without you.');
     const stats = Object.entries(this.result.stats ?? {}).map(([k, v]) => `${k} ${v}`).join(' · ');
     this.add.rectangle(width / 2, height / 2, width, height, 0x10140c, 0.8).setScrollFactor(0).setDepth(1e9);
     this.add

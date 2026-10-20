@@ -45,9 +45,9 @@ export class Title extends Phaser.Scene {
     const { width, height } = fitMenu(this, 660, 600);
     const cx = width / 2;
     const top = Math.max(30, height / 2 - 250);
-    this.add.text(cx, top, 'AIRBORNE RANGER', { ...FONT, fontSize: '44px', color: GOLD }).setOrigin(0.5);
+    this.add.text(cx, top, 'SOLITARY STRIKE', { ...FONT, fontSize: '44px', color: GOLD }).setOrigin(0.5);
     this.add.text(cx, top + 50, 'built with Synty Sprite Generator', { ...FONT, fontSize: '16px', color: DIM }).setOrigin(0.5);
-    this.add.text(cx, top + 105, 'SELECT RANGER', { ...FONT, fontSize: '20px', color: '#c8c8a0' }).setOrigin(0.5);
+    this.add.text(cx, top + 105, 'SELECT COMMANDO', { ...FONT, fontSize: '20px', color: '#c8c8a0' }).setOrigin(0.5);
     const rowW = Math.min(860, width - 40);
     this.rows = [];
     this.ribbons = [];
@@ -117,11 +117,11 @@ export class Title extends Phaser.Scene {
       g.clear();
       if (this.typing !== null && k === this.pick) {
         const blink = Math.floor(this.time.now / 400) % 2 ? '_' : ' ';
-        row.setText(`${k + 1}. NEW RANGER, NAME: ${this.typing}${blink}`);
+        row.setText(`${k + 1}. NEW COMMANDO, NAME: ${this.typing}${blink}`);
         return;
       }
       if (!r) {
-        row.setText(`${k + 1}. -- vacant: enlist a new Ranger --`);
+        row.setText(`${k + 1}. -- vacant: enlist a new commando --`);
         return;
       }
       const status = r.status === 'active' ? '' : r.status === 'KIA' ? '  KIA' : '  CAPTURED';
@@ -139,15 +139,15 @@ export class Title extends Phaser.Scene {
     this.hint.setText(
       isTouch
         ? this.typing !== null
-          ? 'tap the row again to enlist this Ranger'
+          ? 'tap the row again to enlist this commando'
           : this.retireArmed === this.pick
-            ? 'hold again to retire this Ranger (the slot is freed)'
-            : `${!r ? 'tap: enlist a Ranger here' : r.status === 'active' ? 'tap: choose this Ranger' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: hold the row twice to retire`}\ntap a row · hold a row: retire`
+            ? 'hold again to retire this commando (the slot is freed)'
+            : `${!r ? 'tap: enlist a commando here' : r.status === 'active' ? 'tap: choose this commando' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: hold the row twice to retire`}\ntap a row · hold a row: retire`
         : this.typing !== null
           ? 'type a name · Enter: enlist · Esc: cancel'
           : this.retireArmed === this.pick
-            ? 'press Delete again to retire this Ranger (the slot is freed)'
-            : `${!r ? 'Enter: enlist a Ranger here' : r.status === 'active' ? 'Enter: choose this Ranger' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: Delete twice to retire, then enlist`}\nUp/Down or 1-6 · Delete: retire · M: sound on/off · F: test field`,
+            ? 'press Delete again to retire this commando (the slot is freed)'
+            : `${!r ? 'Enter: enlist a commando here' : r.status === 'active' ? 'Enter: choose this commando' : `${r.name} was ${r.status === 'KIA' ? 'killed in action' : 'captured'}: Delete twice to retire, then enlist`}\nUp/Down or 1-6 · Delete: retire · M: sound on/off · F: test field`,
     );
   }
 

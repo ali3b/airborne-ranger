@@ -1,3 +1,4 @@
+import { readKey } from './storage';
 import { campaignAfter, type CampaignState } from './campaign';
 import { DIFFICULTY, getDifficulty, type Difficulty } from './difficulty';
 
@@ -116,14 +117,14 @@ export interface Award {
   campaignNote?: string | null;
 }
 
-const KEY = 'ar.roster.v1';
+const KEY = 'ss.roster.v1';
 export const SLOTS = 6;
 
 /** The roster: SLOTS entries, null = a vacant slot. */
 export function loadRoster(): (Ranger | null)[] {
   let list: (Ranger | null)[] = [];
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = readKey(KEY);
     if (raw) list = JSON.parse(raw);
   } catch {
     list = [];
@@ -141,7 +142,7 @@ export function saveRoster(r: (Ranger | null)[]) {
 }
 
 export function newRanger(name: string): Ranger {
-  return { id: `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`, name: name.trim().toUpperCase().slice(0, 16) || 'RANGER', rank: 0, score: 0, medals: {}, status: 'active', missions: 0, accomplished: [] };
+  return { id: `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`, name: name.trim().toUpperCase().slice(0, 16) || 'COMMANDO', rank: 0, score: 0, medals: {}, status: 'active', missions: 0, accomplished: [] };
 }
 
 /** A guest for a mission entered without the roster (load checks, ?scene=mission links). Never saved. */

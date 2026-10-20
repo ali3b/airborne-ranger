@@ -39,7 +39,7 @@ export class MissionSelect extends Phaser.Scene {
     const { width, height } = fitMenu(this, 580, 290 + n * ROW);
     const cx = width / 2;
     const top = Math.max(n > 6 ? 16 : 30, height / 2 - (220 + n * ROW) / 2);
-    this.add.text(cx, top, 'AIRBORNE RANGER', { ...FONT, fontSize: '36px', color: GOLD }).setOrigin(0.5);
+    this.add.text(cx, top, 'SOLITARY STRIKE', { ...FONT, fontSize: '36px', color: GOLD }).setOrigin(0.5);
     this.add
       .text(cx, top + 52, `${RANK_NAMES[r.rank].toUpperCase()} ${r.name}  ·  ${r.score} pts  ·  ${r.missions} missions`, { ...FONT, fontSize: '17px', color: '#c8c8a0' })
       .setOrigin(0.5);

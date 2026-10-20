@@ -4,7 +4,7 @@ import { DIRS8, type Dir8 } from './iso';
 import { isTouch } from './touch';
 
 /**
- * The overview map (G6), like the original's map screen: the whole mission area in the game's iso orientation (the
+ * The overview map (G6): the whole mission area in the game's iso orientation (the
  * map's top corner up, so north is up as in play), with the Ranger, the objective, the supply pods left and the
  * extraction zone.
  *
@@ -193,7 +193,7 @@ export class Overview {
     const close = isTouch ? 'tap or MAP to return' : 'Tab / O to return';
     add(
       sc.add
-        .text(sw / 2, sh - 12, `● RANGER   ■ SUPPLY POD   OBJECTIVE   EXTRACTION   N ↑   · ${close} (the clock runs)`, { fontFamily: 'monospace', fontSize: '12px', color: '#e8d27a' })
+        .text(sw / 2, sh - 12, `● YOU   ■ SUPPLY POD   OBJECTIVE   EXTRACTION   N ↑   · ${close} (the clock runs)`, { fontFamily: 'monospace', fontSize: '12px', color: '#e8d27a' })
         .setOrigin(0.5, 1),
     );
   }
