@@ -371,6 +371,7 @@
       "dirs": "8",
       "uniform": true,
       "template": [
+        "hit_react",
         "death_fall"
       ]
     },

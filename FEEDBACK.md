@@ -998,4 +998,5 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: batch 578 rendered all 1520 frames of the 15 clips (70 s on the CPU runner; minutes on a busy shared runner).
 - Workaround: none (it is render time only).
 - Suggested change: cache rendered frames per clip and direction keyed by everything that affects them (model, outfit, clip, template params, view, scale), render only the missing ones and re-pack the atlas.
-- Status: triaged (TODO: Inbox, generator wave 12)
+- Re-test (wave 13, 2026-10-20): works. `pow_prisoner` (idle/walk/run + death_fall, 392 frames, CPU runner) got `hit_react` in `ssg.assets.json`; `node scripts/build-assets.mjs pow_prisoner` rendered batch 593 in 5.3 s (the full sheet before: 12.9 s) and `ssg batch status 593` says `done (reused 392 of 440 frames)`; the downloaded sheet has all five clips in 8 directions. The first render after the fix (batch 592) reused nothing: the cache fills from new renders only. Small gap: the reuse count is only in `batch status`, not in `sprite apply`'s progress lines or its `--json` result.
+- Status: verified
