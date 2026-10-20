@@ -9,7 +9,7 @@ import { centre, distM, inArea, say, view, zones, type MissionView } from './g8b
 import { cellOf } from './photo';
 
 /**
- * Mission 10, Free the Hostages (G8). The original: "Blow open the door on the Hostage Prison … Defend the hostages
+ * Mission 10, Free the Hostages (G8). Briefing: "Blow open the door on the Hostage Prison … Defend the hostages
  * … Beware of enemy attempts to destroy the prison and kill the hostages." The hostages sit in a guarded stockade
  * (the map's custom zones with `hostage`); its gate (`stockade_gate`, property `gate`) only gives to explosives (a
  * grenade, LAW or time bomb). Once it is down they come out through the gap and follow the Ranger (src/objectives/

@@ -1,5 +1,7 @@
 # Feedback for Synty Sprite Generator
 
+> G11: the game is now called **Solitary Strike**; entries below keep the old name as history (the generator project is still "Airborne Ranger").
+
 Every gap the game hits in the generator's CLI or MCP. The orchestrator triages entries into the generator's
 `TODO.md` (section "Inbox: from Airborne Ranger"). Number the entries in order and never reuse a number.
 

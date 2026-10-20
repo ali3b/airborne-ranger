@@ -6,7 +6,7 @@ import { distToProp, inArea, say, seenBy, view, type MissionView } from './g8b-v
 import { cellOf } from './photo';
 
 /**
- * Mission 12, Delayed Sabotage (G8). The original: "Sneak past an enemy airfield's defense perimeter and plant a time
+ * Mission 12, Delayed Sabotage (G8). Briefing: "Sneak past an enemy airfield's defense perimeter and plant a time
  * bomb at the aviation fuel dump. The time bomb will not explode until long after you leave; if it is to remain
  * undiscovered, it is essential that you not be seen in the vicinity of the fuel dump."
  *

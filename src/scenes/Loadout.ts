@@ -12,7 +12,7 @@ const DIM = '#9aa88a';
 const ICON_DIR: Record<ItemKey, string> = { mag: 'SE', grenade: 'SE', medkit: 'SE', law: 'NE', bomb: 'SE' };
 
 /**
- * The supply pod loadout (G7), between the mission select and the drop, after the original's supply pod screen: the
+ * The supply pod loadout (G7), between the mission select and the drop: the
  * pod's contents drawn in a green bag at the top, one row per item (icon, name, weight, − count +), the item and weight
  * gauges, and CLEAR / STANDARD / DONE. Keys: Up/Down (or 1–5) pick a row, Left/Right or −/+ change it, C clear,
  * S standard, Enter done, Esc back to the mission select. On touch: tap the − / + buttons and the three buttons.
@@ -62,7 +62,7 @@ export class Loadout extends Phaser.Scene {
       .text(cx, top + 38, `MISSION ${this.cfg.number}: ${this.cfg.title}  ·  ${POD_COUNT} pods drop with you`, { ...FONT, fontSize: '14px', color: '#c8c8a0' })
       .setOrigin(0.5, 0);
 
-    // The pod: a green bag with the packed items in it (like the original's screen).
+    // The pod: a green bag with the packed items in it.
     const bagW = Math.min(640, width - 40);
     this.bagW = bagW;
     const bagY = top + 66;

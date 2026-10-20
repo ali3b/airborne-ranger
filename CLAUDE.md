@@ -1,7 +1,10 @@
-# Airborne Ranger: a remake built through Synty Sprite Generator
+# Solitary Strike: a game built through Synty Sprite Generator
 
-A Phaser 3 remake of MicroProse's Airborne Ranger (1988) in isometric 2:1 (64×32 tiles). Every sprite, tileset and
-map comes from Synty Sprite Generator (`~/projects/synty-sprite-generator`). The game exists to prove the generator
+Solitary Strike is an original isometric commando game in Phaser 3, 2:1 (64×32 tiles). It was renamed from its working
+title in G11; the repo slug, folder, Pages URL, the generator project name ("Airborne Ranger" in `ssg.assets.json` and the
+map batches) and absolute paths keep the old name on purpose: don't rename them. Player-facing and public text says
+Solitary Strike, and the soldier is a commando.
+Every sprite, tileset and map comes from Synty Sprite Generator (`~/projects/synty-sprite-generator`). The game exists to prove the generator
 and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the generator's `docs/GAME-LOOP.md`.
 
 ## Rules
@@ -25,8 +28,8 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
 - Never kill processes by name (`pkill vite`, `killall node`): the generator's shared dev server is a vite process
   too. Start your own servers on a known port (vite 5195, a static `dist` server e.g. 5298), note the PID, and stop
   that PID only.
-- `Airborne Ranger (1988)/` and `decoded/` hold the original game and its reverse-engineering notes. They're
-  reference only and git-ignored. Don't ship anything from them.
+- `Airborne Ranger (1988)/` and `decoded/` are local reference material, git-ignored. Don't ship, quote or link
+  anything from them in public text (README, gallery, the game).
 
 ## Checks before you finish a milestone
 - `npm run typecheck`

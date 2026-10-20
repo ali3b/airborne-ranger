@@ -7,7 +7,7 @@ import { centre, inArea, say, view, type MissionView } from './g8b-view';
 import { cellOf } from './photo';
 
 /**
- * Mission 11, Create a Diversion (G8). The original: "Do not commence combat until the countdown buzzer sounds. Shoot
+ * Mission 11, Create a Diversion (G8). Briefing: "Do not commence combat until the countdown buzzer sounds. Shoot
  * whenever it sounds again. Fight your way to the border, causing combat as often as possible. … The aircraft cannot
  * be recalled early — be there when the countdown clock reaches zero."
  *

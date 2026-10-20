@@ -6,7 +6,7 @@ import { sfx } from '../sound';
 import { distToProp, inArea, say, seenBy, view, type MissionView } from './g8b-view';
 
 /**
- * Mission 9, Photograph an Experimental Aircraft (G8). The original: "Infiltrate an enemy airfield and sneak into the
+ * Mission 9, Photograph an Experimental Aircraft (G8). Briefing: "Infiltrate an enemy airfield and sneak into the
  * hangar. Do not allow yourself to be seen entering the hangar!" The prototype (`prototype_rocket`, the map object
  * with the `prototype` property) stands at the hangar. The Ranger gets within PHOTO_RANGE with a clear line of sight
  * and uses the camera (C, or CAMERA on the touch item bar): he kneels and holds still (the `ranger` sheet's

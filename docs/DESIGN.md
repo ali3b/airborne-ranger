@@ -1,8 +1,7 @@
-# Airborne Ranger remake: design
+# Solitary Strike: design
 
-This design comes from the original (MicroProse, 1988, IBM PC). Reverse-engineering notes are in the local, git-ignored
-`decoded/ANALYSIS.md`, and the rendered originals are in `decoded/images/` (terrain blocks, sprite sheets and menus).
-Use them as reference for layout and feel. Never ship them.
+Solitary Strike is an isometric commando game: one soldier behind enemy lines with what three supply pods carry.
+(The repository keeps its earlier slug, `airborne-ranger`, for now.)
 
 ## The game in one paragraph
 You choose a mission. A plane drops one Ranger and three supply pods behind enemy lines. The Ranger crosses a
@@ -11,14 +10,14 @@ restock, completes the objective, and reaches the extraction point before the ti
 He can run, crawl (prone) and shoot. His weapons are a carbine, grenades, LAW rockets, time bombs and a knife.
 Merit points earn promotions and medals for a persistent roster of Rangers.
 
-## Content from the original
+## Core content
 - **Missions (12 + campaign):** Destroy a Munitions Depot, Steal a Code Book, Disable Enemy Aircraft, Capture an Enemy
   Officer, Cut a Pipeline, Knock Out Enemy Radar Array, Disable SAM Site, Liberate a P.O.W. Camp, Photograph an
   Experimental Aircraft, Free the Hostages, Create a Diversion, Delayed Sabotage. Each is tied to one terrain.
 - **Terrains:** desert, temperate, arctic. They share tile shapes with per-terrain colour remaps, the same idea as
   palette-tinted Synty textures.
 - **Terrain building blocks:** each 64×64-pixel cell is a whole feature (tent, bunker, hut, river piece, tree, sandbag
-  wall), with a matching black/white collision mask. In the remake this becomes object sprites with footprints and
+  wall), with a matching black/white collision mask. Here these are object sprites with footprints and
   collision polygons on an iso tilemap.
 - **Supply pod loadout:** carbine magazines, grenades, first-aid kits, LAW rockets and time bombs, limited by weight
   and a 21-item capacity. Three pods per mission.
@@ -27,11 +26,10 @@ Merit points earn promotions and medals for a persistent roster of Rangers.
 - **Medals:** COM1, COM2, Bronze Star, Silver Star, DSC, CMH. Death gives a posthumous promotion. Capture is tracked.
 - **Roster:** six Rangers are saved, with name, rank, score and medals.
 
-## The remake
+## Implementation
 - **Engine:** Phaser 3, in isometric 2:1 with 64×32 tiles. Sprites come from the generator's `iso8` view under tile
   lock (`--tile 64x32 --metres-per-tile 1`, 45.25 px/m), so characters and props share one scale. At 1 m per tile a
-  soldier is ~80 px tall, about 1/9 of a 720 px view: close to the original, where a ~20 px soldier filled about 1/10
-  of the 200-line screen.
+  soldier is ~80 px tall, about 1/9 of a 720 px view.
 - **Synty sources (to try first):**
   - POLYGON_War: American and German soldiers, weapons, helmets, bunkers, sandbags, wire, tanks and wrecks.
   - BattleRoyale and Apocalypse: huts, tents, containers.
@@ -89,7 +87,7 @@ into `maps/<mission>.ops.json` before the first scatter), then `node scripts/bui
   plane. It raises the alarm; the plane (`plane_pickup`: the C-47 transport at full scale, propellers spinning, one
   direction, FB-098) arrives after the difficulty's wait, flying in from the north with its shadow, and lifts the
   Ranger if he's in the zone; otherwise it goes round (12 s). Only then is the mission accomplished.
-- **Difficulty** (mission select, **D** or the button; saved in `ar.difficulty.v1`; `?difficulty=` for links):
+- **Difficulty** (mission select, **D** or the button; saved in `ss.difficulty.v1`; `?difficulty=` for links):
 
 | | Easy | Normal | Hard |
 |---|---|---|---|
@@ -121,8 +119,8 @@ into `maps/<mission>.ops.json` before the first scatter), then `node scripts/bui
   check an alerted soldier shooting the exposed escort dead (the officer fails the mission, a prisoner or hostage
   lowers the count); the title check cycles the difficulty and starts and advances a campaign.
 
-## Original-scale maps (G6)
-The original scrolls over a long area: drop in the south, objective far north, extraction elsewhere, with a map
+## Large maps (G6)
+Each mission is a long area: drop in the south, objective far north, extraction elsewhere, with a map
 screen. Missions 1–4 are now **128 × 256 m** (128 × 256 tiles at 1 m), up from 48 × 40.
 
 - **Layout** (map cells; the iso view puts cell (0, 0), the top corner, at world north): the drop zone near the south
@@ -172,7 +170,7 @@ A mission's goal beyond "destroy every target" is an **objective kind** (`src/ob
 extraction as before; failed ends the mission with the reason. The maps are 128 × 256 m like G6's, built over MCP in
 `maps/g6/mission<N>/stage*.json` (`scripts/g6-stages.mjs`), objective in the north.
 
-| | objective (the original's briefing) | the rules here | map | route | clock |
+| | objective (the briefing) | the rules here | map | route | clock |
 |---|---|---|---|---|---|
 | 9 arctic | Photograph an Experimental Aircraft: "sneak into the hangar; do not be seen entering it" | the prototype (`prototype_rocket`, the V-2 at the hangar) within 16 m and in sight; C / CAMERA: the Ranger kneels with the camera (the `ranger` sheet's camera_kneel_shoot) and holds still 1.5 s (letting go of C, losing sight spoil it). Seen inside the hangar zone before that, or the prototype destroyed: failed | hangar compound with searchlights and towers north, frozen river, ridges; extraction east | 342 m | 11:00 |
 | 10 desert | Free the Hostages: "blow open the door on the prison … defend the hostages" | five hostages (`hostage`) sit in a stockade (`stockade`, `prison_hut`); its gate (`stockade_gate`) gives only to explosives. Then they come out through the gap and follow in a file (`src/objectives/hostages.ts`); enemy bullets and blasts kill them, alerted soldiers shoot at them. Done on reaching the extraction with at least one near; all dead: failed. The end screen counts the rescued | stockade north, guarded by towers, barracks and a loop patrol; extraction west | 360 m | 12:00 |
@@ -209,7 +207,7 @@ extraction as before; failed ends the mission with the reason. The maps are 128 
 The rules live in `src/roster.ts` (constants `RANK_POINTS`, `MERIT`, `MEDAL_POINTS`); this is what they say.
 
 **Flow:** title + Ranger select (six roster slots) → mission select → mission → end screen → debriefing → mission
-select (or the roster after a KIA / capture). The roster is saved in localStorage (`ar.roster.v1`): per Ranger the
+select (or the roster after a KIA / capture). The roster is saved in localStorage (`ss.roster.v1`; G11 moved the keys from `ar.` to `ss.` and reads the old ones once, `src/storage.ts`): per Ranger the
 name, rank, career score, medals (counts), status (active, KIA, captured), missions flown and missions accomplished.
 A vacant slot enlists a new PFC (type a name); Delete twice retires a Ranger and frees the slot. Only active Rangers
 can fly. A mission entered by URL (`?scene=mission&mission=…`) is flown by an unsaved guest.
@@ -244,11 +242,11 @@ Germans'), grenade throw whoosh on the `release` event, supply-pod pickup chime,
 a promotion fanfare, and a 16-step march drum loop on the title. M or the corner button mutes (saved).
 
 ## Arsenal and supply pods (G7)
-**Flow:** mission select → **supply pod** screen → the drop. The pod screen follows the original's: the pod (a green
+**Flow:** mission select → **supply pod** screen → the drop. The pod screen: the pod (a green
 bag) shows what's packed, one row per item with its icon, weight and − count +, gauges for items and weight, and
 CLEAR / STANDARD / DONE. Keys: Up/Down or 1–5 pick a row, Left/Right or −/+ change it, C clear, S standard, Enter
 done, Esc back; on touch, tap − / + and the buttons (`fitMenu` zooms it to the phone). The last loadout is remembered
-in this browser (`ar.loadout.v1`). The rules live in `src/loadout.ts`:
+in this browser (`ss.loadout.v1`). The rules live in `src/loadout.ts`:
 
 | item | weight | STANDARD pod | Ranger's basic carry |
 |---|---|---|---|
@@ -326,7 +324,7 @@ Ranger is recalled (status stays active), not captured.
 | G3 | maps (Phase C) | missions built only through MCP map tools: drop, 3 pods, objective, patrols, timer, extraction |
 | G4 | — | mission select, roster with ranks and medals (saved in localStorage), sound |
 | G5 | vehicle/prop part animations, multi-terrain tiles | living battlefield: an enemy truck driving the road (8-direction `drive` sprite, wrecked by grenades), animated props (searchlight `turret_sweep`, radar `spin`), mission 4 |
-| G6 | large-map readiness (MCP region views, fast scatter) | original-scale 128×256 m maps for missions 1–4, overview map, HUD compass, culling and AI sleep for phones |
+| G6 | large-map readiness (MCP region views, fast scatter) | large 128×256 m maps for missions 1–4, overview map, HUD compass, culling and AI sleep for phones |
 | G7 | — (gaps FB-070–075) | supply pod loadout screen, limited ammo and reload, LAW rockets, time bombs, knife, first aid; keyboard and touch item bar |
 | G8 (g8a) | — (gaps FB-076–079) | missions 5–8 (code book, officer, SAM site, P.O.W. camp) with objective kinds (`src/objectives`), followers, 128×256 maps |
 | G9 | — (gaps FB-094–101) | machine-gun nests, mines, trenches, tanks, sight lines, spreading alerts and the alarm, the plane's recall and pickup, difficulty, campaign |
