@@ -93,7 +93,28 @@ const extract = async () => {
     m.facing = 'E';
   });
   await hold(['d'], 1500);
-  await page.waitForFunction(() => !!window.game.scene.getScene('mission').outcome, null, { timeout: 15000 }).catch(() => undefined);
+  // G9: the pickup is a plane called with C from inside the zone; shorten its approach for the demo.
+  await wait(500);
+  await M(() => {
+    const m = window.game.scene.getScene('mission');
+    const p = m.g9?.pickup;
+    if (!p || p.canCall || p.inZone()) return;
+    const xs = m.extractArea.map((q) => q[0]);
+    const ys = m.extractArea.map((q) => q[1]);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    m.ranger.setPosition((cx - cy) * 32, (cx + cy) * 16);
+  });
+  await page.keyboard.press('c');
+  await wait(300);
+  await M(() => {
+    const p = window.game.scene.getScene('mission').g9?.pickup;
+    if (!p) return;
+    if (p.state === 'idle') p.call();
+    p.eta = Math.min(p.eta, 5);
+  });
+  await page.waitForFunction(() => !!window.game.scene.getScene('mission').outcome, null, { timeout: 30000 }).catch(() => undefined);
+  await wait(1200);
 };
 
 /** End screen → debriefing, held until every line is shown plus `ms`. */
@@ -120,7 +141,10 @@ const pickMission = async (n) => {
     await wait(350);
   }
   await wait(250);
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter'); // → the supply pod loadout (G7)
+  await page.waitForFunction(() => window.game.scene.isActive('loadout'), null, { timeout: 15000 });
+  await wait(700);
+  await page.keyboard.press('Enter'); // done: the drop
   await missionReady();
   await M(() => {
     const m = window.game.scene.getScene('mission');
