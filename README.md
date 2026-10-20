@@ -1,11 +1,13 @@
-# Airborne Ranger (remake)
+# Solitary Strike
 
-A remake of MicroProse's **Airborne Ranger** (1988) in Phaser 3 with an isometric view. Every sprite, tileset and map was
-made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator) through its `ssg` CLI and MCP
-tools, from Synty POLYGON 3D models.
+An isometric commando game in Phaser 3: one soldier, three supply pods and twelve missions behind enemy lines. Every
+sprite, tileset and map was made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator)
+through its `ssg` CLI and MCP tools, from Synty POLYGON 3D models.
 
 **▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop keyboard, or touch on phones and tablets) ·
 **[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: the documentary *FROM NOTHING*, gameplay video, screenshots, map previews, every sprite animated live, tilesets.
+
+The repository and the Pages URL still use the project's earlier slug (`airborne-ranger`); the game itself is Solitary Strike.
 
 ![Mission 4: the pump station at dusk](docs/screenshots/mission4-station.png)
 
@@ -23,7 +25,7 @@ tools, from Synty POLYGON 3D models.
 | Camera (mission 9) | `C`: hold while the prototype is in view |
 | Overview map | `Tab` or `O` |
 | Call the plane (extraction zone, objective done) | `C` |
-| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a Ranger; on the mission select `1`–`9`, then `0` `-` `=` for missions 10–12, `D` difficulty, `C` campaign |
+| Menus | `↑` `↓` and `Enter`; `1`–`6` picks a commando; on the mission select `1`–`9`, then `0` `-` `=` for missions 10–12, `D` difficulty, `C` campaign |
 
 On phones and tablets (best held sideways): drag on the left half for a stick (push to the edge to run), and use the
 FIRE, GRENADE and PRONE buttons on the right, with the item bar (rifle, grenade, LAW, bomb, knife, first aid, and CAMERA in mission 9) beside them, a MAP button under the compass and a CALL PLANE button under it in the extraction zone. In menus, tap a row; tap an empty slot twice to enlist, hold a row to
@@ -31,10 +33,10 @@ retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them
 
 ## The game
 
-A plane drops one Ranger and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
+A plane drops one commando and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
 before the timer runs out, then call the plane and hold out until it picks you up. Machine-gun nests, hidden
 minefields, trenches, tanks (only a LAW or a time bomb stops them) and alerts that spread into an alarm stand in the
-way, on every mission. Escorted people (the officer, the prisoners, the hostages) draw enemy fire too. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one Ranger). Merit earns promotions (PFC to COL) and medals for a persistent roster of six Rangers.
+way, on every mission. Escorted people (the officer, the prisoners, the hostages) draw enemy fire too. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one commando). Merit earns promotions (PFC to COL) and medals for a persistent roster of six commandos.
 Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
 supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
 Missions 5–8 have their own objectives: walk up to the code book to take it; get close to the enemy officer and he
@@ -91,5 +93,5 @@ node scripts/deploy-pages.mjs   # build the game + gallery and publish to GitHub
 
 ## Credits
 
-Fan remake for testing the Synty Sprite Generator; not affiliated with MicroProse. 3D models © Synty Studios, rendered
-into sprites. The original game's files are not included.
+Solitary Strike is an original game made to test the Synty Sprite Generator. 3D models © Synty Studios, rendered into
+sprites.

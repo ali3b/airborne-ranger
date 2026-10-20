@@ -1,6 +1,7 @@
 {
-  "name": "airborne-ranger",
+  "name": "solitary-strike",
   "version": "0.1.0",
+  "description": "Solitary Strike: an isometric commando game in Phaser 3, with every sprite, tileset and map made by Synty Sprite Generator.",
   "private": true,
   "type": "module",
   "scripts": {

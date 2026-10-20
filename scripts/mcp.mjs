@@ -41,7 +41,7 @@ const transport = new StdioClientTransport({
 });
 let serverErr = '';
 transport.stderr?.on('data', (d) => (serverErr += d));
-const client = new Client({ name: 'airborne-ranger-author', version: '0.1.0' });
+const client = new Client({ name: 'solitary-strike-author', version: '0.1.0' });
 await client.connect(transport);
 
 /** One tool call: text printed, images saved, a line in test-results/mcp-calls.jsonl. */
