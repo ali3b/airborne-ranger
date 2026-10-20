@@ -1,8 +1,8 @@
 # Solitary Strike: a game built through Synty Sprite Generator
 
 Solitary Strike is an original isometric commando game in Phaser 3, 2:1 (64×32 tiles). It was renamed from its working
-title in G11; the repo slug, folder, Pages URL, the generator project name ("Airborne Ranger" in `ssg.assets.json` and the
-map batches) and absolute paths keep the old name on purpose: don't rename them. Player-facing and public text says
+title in G11; the local folder, the generator project name ("Airborne Ranger" in `ssg.assets.json` and the
+map batches) and absolute paths keep the old name on purpose: don't rename them. The GitHub repo is `ali3b/solitary-strike` (Pages: ali3b.github.io/solitary-strike). Player-facing and public text says
 Solitary Strike, and the soldier is a commando.
 Every sprite, tileset and map comes from Synty Sprite Generator (`~/projects/synty-sprite-generator`). The game exists to prove the generator
 and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the generator's `docs/GAME-LOOP.md`.

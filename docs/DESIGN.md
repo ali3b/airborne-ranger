@@ -1,7 +1,7 @@
 # Solitary Strike: design
 
 Solitary Strike is an isometric commando game: one soldier behind enemy lines with what three supply pods carry.
-(The repository keeps its earlier slug, `airborne-ranger`, for now.)
+(The local folder and generator project keep the earlier name, `airborne-ranger`, so map paths keep working.)
 
 ## The game in one paragraph
 You choose a mission. A plane drops one Ranger and three supply pods behind enemy lines. The Ranger crosses a

@@ -4,10 +4,10 @@ An isometric commando game in Phaser 3: one soldier, three supply pods and twelv
 sprite, tileset and map was made with the [Synty Sprite Generator](https://github.com/ali3b/synty-sprite-generator)
 through its `ssg` CLI and MCP tools, from Synty POLYGON 3D models.
 
-**▶ [Play in your browser](https://ali3b.github.io/airborne-ranger/)** (desktop keyboard, or touch on phones and tablets) ·
-**[Gallery](https://ali3b.github.io/airborne-ranger/gallery/)**: the documentary *FROM NOTHING*, gameplay video, screenshots, map previews, every sprite animated live, tilesets.
+**▶ [Play in your browser](https://ali3b.github.io/solitary-strike/)** (desktop keyboard, or touch on phones and tablets) ·
+**[Gallery](https://ali3b.github.io/solitary-strike/gallery/)**: the documentary *FROM NOTHING*, gameplay video, screenshots, map previews, every sprite animated live, tilesets.
 
-The repository and the Pages URL still use the project's earlier slug (`airborne-ranger`); the game itself is Solitary Strike.
+The local folder and the generator project still use the earlier name (`airborne-ranger`, "Airborne Ranger") so map paths keep working.
 
 ![Mission 4: the pump station at dusk](docs/screenshots/mission4-station.png)
 
