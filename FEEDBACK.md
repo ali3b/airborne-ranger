@@ -980,7 +980,9 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `op 67 (place): sprite 121 has no facing "W" (facings: NE, NW, SW, SE)` and the whole atomic batch is refused (clear, generate, every other op), so one bad facing costs a full rebuild cycle. The error names the sprite by id, not by its name in the project.
 - Workaround: the nests use only NE/NW/SW/SE (the facings `mg_nest` was rendered with).
 - Suggested change: `snapFacing` (or snap by default with a warning) for `place` and stamp/path objects; name the sprite in the message (`mg_nest (121)`).
-- Status: triaged (TODO: Inbox, generator wave 12)
+- Re-test (wave 13, 2026-10-20): works. On a scratch map (`ssg map edit`, deleted after) `place mg_nest` with `facing: "W"` and `"N"` applied with the warnings `mg_nest (121) has no facing "W" (facings: NE, NW, SW, SE); used NW (snapFacing: false refuses instead)` (N → NE), the rest of the batch went through, and the exported `.tmj` carries the snapped `facing` (NW, NE), which is what the game reads for a nest's arc. `snapFacing: false` with `"E"` refuses with the sprite named: `mg_nest (121) has no facing "E" …`.
+- Workaround removed: there was no code; the mission batches already use only the facings `mg_nest` has, and a wrong one can no longer cost a rebuild.
+- Status: verified
 
 ## FB-120 · A ford cut with `path {collision: false}` still gets scattered bushes and rocks
 - Severity: workaround        Milestone: G10
