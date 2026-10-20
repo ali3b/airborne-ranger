@@ -24,8 +24,9 @@ if (existsSync(video)) {
   mkdirSync(path.join(gallery, 'media'), { recursive: true });
   cpSync(video, path.join(gallery, 'media/gameplay.mp4'));
 } else console.warn('no gameplay video (test-results/airborne-ranger-gameplay-v2.mp4): the gallery video will be missing');
-// The documentary (FROM NOTHING): a web encode plus its subtitles, made outside the repo and dropped in test-results/.
-for (const [src, dst] of [['test-results/from-nothing-web.mp4', 'documentary.mp4'], ['test-results/from-nothing.en.vtt', 'documentary.en.vtt'], ['test-results/from-nothing-poster.jpg', 'documentary.jpg']]) {
+// The documentary (FROM NOTHING) and its abridged cut: web encodes plus its subtitles, made outside the repo and dropped in test-results/.
+for (const [src, dst] of [['test-results/from-nothing-web.mp4', 'documentary.mp4'], ['test-results/from-nothing.en.vtt', 'documentary.en.vtt'], ['test-results/from-nothing-poster.jpg', 'documentary.jpg'],
+  ['test-results/from-nothing-short-web.mp4', 'documentary-abridged.mp4'], ['test-results/from-nothing-short.en.vtt', 'documentary-abridged.en.vtt'], ['test-results/from-nothing-short-poster.jpg', 'documentary-abridged.jpg']]) {
   if (existsSync(path.join(root, src))) {
     mkdirSync(path.join(gallery, 'media'), { recursive: true });
     cpSync(path.join(root, src), path.join(gallery, 'media', dst));
