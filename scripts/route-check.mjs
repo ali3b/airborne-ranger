@@ -5,7 +5,7 @@
 // the map as built in the project, which is what build-maps exported); the hazards are read from the exported .tmj.
 // --walk: the Ranger (unhurtable) then runs that route in the game, steered waypoint to waypoint with the keyboard
 // state, through the game's own collision; it prints the mission clock it took and whether he got there.
-// Exits 1 when a route is missing or crosses a minefield.
+// Exits 1 when a route is missing or crosses a minefield, or the walk doesn't get to the end.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -72,9 +72,17 @@ for (const name of names) {
     failed++;
   }
   if (process.env.ROUTE_DUMP) fs.writeFileSync(path.join(process.env.ROUTE_DUMP, `${name}.route.json`), JSON.stringify({ in: ra.cells, out: rb.cells }));
+  const wa = clearRoute(tmj, ra.cells);
+  const wb = clearRoute(tmj, rb.cells);
+  if (wa.cells.length && wb.cells.length) console.log(`  walk route (one cell of clearance, FB-125): ${wa.m.toFixed(0)} + ${wb.m.toFixed(0)} m`);
+  else if (Number.isFinite(total)) console.log("  walk route: none with a cell of clearance (FB-125), the walk follows the generator's");
   if (browser) {
+    // FB-125: `ssg map route` keeps no gap round props, and the game's colliders aren't cell aligned, so its route can
+    // squeeze through a one-cell gap the Ranger doesn't fit (mission 3's wire, sandbags and rock). The walk follows a
+    // route with a cell of clearance round every blocked cell instead, between the same end cells (where the
+    // generator's route reaches a zone); the reported metres and hazards stay the generator's.
     // Every 4th cell of the route as a waypoint (cell centres).
-    const way = [...ra.cells, ...rb.cells].filter((_, k, all) => k % 4 === 0 || k === all.length - 1).map(([x, y]) => [x + 0.5, y + 0.5]);
+    const way = [...(wa.cells.length ? wa.cells : ra.cells), ...(wb.cells.length ? wb.cells : rb.cells)].filter((_, k, all) => k % 4 === 0 || k === all.length - 1).map(([x, y]) => [x + 0.5, y + 0.5]);
     const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
     await page.goto(`${walkUrl.replace(/\/$/, '')}/?scene=mission&mission=${name}`);
     await page.waitForFunction(() => window.game?.scene?.getScene('mission')?.ranger, null, { timeout: 180000 });
@@ -130,6 +138,10 @@ for (const name of names) {
       return { reached: i, of: way.length, gameSeconds: +(t0 - m.timeLeft).toFixed(1), unstick };
     }, way);
     console.log(`  walk: ${JSON.stringify(res)}`);
+    if (res.reached < res.of) {
+      console.log('  WALK STUCK');
+      failed++;
+    }
     await page.close();
   }
 }
@@ -203,4 +215,92 @@ function hazards(tmj, th, inLeg, outLeg) {
   }
   for (const z of zones.filter((z) => pz(z).trench)) list.push(`${z.name}#${z.id}`);
   return { list, mined };
+}
+
+/**
+ * FB-125 workaround: the shortest 8-way route from the first to the last cell of `leg` (a generator route) over the
+ * exported map, with the collision layer and object footprints (trees, palms, bushes: their trunk cell) blocked and a
+ * band of one cell round them. Cells within 3 of the start and 6 of the goal may lie in the band (zones touch props).
+ * Remove once `ssg map route` takes a clearance.
+ */
+function clearRoute(tmj, leg) {
+  if (!leg.length) return { m: Infinity, cells: [] };
+  const { width: W, height: H, tileheight: th } = tmj;
+  const layer = (k) => tmj.layers.find((l) => (l.class ?? l.name) === k)?.objects ?? [];
+  const hard = new Uint8Array(W * H);
+  const mark = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (hard[y * W + x] = 1);
+  for (const o of layer('collision')) for (let y = Math.floor(o.y / th); y < Math.ceil((o.y + o.height) / th); y++) for (let x = Math.floor(o.x / th); x < Math.ceil((o.x + o.width) / th); x++) mark(x, y);
+  for (const o of layer('objects')) {
+    const p = Object.fromEntries((o.properties ?? []).map((q) => [q.name, q.value]));
+    if (p.collision === undefined && p.footprintW === undefined) continue;
+    const fw = Number(p.footprintW ?? 1);
+    const fh = Number(p.footprintH ?? 1);
+    const base = /tree|palm|pine|fern|bush/.test(String(p.sprite));
+    const x0 = Math.round(o.x / th - (base ? 0.5 : fw / 2));
+    const y0 = Math.round(o.y / th - (base ? 0.5 : fh / 2));
+    for (let y = y0; y < y0 + (base ? 1 : fh); y++) for (let x = x0; x < x0 + (base ? 1 : fw); x++) mark(x, y);
+  }
+  const band = hard.slice();
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (hard[y * W + x]) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (x + dx >= 0 && y + dy >= 0 && x + dx < W && y + dy < H) band[(y + dy) * W + x + dx] = 1;
+  const [sx, sy] = leg[0];
+  const [gx, gy] = leg[leg.length - 1];
+  const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (!band[y * W + x] || (x === sx && y === sy) || (x === gx && y === gy) || (!hard[y * W + x] && ((Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3) || (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6))));
+  const g = new Float64Array(W * H).fill(Infinity);
+  const from = new Int32Array(W * H).fill(-1);
+  // Binary heap of [f, cell].
+  const heap = [];
+  const push = (f, c) => {
+    heap.push([f, c]);
+    for (let i = heap.length - 1; i > 0; ) {
+      const pI = (i - 1) >> 1;
+      if (heap[pI][0] <= heap[i][0]) break;
+      [heap[pI], heap[i]] = [heap[i], heap[pI]];
+      i = pI;
+    }
+  };
+  const pop = () => {
+    const top = heap[0];
+    const last = heap.pop();
+    if (heap.length) {
+      heap[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
+        if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+        if (m === i) break;
+        [heap[m], heap[i]] = [heap[i], heap[m]];
+        i = m;
+      }
+    }
+    return top;
+  };
+  g[sy * W + sx] = 0;
+  push(0, sy * W + sx);
+  while (heap.length) {
+    const [f, c] = pop();
+    const x = c % W;
+    const y = (c - x) / W;
+    if (f - Math.hypot(gx - x, gy - y) > g[c] + 1e-9) continue;
+    if (x === gx && y === gy) {
+      const cells = [];
+      for (let k = c; k >= 0; k = from[k]) cells.push([k % W, Math.floor(k / W)]);
+      return { m: g[c], cells: cells.reverse() };
+    }
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (!dx && !dy) continue;
+      const nx = x + dx;
+      const ny = y + dy;
+      if (!free(nx, ny) || (dx && dy && (!free(x + dx, y) || !free(x, y + dy)))) continue;
+      const ng = g[c] + (dx && dy ? Math.SQRT2 : 1);
+      const n = ny * W + nx;
+      if (ng < g[n]) {
+        g[n] = ng;
+        from[n] = c;
+        push(ng + Math.hypot(gx - nx, gy - ny), n);
+      }
+    }
+  }
+  return { m: Infinity, cells: [] };
 }
