@@ -108,6 +108,11 @@ export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife' | 'enemy'; //
 
 export type Pt = { x: number; y: number };
 
+/** G14: the commando split at the waist (FB-124, `ranger_split` in ssg.assets.json): legs and torso sheets. A second
+ * sprite next to the whole-body `ranger`: a split export has no whole-body sheet (FB-126). */
+const SPLIT_LEGS = 'ranger_split_legs';
+const SPLIT_TORSO = 'ranger_split_torso';
+
 /** A prop on the field: its collision polygon in world metres and its screen outline for depth sorting. */
 export interface Placed {
   sprite: Phaser.GameObjects.Sprite;
@@ -238,6 +243,21 @@ export class Field extends Phaser.Scene {
   aim?: MouseAim;
   /** Keys pressed for movement this frame (mouse aim turns off after a while of keyboard-only movement). */
   protected keyMoving = false;
+  /**
+   * G14: under mouse aim the commando is drawn from the waist-split sheets: `legs` face the walk (`legsFacing`), the
+   * `torso` faces the cursor (`facing`) and plays the shoot, throw, LAW and reload clips while the legs keep walking.
+   * `ranger` stays the commando's body (position, depth, collisions), hidden while split. Keyboard and touch play,
+   * prone, the knife, bomb, first aid and death keep the whole-body sheet.
+   */
+  legs: Phaser.GameObjects.Sprite | null = null;
+  torso: Phaser.GameObjects.Sprite | null = null;
+  legsFacing: Dir8 = 'SE';
+  /** G14: drawn split this frame. */
+  split = false;
+  /** G14: a torso-sheet one-shot is playing (busy, but the legs may walk). */
+  protected torsoAction = false;
+  /** G14: per-frame sockets of a split sheet by `<clip>_<dir>` (the meta's animations). */
+  private splitSockets = new Map<string, Record<string, Pt>[]>();
 
   constructor(key = 'field') {
     super(key);
@@ -293,6 +313,10 @@ export class Field extends Phaser.Scene {
     this.arsenal = { lawsFired: 0, bombsPlaced: 0, heals: 0, reloads: 0, knifeKills: 0 };
     this.bystanders = [];
     this.g9 = undefined; // G9
+    this.legs = this.torso = null; // G14
+    this.split = this.torsoAction = false;
+    this.legsFacing = 'SE';
+    this.splitSockets.clear();
 
     const m = setupAssets(this);
     if (!m || !m.sprites.ranger) {
@@ -308,6 +332,7 @@ export class Field extends Phaser.Scene {
     this.ranger = this.add.sprite(start.x, start.y, 'ranger');
     this.play(this.ranger, 'ranger', 'rifle_idle', this.facing);
     this.footsteps(this.ranger, 'ranger');
+    this.makeSplit(start);
 
     if (m.sprites.german) this.spawnEnemies();
 
@@ -350,6 +375,9 @@ export class Field extends Phaser.Scene {
     // Off-screen props are hidden and paused, after each update (G6).
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.cullWorld, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.cullWorld, this));
+    // G14: the split commando follows the body after the frame's moves and animation steps.
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.composite, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.composite, this));
 
     this.hud = this.add
       .text(10, 10, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8d27a', backgroundColor: '#10140ccc', padding: { x: 6, y: 4 } })
@@ -398,6 +426,113 @@ export class Field extends Phaser.Scene {
     if (a === null) return false;
     this.facing = dirFromWorld(Math.cos(a), Math.sin(a));
     return true;
+  }
+
+  // ---- G14: the waist-split commando (legs face the walk, torso faces the cursor) ----
+
+  /** The legs and torso sprites, hidden until mouse aim is on; none when the split sheets weren't built. */
+  protected makeSplit(at: Pt) {
+    const m = this.manifest.sprites;
+    if (!m[SPLIT_LEGS] || !m[SPLIT_TORSO] || !this.textures.exists(SPLIT_LEGS) || !this.textures.exists(SPLIT_TORSO)) return;
+    for (const name of [SPLIT_LEGS, SPLIT_TORSO]) {
+      const meta = this.cache.json.get(`meta:${name}`) as CharacterMeta | undefined;
+      for (const a of meta?.animations ?? []) this.splitSockets.set(`${name}:${a.clip}_${a.direction}`, a.sockets as Record<string, Pt>[]);
+    }
+    this.legs = this.add.sprite(at.x, at.y, SPLIT_LEGS).setVisible(false);
+    this.torso = this.add.sprite(at.x, at.y, SPLIT_TORSO).setVisible(false);
+    this.play(this.legs, SPLIT_LEGS, 'rifle_idle', this.facing);
+    this.play(this.torso, SPLIT_TORSO, 'rifle_idle', this.facing);
+    this.footsteps(this.legs, SPLIT_LEGS);
+  }
+
+  /** Draw the split sheets this frame: mouse aim on, standing, alive, not in a whole-body move (or a torso move playing). */
+  protected wantSplit() {
+    return !!this.legs && !this.dead && (this.torsoAction || (!!this.aim?.on && !this.prone && !this.busy));
+  }
+
+  /** A socket of a split sheet's frame (untrimmed frame px), or null. */
+  protected splitSocket(name: string, clip: string, dir: string, frame: number, socket: string): Pt | null {
+    return this.splitSockets.get(`${name}:${clip}_${dir}`)?.[frame]?.[socket] ?? null;
+  }
+
+  /** The `waist` socket of the frame a split sprite shows now. */
+  protected waistNow(spr: Phaser.GameObjects.Sprite, name: string): Pt | null {
+    const key = spr.anims.currentAnim?.key;
+    const prefix = this.manifest.sprites[name].animPrefix;
+    if (!key?.startsWith(prefix)) return null;
+    const rest = key.slice(prefix.length);
+    const cut = rest.lastIndexOf('_');
+    return this.splitSocket(name, rest.slice(0, cut), rest.slice(cut + 1), (spr.anims.currentFrame?.index ?? 1) - 1, 'waist');
+  }
+
+  /**
+   * Where the torso's pivot sits from the body's feet (screen px) for a torso frame whose waist is `torsoWaist`: its
+   * waist on the legs' waist (README: `torso = legs + legsWaist - torsoWaist`).
+   */
+  protected torsoShift(torsoWaist: Pt | null): Pt {
+    const lw = this.legs ? this.waistNow(this.legs, SPLIT_LEGS) : null;
+    return lw && torsoWaist ? { x: lw.x - torsoWaist.x, y: lw.y - torsoWaist.y } : { x: 0, y: 0 };
+  }
+
+  /** Under mouse aim: legs walk (or stand) toward the movement, the torso turns to the cursor. */
+  protected updateSplit(moving: boolean, dx: number, dy: number, running: boolean, dt: number) {
+    const clip = moving ? (running ? 'rifle_run' : 'rifle_walk') : 'rifle_idle';
+    if (moving) {
+      this.legsFacing = dirFromWorld(dx, dy);
+      const len = Math.hypot(dx, dy);
+      const speed = this.speedOf(clip) * (this.g9?.speedScale() ?? 1); // G9: slower in a trench
+      const step = worldToScreenDelta((dx / len) * speed * dt, (dy / len) * speed * dt, this.ppm);
+      this.tryMove(step.x, step.y);
+    }
+    if (!this.torsoAction) {
+      if (!this.faceAim()) this.facing = moving ? this.legsFacing : this.facing;
+      if (!moving) this.legsFacing = this.facing; // standing, he squares up to the aim
+      // The torso's walk keeps step with the legs' (same clip length): start it at their frame.
+      const key = animKey(this.manifest.sprites[SPLIT_TORSO], clip, this.facing);
+      if (this.torso!.anims.currentAnim?.key !== key && this.anims.exists(key)) {
+        const same = this.legs!.anims.currentAnim?.key === animKey(this.manifest.sprites[SPLIT_LEGS], clip, this.legsFacing);
+        this.torso!.play({ key, startFrame: same ? (this.legs!.anims.currentFrame?.index ?? 1) - 1 : 0 });
+      }
+    }
+    this.play(this.legs!, SPLIT_LEGS, clip, this.legsFacing);
+  }
+
+  /** POST_UPDATE: show the split sprites or the whole body, the torso's waist on the legs', the body's depth, tint, mask. */
+  protected composite() {
+    if (!this.legs || !this.torso || !this.ranger) return;
+    const on = this.split;
+    this.ranger.setVisible(!on);
+    this.legs.setVisible(on);
+    this.torso.setVisible(on);
+    if (!on) return;
+    const r = this.ranger;
+    const sh = this.torsoShift(this.waistNow(this.torso, SPLIT_TORSO));
+    this.legs.setPosition(r.x, r.y).setDepth(r.depth);
+    this.torso.setPosition(r.x + sh.x, r.y + sh.y).setDepth(r.depth + 0.01); // always over the legs
+    for (const s of [this.legs, this.torso]) {
+      if (r.isTinted) {
+        s.tintFill = r.tintFill;
+        s.setTint(r.tintTopLeft);
+      } else if (s.isTinted) s.clearTint();
+      // G9: waist deep in a trench (the body's mask).
+      if (s.mask !== r.mask) {
+        if (r.mask) s.setMask(r.mask);
+        else s.clearMask();
+      }
+    }
+  }
+
+  /**
+   * The sprite a commando one-shot plays on: the torso while drawn split (the legs keep walking; `torsoAction` set),
+   * else the whole body.
+   */
+  protected actor(clip: string): { spr: Phaser.GameObjects.Sprite; name: string } {
+    if (this.wantSplit() && this.torso && this.anims.exists(animKey(this.manifest.sprites[SPLIT_TORSO], clip, this.facing))) {
+      this.torsoAction = true;
+      this.split = true;
+      return { spr: this.torso, name: SPLIT_TORSO };
+    }
+    return { spr: this.ranger, name: 'ranger' };
   }
 
   /** The hand-made test field: generated ground, hand-placed props. Returns the Ranger's start (screen px). */
@@ -688,7 +823,7 @@ export class Field extends Phaser.Scene {
     spr.on(Phaser.Animations.Events.ANIMATION_UPDATE, (a: Phaser.Animations.Animation, f: Phaser.Animations.AnimationFrame) => {
       const clip = a.key.slice(prefix.length).replace(/_[A-Z]+$/, '');
       if (!info[clip]?.events.some((e) => e.name.startsWith('footstep') && e.frame === f.index - 1)) return;
-      const v = this.loudness(spr, 14) * (name === 'ranger' ? 1 : 0.6);
+      const v = this.loudness(spr, 14) * (name === 'ranger' || name === SPLIT_LEGS ? 1 : 0.6);
       if (v > 0.02) sfx.footstep(v);
     });
   }
@@ -745,7 +880,9 @@ export class Field extends Phaser.Scene {
     const frame = this.manifest.sprites[name].clipInfo[clip]?.events.find((e) => e.name === event)?.frame ?? 0;
     const at = meta?.animations.find((a) => a.clip === clip && a.direction === dir)?.sockets[frame];
     const hit = sockets.map((k) => at?.[k]).find(Boolean);
-    return hit && meta ? { x: hit.x - meta.pivot.x, y: hit.y - meta.pivot.y } : null;
+    // G14: a torso socket is drawn where the torso sits, its waist on the legs' waist.
+    const sh = name === SPLIT_TORSO ? this.torsoShift((at?.waist as Pt | undefined) ?? null) : { x: 0, y: 0 };
+    return hit && meta ? { x: hit.x - meta.pivot.x + sh.x, y: hit.y - meta.pivot.y + sh.y } : null;
   }
 
   /** Ranger fires: the rifle shoot clip's `shoot` event spawns a bullet at the muzzle (`weapon_tip` socket). */
@@ -761,27 +898,32 @@ export class Field extends Phaser.Scene {
       return;
     }
     this.rounds--;
+    const act = this.actor(clip); // G14: the torso while split
     this.busy = true;
     const dir = this.facing;
     this.oneShot(
-      this.ranger,
-      'ranger',
+      act.spr,
+      act.name,
       clip,
       dir,
       'shoot',
       () => {
         this.shotsFired++;
         sfx.shot();
-        const muzzle = this.socket('ranger', clip, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -50 };
+        const muzzle = this.socket(act.name, clip, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -50 };
         // G12: with mouse aim the bullet flies from the muzzle to the cursor, else straight along his facing.
         const a = this.aimAngle({ x: this.ranger.x + muzzle.x, y: this.ranger.y }) ?? (DIRS8.indexOf(dir) * Math.PI) / 4;
         this.fireBullet(this.ranger, muzzle, { x: Math.cos(a), y: Math.sin(a) }, RANGER_BULLET_RANGE, 'ranger', true);
         this.noise(this.ranger, NOISE_SHOT);
       },
-      () => {
-        this.busy = false;
-      },
+      () => this.actionDone(),
     );
+  }
+
+  /** A one-shot is over (G14: a torso one also gives the torso back to the aim). */
+  protected actionDone() {
+    this.busy = false;
+    this.torsoAction = false;
   }
 
   /** A bullet from a character's muzzle (offset from the feet, screen px) along a world direction. */
@@ -1011,22 +1153,21 @@ export class Field extends Phaser.Scene {
     const target = this.aim?.offset() ?? null; // G12: where the cursor was when he threw (world metres from his feet)
     if (!this.anims.exists(animKey(this.manifest.sprites.ranger, clip, this.facing))) return;
     const dir = this.facing;
+    const act = this.actor(clip); // G14
     this.busy = true;
     this.grenadesLeft--;
     this.oneShot(
-      this.ranger,
-      'ranger',
+      act.spr,
+      act.name,
       clip,
       dir,
       'release',
       () => {
-        const off = this.socket('ranger', clip, dir, 'release', ['hand_r', 'hand_l']) ?? { x: 0, y: -60 };
+        const off = this.socket(act.name, clip, dir, 'release', ['hand_r', 'hand_l']) ?? { x: 0, y: -60 };
         sfx.throwWhoosh();
         this.spawnGrenade(dir, off, target);
       },
-      () => {
-        this.busy = false;
-      },
+      () => this.actionDone(),
     );
   }
 
@@ -1169,10 +1310,9 @@ export class Field extends Phaser.Scene {
   /** R (or firing on empty): a fresh magazine, on the reload clip's `reload` event. */
   reload() {
     if (!this.ranger || this.busy || this.dead || this.rounds >= MAG_SIZE || this.magsLeft <= 0) return;
+    const act = this.actor(RANGER_CLIP.reload); // G14 (prone: never split)
     this.busy = true;
-    const done = () => {
-      this.busy = false;
-    };
+    const done = () => this.actionDone();
     const swap = () => {
       if (this.dead) return;
       this.magsLeft--;
@@ -1187,7 +1327,7 @@ export class Field extends Phaser.Scene {
       });
       return;
     }
-    this.oneShot(this.ranger, 'ranger', RANGER_CLIP.reload, this.facing, 'reload', swap, done);
+    this.oneShot(act.spr, act.name, RANGER_CLIP.reload, this.facing, 'reload', swap, done);
   }
 
   /**
@@ -1200,11 +1340,12 @@ export class Field extends Phaser.Scene {
     if (this.prone) this.prone = false;
     this.faceAim(); // G12
     const dir = this.facing;
+    const act = this.actor(RANGER_CLIP.law); // G14: standing on the torso sheet (whole body: kneeling)
     this.busy = true;
     this.lawsLeft--;
     this.oneShot(
-      this.ranger,
-      'ranger',
+      act.spr,
+      act.name,
       RANGER_CLIP.law,
       dir,
       'shoot',
@@ -1212,7 +1353,7 @@ export class Field extends Phaser.Scene {
         if (this.dead) return;
         this.arsenal.lawsFired++;
         sfx.launch();
-        const tip = this.socket('ranger', RANGER_CLIP.law, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
+        const tip = this.socket(act.name, RANGER_CLIP.law, dir, 'shoot', ['weapon_tip', 'hand_r']) ?? { x: 0, y: -40 };
         const ground = { x: this.ranger.x + tip.x, y: this.ranger.y };
         // G12: with mouse aim it flies from the tube toward the cursor (on to its full range: a direct-fire weapon).
         const a = this.aimAngle(ground) ?? (DIRS8.indexOf(dir) * Math.PI) / 4;
@@ -1222,9 +1363,7 @@ export class Field extends Phaser.Scene {
         this.rockets.push({ sprite: spr, pos: this.worldOf(ground), dir: { x: Math.cos(a), y: Math.sin(a) }, left: LAW_RANGE, h: -tip.y, trail: 0 });
         this.noise(this.ranger, NOISE_SHOT);
       },
-      () => {
-        this.busy = false;
-      },
+      () => this.actionDone(),
     );
   }
 
@@ -1426,8 +1565,11 @@ export class Field extends Phaser.Scene {
     const running = (k.SHIFT.isDown || (!!pad && pad.run)) && !this.prone;
     setProneLit(this.prone);
 
+    this.split = this.wantSplit(); // G14
     if (this.dead) {
       // the death clip plays out
+    } else if (this.split) {
+      this.updateSplit(moving, dx, dy, running, dt);
     } else if (moving && !this.busy) {
       this.facing = dirFromWorld(dx, dy);
       const clip = this.prone ? 'rifle_crawl' : running ? 'rifle_run' : 'rifle_walk';

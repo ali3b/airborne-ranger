@@ -61,12 +61,21 @@ function ssg(args, { input } = {}) {
 
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 
-/** Manifest entry for one downloaded sprite folder public/assets/<name>/. */
-function describe(s) {
+/** The sheets of a sprite split at the waist (FB-124): `<name>_legs` and `<name>_torso` in the manifest (FB-126). */
+const SPLIT_PARTS = ['legs', 'torso'];
+const manifestNames = (s) => (s.split ? SPLIT_PARTS.map((p) => `${s.name}_${p}`) : [s.name]);
+
+/**
+ * Manifest entry for one downloaded sprite folder public/assets/<name>/. A split sprite (G14) has two sheets in its
+ * folder, `<base>_legs*` and `<base>_torso*`: `part` picks one, entered as `<name>_<part>` (same folder).
+ */
+function describe(s, part) {
   const dest = path.join(out, s.name);
   const files = fs.readdirSync(dest);
   // The base sheet's files (a layered export adds <base>_<layer>… files next to them: shortest name wins).
-  const animsFile = files.filter((f) => f.endsWith('_anims.json')).sort((x, y) => x.length - y.length)[0];
+  const animsFile = part
+    ? files.find((f) => f.endsWith(`_${part}_anims.json`))
+    : files.filter((f) => f.endsWith('_anims.json')).sort((x, y) => x.length - y.length)[0];
   const base = animsFile?.slice(0, -'_anims.json'.length);
   const metaFile = files.find((f) => f === `${base}.meta.json`);
   const atlasFile = files.find((f) => f === `${base}.json`);
@@ -86,7 +95,7 @@ function describe(s) {
   if (layered) console.error(`  ${s.name}: WARNING: layered render (the base sheet lacks the --with items); the game draws only the base`);
   if (validation.length) console.error(`  ${s.name}: validation ${validation.map((v) => `${v.level}:${v.code}`).join(', ')}`);
   return {
-    name: s.name,
+    name: part ? `${s.name}_${part}` : s.name,
     asset: s.asset,
     pack: s.asset.includes('/') ? s.asset.split('/')[0] : null,
     textureKey,
@@ -108,6 +117,8 @@ function describe(s) {
     blend: meta?.blend ?? null,
     layered,
     validation,
+    // G14: which half of a waist split this sheet is (its meta's `ssg-split/1` block), and the other sheet's entry.
+    split: meta?.split ? { part: meta.split.sheet, other: `${s.name}_${meta.split.sheet === 'legs' ? 'torso' : 'legs'}` } : null,
   };
 }
 
@@ -163,7 +174,10 @@ if (sprites.length || tilesets.length) {
   for (const s of sprites) {
     try {
       fs.rmSync(path.join(out, s.name, 'previews'), { recursive: true, force: true });
-      manifest.sprites[s.name] = describe(s);
+      if (s.split) {
+        delete manifest.sprites[s.name];
+        for (const p of SPLIT_PARTS) manifest.sprites[`${s.name}_${p}`] = describe(s, p);
+      } else manifest.sprites[s.name] = describe(s);
     } catch (e) {
       failed.push(s.name);
       console.error(`  ${s.name} FAILED: ${String(e.message).split('\n')[0]}`);
@@ -180,7 +194,7 @@ if (sprites.length || tilesets.length) {
 }
 
 // Drop entries no longer declared.
-for (const k of Object.keys(manifest.sprites)) if (!spec.sprites.some((s) => s.name === k)) delete manifest.sprites[k];
+for (const k of Object.keys(manifest.sprites)) if (!spec.sprites.some((s) => manifestNames(s).includes(k))) delete manifest.sprites[k];
 for (const k of Object.keys(manifest.tilesets)) if (!(spec.tilesets ?? []).some((t) => t.name === k)) delete manifest.tilesets[k];
 // Under the tile lock every sprite shares one grid: every data file carries a `scale` record (FB-019). Check it.
 // UI icons (the loadout screen's items) leave the tile lock (`"tile": null, "scale": "fit"`, FB-070 verified): their
@@ -188,7 +202,7 @@ for (const k of Object.keys(manifest.tilesets)) if (!(spec.tilesets ?? []).some(
 // the shared-grid check and the game's ppm.
 const icons = new Set(
   Object.values(manifest.sprites)
-    .filter((x) => x.scale?.mode === 'fit' || spec.sprites.some((s) => s.name === x.name && (s.scale === 'fit' || s.tile === null)))
+    .filter((x) => x.scale?.mode === 'fit' || spec.sprites.some((s) => manifestNames(s).includes(x.name) && (s.scale === 'fit' || s.tile === null)))
     .map((x) => x.name),
 );
 const onGrid = Object.values(manifest.sprites).filter((x) => !icons.has(x.name));

@@ -22,6 +22,8 @@ export interface SpriteEntry {
   object: ObjectBlock | null;
   /** FX: how the export says to blend the sheet (`add` for fire and explosions, `normal` for smoke). */
   blend?: string | null;
+  /** G14: one half of a sprite split at the waist (FB-124): `legs` or `torso`, and the other half's entry name. */
+  split?: { part: 'legs' | 'torso'; other: string } | null;
 }
 
 /** One rendered facing of an object: anchor and collision polygon in untrimmed frame pixels, span in tiles. */
