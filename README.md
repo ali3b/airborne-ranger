@@ -95,3 +95,6 @@ node scripts/deploy-pages.mjs   # build the game + gallery and publish to GitHub
 
 Solitary Strike is an original game made to test the Synty Sprite Generator. 3D models © Synty Studios, rendered into
 sprites.
+
+- **The name *Solitary Strike*:** Tony.
+- **Head of Pointing Out the Obvious:** Tony (playtesting, jank detection, and the discovery that the C key calls the plane).
