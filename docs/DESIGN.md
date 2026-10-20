@@ -112,6 +112,9 @@ into `maps/<mission>.ops.json` before the first scatter), then `node scripts/bui
   `g10-mission8-escort-fire.png`, `g10-mission10-escort-fire.png`. Phone (`--phone --gpu`, mission 5: 3 nests, 13 mines,
   2 trenches, a tank) 48.7–52 fps, 9.2–9.6 ms, measured with the machine at load 39–46; mission 1 under the same load
   45.6 fps, so the hazards cost nothing measurable.
+  Wave 13: `g13-mission4-ford.png` (mission 4's middle ford, width 4 and clear of scatter through FB-120). The routes
+  now come from `ssg map route` (FB-110), measured to and from the zones' nearest cells: 281–428 m; no mission has a
+  minefield on either leg.
 - **Checks:** `node scripts/load-check.mjs <url> g9` (the test field: mine hidden then seen then wounding, trench,
   nest bursts then destroyed by grenades, tank driving, firing, shrugging off a grenade and destroyed by a LAW, an
   alert spreading, the alarm's reinforcements, dusk); the mission checks count each map's nests, minefields, trenches
