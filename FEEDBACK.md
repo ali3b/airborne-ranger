@@ -1044,7 +1044,7 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: it runs as a one-op `map edit` (`{"applied": 1, "reports": [{"op": "checkRoute", "checked": 2, …}]}`) and the revision goes 23 → 24 (mission 6: 10 → 11) with nothing changed, so the map looks newer than the .tmj that `build-maps` exported from it.
 - Workaround: none needed; the game checks with `at: "end"` inside the build batch and doesn't call `check-route` after it.
 - Suggested change: don't bump the revision (or add a history entry) for a batch that only has `checkRoute` ops, or make `map check-route` a read (`GET …/check-route`).
-- Status: open
+- Status: triaged (TODO: Inbox FB-127)
 
 ## FB-126 · A split sprite has no whole-body sheet: the commando is declared and rendered twice
 - Severity: polish        Milestone: wave 15 (G14)
@@ -1053,4 +1053,4 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: with `split` the export is only `<base>_legs` + `<base>_torso`, so the game declares the same model, outfit and moves a second time (`ranger_split` next to `ranger` in `ssg.assets.json`) and has to keep the two in step by hand; 976 more frames and about 2.3 MB more atlas. (Drawing every move from the two halves instead would mean two sprites per frame for the whole game and every whole-body clip on both sheets.)
 - Workaround: `ranger_split` declared next to `ranger` (same asset, `with`, clips; the LAW as standing `shoulder_fire` on the split one); `scripts/build-assets.mjs` enters its halves as `ranger_split_legs` / `ranger_split_torso` in the manifest; `src/scenes/Field.ts` hides the whole-body sprite while the split pair is drawn.
 - Suggested change: `split.whole: true` (MCP and CLI `--split-whole`) to also write the whole-body sheet from the same job; or let one sprite name a split companion so `sprite apply` keeps their model, items and shared clips in step.
-- Status: open
+- Status: triaged (TODO: Inbox FB-126)
