@@ -14,6 +14,9 @@
 // faces the cursor, a click shoots toward it (held: repeats), a right click's grenade lands at it (clamped to 8 m),
 // a LAW flies toward it, the crosshair replaces the cursor, and keyboard-only movement turns mouse aim off again.
 // It saves docs/screenshots/g12-mouse-aim.png (the crosshair and the grenade's range ring).
+// G14: the same check then walks east with the cursor north: the waist-split commando's legs walk E while his torso
+// faces N, a shot on the move flies north from the torso's muzzle and he keeps walking, the torso's waist sits on the
+// legs' waist; keyboard-only play draws the whole-body sheet again. It saves docs/screenshots/g14-strafe.png.
 import { chromium, devices } from '@playwright/test';
 import { objectiveChecks } from './g8b-checks.mjs';
 const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
@@ -122,7 +125,7 @@ try {
     ok = (await aimChecks(page, 'field')) && ok;
   }
   if (isAim) {
-    ok = (await aimChecks(page, 'mission', 'docs/screenshots/g12-mouse-aim.png')) && ok;
+    ok = (await aimChecks(page, 'mission', 'docs/screenshots/g12-mouse-aim.png', 'docs/screenshots/g14-strafe.png')) && ok;
     shotTaken = true;
   }
   if (isArsenal) ok = (await arsenalChecks(page)) && ok;
@@ -1204,7 +1207,7 @@ async function g9Checks(page) {
  * facing, a carbine shot's direction, a right-click grenade's landing point (and its clamp to 8 m), a LAW's
  * direction, held fire repeating, the hidden system cursor, and keyboard-only movement turning mouse aim off.
  */
-async function aimChecks(page, key, shot) {
+async function aimChecks(page, key, shot, strafeShot) {
   const res = {};
   let good = true;
   const fail = (msg) => {
@@ -1322,6 +1325,118 @@ async function aimChecks(page, key, shot) {
   if (!res.ring) fail('want the grenade range ring shown with the grenade selected');
   if (shot) await page.screenshot({ path: shot });
   await page.screenshot({ path: `test-results/${scene}-aim.png` });
+  // 7. G14 strafe: walk east (D held) with the cursor 5 m north, moving the mouse a little so mouse aim stays on.
+  // First a clear spot nearby: no prop's sprite over the 6 m of walk east (nothing to stop or hide him).
+  await idle();
+  await page.keyboard.press('1');
+  res.strafeFrom = await page.evaluate((key) => {
+    const m = window.game.scene.getScene(key);
+    const r = m.ranger;
+    const run = 7 * m.ppm;
+    // Props whose sprite overlaps the walk (bushes are low: they don't count); the first spot with none, else the fewest.
+    const over = (x, y) => m.props.filter((p) => p.name !== 'bush' && p.bounds && p.bounds.right > x - 50 && p.bounds.left < x + run + 50 && p.bounds.bottom > y - 150 && p.bounds.top < y + 30).length;
+    let best = null;
+    for (let d = 0; d < 150 && best?.n !== 0; d += 3)
+      for (let k = 0; k < 24; k++) {
+        const x = r.x + Math.cos((k * Math.PI) / 12) * d * m.ppm;
+        const y = r.y + Math.sin((k * Math.PI) / 12) * d * m.ppm * 0.5;
+        if (!m.canStand(x, y) || !m.canStand(x + run, y)) continue;
+        const n = over(x, y);
+        if (!best || n < best.n) best = { d, n, x: Math.round(x), y: Math.round(y) };
+        if (n === 0) break;
+      }
+    if (best) {
+      r.setPosition(best.x, best.y);
+      m.cameras.main.centerOn(best.x, best.y);
+    }
+    return best;
+  }, key);
+  await page.waitForTimeout(500);
+  const split = () =>
+    page.evaluate((key) => {
+      const m = window.game.scene.getScene(key);
+      const k = (s) => s?.anims?.currentAnim?.key ?? null;
+      const waist = (s, name) => {
+        const key = k(s);
+        const pre = m.manifest.sprites[name].animPrefix;
+        const rest = key.slice(pre.length);
+        const meta = m.cache.json.get(`meta:${name}`);
+        const a = meta.animations.find((a) => `${a.clip}_${a.direction}` === rest);
+        const w = a?.sockets[s.anims.currentFrame.index - 1]?.waist;
+        // The waist in screen px: the frame's pivot sits at the sprite's position.
+        return w ? { x: s.x + w.x - meta.pivot.x, y: s.y + w.y - meta.pivot.y } : null;
+      };
+      if (!m.legs) return { error: 'no split sprites (ranger_split not built?)' };
+      const lw = waist(m.legs, 'ranger_split_legs');
+      const tw = waist(m.torso, 'ranger_split_torso');
+      return {
+        split: m.split,
+        legs: k(m.legs),
+        torso: k(m.torso),
+        visible: { body: m.ranger.visible, legs: m.legs.visible, torso: m.torso.visible },
+        x: m.ranger.x,
+        seam: lw && tw ? +Math.hypot(lw.x - tw.x, lw.y - tw.y).toFixed(2) : null,
+        torsoOver: m.torso.depth > m.legs.depth,
+      };
+    }, key);
+  let jiggle = 0;
+  const nudge = async () => {
+    const q = await clientAt({ x: 0, y: 5 });
+    jiggle = 1 - jiggle;
+    await page.mouse.move(q.x + jiggle, q.y);
+  };
+  await nudge();
+  await page.waitForTimeout(300);
+  const x0 = (await split()).x;
+  await page.keyboard.down('d');
+  let st = null;
+  for (let k = 0; k < 40; k++) {
+    await nudge();
+    await page.waitForTimeout(250);
+    st = await split();
+    if (st.error || (st.split && /_walk_E$/.test(st.legs ?? '') && /_N$/.test(st.torso ?? '') && st.x > x0 + 5)) break;
+  }
+  res.strafe = st;
+  if (st?.error) fail(st.error);
+  else {
+    if (!st.split || !st.visible.legs || !st.visible.torso || st.visible.body) fail(`want the split sprites drawn under mouse aim (got ${JSON.stringify(st)})`);
+    if (!/^ranger_split\/legs\/rifle_walk_E$/.test(st.legs ?? '')) fail(`walking east while aiming north: want legs walking E (got ${st.legs})`);
+    if (!/^ranger_split\/torso\/rifle_walk_N$/.test(st.torso ?? '')) fail(`walking east while aiming north: want the torso facing N (got ${st.torso})`);
+    if (!(st.x > x0 + 5)) fail(`want him walking east while aiming north (x ${x0} → ${st.x})`);
+    if (st.seam === null || st.seam > 1.5) fail(`want the torso's waist on the legs' waist (off by ${st.seam} px)`);
+    if (!st.torsoOver) fail('want the torso drawn over the legs');
+  }
+  // Shots on the move (fire held): north from the torso (its shoot clip), the legs keep walking east.
+  if (!st?.error) {
+    const nb = await page.evaluate(() => window.__aim.bullets.length);
+    await nudge();
+    await page.mouse.down();
+    let during = null;
+    for (let k = 0; k < 60 && !during; k++) {
+      const s2 = await split();
+      if (/torso\/rifle_shoot_N$/.test(s2.torso ?? '')) during = s2;
+      else await page.waitForTimeout(100);
+    }
+    await until(page, (nb) => window.__aim.bullets.length > nb, nb, 15000);
+    const b = await page.evaluate((nb) => window.__aim.bullets[nb] ?? null, nb);
+    const later = await split();
+    res.strafeShot = { torso: during?.torso ?? null, legs: during?.legs ?? null, bullet: b ? Math.round(angle(b)) : null, moved: during ? +(later.x - during.x).toFixed(1) : null, legsLater: later.legs };
+    if (strafeShot) {
+      await page.screenshot({ path: strafeShot });
+      // And a close-up (2× zoom on him: the legs walking east, the torso firing north).
+      await page.evaluate((key) => window.game.scene.getScene(key).cameras.main.setZoom(2), key);
+      await page.waitForTimeout(150);
+      await page.screenshot({ path: strafeShot.replace(/\.png$/, '-close.png') });
+      await page.evaluate((key) => window.game.scene.getScene(key).cameras.main.setZoom(1), key);
+    }
+    await page.mouse.up();
+    if (!during) fail('want the torso playing rifle_shoot_N for a shot aimed north while walking');
+    else if (!/legs\/rifle_walk_E$/.test(during.legs ?? '') || !/legs\/rifle_walk_E$/.test(later.legs ?? '')) fail(`want the legs to keep walking E while the torso shoots (got ${during.legs}, then ${later.legs})`);
+    if (!b || off(angle(b), 90) > 10) fail(`want the shot on the move toward 90° (got ${res.strafeShot.bullet})`);
+    if (!(res.strafeShot.moved > 2)) fail(`want him to keep walking while he shoots (moved ${res.strafeShot.moved} px)`);
+  }
+  await page.keyboard.up('d');
+  await idle();
   // 6. Keyboard only: walking with the mouse left alone turns mouse aim off (the system cursor comes back).
   await page.keyboard.down('d');
   await until(page, (key) => !window.game.scene.getScene(key).aim?.on, key, 8000);
@@ -1329,6 +1444,13 @@ async function aimChecks(page, key, shot) {
   res.offAfterKeys = await page.evaluate((key) => !window.game.scene.getScene(key).aim?.on, key);
   res.cursorBack = await page.evaluate(() => window.game.canvas.style.cursor);
   if (!res.offAfterKeys || res.cursorBack === 'none') fail(`want keyboard-only movement to turn mouse aim off (off ${res.offAfterKeys}, cursor "${res.cursorBack}")`);
+  // G14: keyboard play draws the whole-body sheet again.
+  await page.waitForTimeout(300);
+  res.wholeBody = await page.evaluate((key) => {
+    const m = window.game.scene.getScene(key);
+    return { split: m.split, body: m.ranger.visible, legs: m.legs?.visible ?? false, anim: m.ranger.anims.currentAnim?.key ?? null };
+  }, key);
+  if (res.wholeBody.split || !res.wholeBody.body || res.wholeBody.legs || !/^ranger\//.test(res.wholeBody.anim ?? '')) fail(`want the whole-body sheet with mouse aim off (got ${JSON.stringify(res.wholeBody)})`);
   console.log('mouse aim:', JSON.stringify(res));
   return good;
 }
