@@ -1,8 +1,9 @@
 /**
- * The supply pod loadout (G7), after the original's supply pod screen: carbine magazines, hand grenades, first-aid
+ * The supply pod loadout (G7): carbine magazines, hand grenades, first-aid
  * kits, LAW rockets and time bombs, limited by weight and a 21-item capacity per pod. The three pods dropped with the
  * Ranger each carry the chosen loadout; the Ranger himself starts with a basic carry.
  */
+import { readKey } from './storage';
 
 export type ItemKey = 'mag' | 'grenade' | 'medkit' | 'law' | 'bomb';
 export type Loadout = Record<ItemKey, number>;
@@ -27,7 +28,7 @@ export const ITEMS: ItemDef[] = [
   { key: 'bomb', name: 'TIME BOMB', short: 'BOMB', weight: 4, icon: 'item_bomb' },
 ];
 
-/** Items per pod (the original's 21). */
+/** Items per pod (21). */
 export const POD_CAPACITY = 21;
 /** Weight per pod. */
 export const POD_MAX_WEIGHT = 45;
@@ -62,11 +63,11 @@ export function sanitize(x: unknown): Loadout {
   return l;
 }
 
-const KEY = 'ar.loadout.v1';
+const KEY = 'ss.loadout.v1';
 /** The last loadout chosen (this browser), STANDARD when none. */
 export function loadLoadout(): Loadout {
   try {
-    const s = localStorage.getItem(KEY);
+    const s = readKey(KEY);
     if (s) return sanitize(JSON.parse(s));
   } catch {
     /* storage blocked */

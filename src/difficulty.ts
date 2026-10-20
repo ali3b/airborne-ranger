@@ -4,6 +4,7 @@
  * takes to come. Picked on the mission select screen (D, or the DIFFICULTY button), saved in this browser.
  * The merit of a mission is scaled by `merit` (a line on the debriefing).
  */
+import { readKey } from './storage';
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: Difficulty[] = ['easy', 'normal', 'hard'];
 
@@ -33,14 +34,14 @@ export const DIFFICULTY: Record<Difficulty, DifficultyMods> = {
   hard: { label: 'HARD', enemies: 1.35, accuracy: 1.3, reaction: 0.7, sight: 1.15, pods: 0.6, reinforcements: 5, pickupWait: 25, merit: 1.3 },
 };
 
-const KEY = 'ar.difficulty.v1';
+const KEY = 'ss.difficulty.v1';
 
 export function getDifficulty(): Difficulty {
   // ?difficulty= wins (load checks, links), then the saved choice.
   const q = new URLSearchParams(window.location.search).get('difficulty');
   if (q && (DIFFICULTIES as string[]).includes(q)) return q as Difficulty;
   try {
-    const v = localStorage.getItem(KEY);
+    const v = readKey(KEY);
     if (v && (DIFFICULTIES as string[]).includes(v)) return v as Difficulty;
   } catch {
     /* storage blocked */

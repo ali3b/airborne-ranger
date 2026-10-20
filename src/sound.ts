@@ -1,3 +1,4 @@
+import { readKey } from './storage';
 import { isTouch } from './touch';
 /**
  * Procedural sound effects (WebAudio, no sample files): every sound is synthesised here from noise and oscillators,
@@ -13,7 +14,7 @@ import { isTouch } from './touch';
  *   drums             the title's march loop (kick, snare, snare rolls), scheduled ahead on the audio clock
  */
 
-const MUTE_KEY = 'ar.muted';
+const MUTE_KEY = 'ss.muted';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -26,7 +27,7 @@ let startedCount = 0;
 
 function readMuted() {
   try {
-    return localStorage.getItem(MUTE_KEY) === '1';
+    return readKey(MUTE_KEY) === '1';
   } catch {
     return false;
   }

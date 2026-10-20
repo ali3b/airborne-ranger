@@ -29,7 +29,7 @@ const SEED = [
   null,
 ];
 await ctx.addInitScript((seed) => {
-  if (!localStorage.getItem('ar.roster.v1')) localStorage.setItem('ar.roster.v1', JSON.stringify(seed));
+  if (!localStorage.getItem('ss.roster.v1')) localStorage.setItem('ss.roster.v1', JSON.stringify(seed));
 }, SEED);
 const page = await ctx.newPage();
 const errors = [];

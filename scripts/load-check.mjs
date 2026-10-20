@@ -129,6 +129,42 @@ try {
       console.log('NO RANGER SELECT (want 6 roster slots)');
     }
     await page.screenshot({ path: 'test-results/title-roster.png' }).catch(() => undefined);
+    // G11: a roster saved under the old `ar.` keys (before the rename to Solitary Strike) still shows, and is copied to
+    // the new `ss.` keys. A separate page (its own fresh storage) with a veteran, a KIA and a captured commando.
+    {
+      const old = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+      old.on('pageerror', (e) => errors.push(e.message));
+      await old.addInitScript(() => {
+        if (sessionStorage.getItem('seeded')) return;
+        sessionStorage.setItem('seeded', '1');
+        const r = (name, rank, score, missions, status, medals = {}) => ({ id: name.toLowerCase(), name, rank, score, medals, status, missions, accomplished: [] });
+        localStorage.setItem('ar.roster.v1', JSON.stringify([r('HARTMANN', 6, 9840, 9, 'active', { COM1: 1, BSM: 1, SSM: 1 }), null, r('DOOMED', 1, 0, 1, 'KIA'), r('VOSS', 3, 2210, 4, 'captured', { COM1: 1 }), null, null]));
+        localStorage.setItem('ar.difficulty.v1', 'hard');
+      });
+      await old.goto(url);
+      await old.waitForFunction(() => window.game?.scene?.isActive('title'), null, { timeout: 90000 });
+      await old.waitForTimeout(1200);
+      await old.screenshot({ path: 'test-results/title-migrated.png' }).catch(() => undefined);
+      await old.evaluate(() => window.game.scene.getScene('title').go(2)); // the KIA row: its hint
+      await old.waitForTimeout(400);
+      const mig = await old.evaluate(() => ({
+        rows: window.game.scene.getScene('title').rows?.map((t) => t.text) ?? [],
+        roster: JSON.parse(localStorage.getItem('ss.roster.v1') ?? '[]').filter(Boolean).length,
+      }));
+      await old.screenshot({ path: 'test-results/title-kia.png' }).catch(() => undefined);
+      // Choose the veteran: the mission select reads the difficulty (migrated too).
+      await old.evaluate(() => window.game.scene.getScene('title').go(0));
+      await old.waitForFunction(() => window.game.scene.isActive('missions'), null, { timeout: 15000 }).catch(() => undefined);
+      await old.waitForTimeout(800);
+      mig.difficulty = await old.evaluate(() => localStorage.getItem('ss.difficulty.v1'));
+      mig.button = await old.evaluate(() => window.game.scene.getScene('missions').difficultyBtn?.text ?? null);
+      console.log('migrated:', JSON.stringify(mig));
+      await old.close();
+      if (!mig.rows.some((t) => t.includes('HARTMANN')) || mig.roster !== 3 || mig.difficulty !== 'hard' || !/HARD/.test(mig.button ?? '')) {
+        ok = false;
+        console.log('OLD SAVE NOT MIGRATED (want the ar.roster.v1 roster shown and copied to ss.roster.v1, difficulty too)');
+      }
+    }
     const enlisted = await page.evaluate(() => {
       const t = window.game.scene.getScene('title');
       t.go(0); // vacant: starts typing a name
@@ -149,7 +185,7 @@ try {
       return { ranger: m.ranger?.name ?? null, missions: m.rows?.map((t) => t.text) ?? [] };
     });
     console.log('missions:', JSON.stringify(rows));
-    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('ar.roster.v1') ?? '[]').filter(Boolean).length);
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('ss.roster.v1') ?? '[]').filter(Boolean).length);
     if (!picked || rows.ranger !== 'LOADCHECK' || rows.missions.length < 3 || saved !== 1) {
       ok = false;
       console.log(`NO MISSION SELECT FOR THE RANGER (picked ${picked}, saved rangers ${saved}, want 3 missions)`);
@@ -162,7 +198,7 @@ try {
       await page.keyboard.press('d');
       await page.waitForTimeout(150);
     }
-    const savedDiff = await page.evaluate(() => localStorage.getItem('ar.difficulty.v1'));
+    const savedDiff = await page.evaluate(() => localStorage.getItem('ss.difficulty.v1'));
     console.log('difficulty:', JSON.stringify(diff), savedDiff);
     if (!diff.every(Boolean) || new Set(diff).size !== 3 || savedDiff !== 'normal') {
       ok = false;
@@ -171,7 +207,7 @@ try {
     await page.screenshot({ path: 'test-results/g9-missions.png' }).catch(() => undefined);
     await page.keyboard.press('c');
     const camp = await until(page, () => window.game.scene.isActive('loadout'), null, 15000);
-    const c0 = await page.evaluate(() => ({ map: window.game.scene.getScene('loadout').cfg?.map, campaign: JSON.parse(localStorage.getItem('ar.roster.v1'))[0]?.campaign }));
+    const c0 = await page.evaluate(() => ({ map: window.game.scene.getScene('loadout').cfg?.map, campaign: JSON.parse(localStorage.getItem('ss.roster.v1'))[0]?.campaign }));
     // The campaign's bookkeeping through the real award() (the module the game runs, from the dev server). G10: a built
     // site (vite preview, GitHub Pages) has no /src/ modules, so that part is dev-only and skipped there.
     const dev = await page.evaluate(() => !!document.querySelector('script[src*="@vite/client"]'));

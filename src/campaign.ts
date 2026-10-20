@@ -1,6 +1,6 @@
 /**
  * G9: the campaign. One Ranger flies the missions in order (src/missions.ts `MISSIONS`), carrying his merit, rank and
- * medals from one to the next. The state lives on the Ranger's roster record (src/roster.ts, `ar.roster.v1`), so it is
+ * medals from one to the next. The state lives on the Ranger's roster record (src/roster.ts, `ss.roster.v1`), so it is
  * saved with the roster: which mission is next, the merit earned in the campaign so far, and whether the mission being
  * flown is the campaign's (picking a single mission from the list flies it outside the campaign).
  *
