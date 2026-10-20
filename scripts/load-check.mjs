@@ -10,6 +10,10 @@
 // `arsenal` (or `arsenal:mission2`) checks G7: the supply pod loadout screen (CLEAR / limits / STANDARD / DONE) into
 // the mission, the basic carry and a pod pickup, then the carbine's magazine and reload, first aid, the knife, a LAW
 // on a target and a time bomb on another; then the same by touch on an emulated iPhone in landscape.
+// G12: `aim` (or `aim:mission5`) enters a mission and checks mouse aim (also run at the end of `field`): the commando
+// faces the cursor, a click shoots toward it (held: repeats), a right click's grenade lands at it (clamped to 8 m),
+// a LAW flies toward it, the crosshair replaces the cursor, and keyboard-only movement turns mouse aim off again.
+// It saves docs/screenshots/g12-mouse-aim.png (the crosshair and the grenade's range ring).
 import { chromium, devices } from '@playwright/test';
 import { objectiveChecks } from './g8b-checks.mjs';
 const url = process.argv[2] ?? process.env.GAME_URL ?? 'http://localhost:5195';
@@ -19,8 +23,10 @@ const isArsenal = scene.startsWith('arsenal');
 // G9: `g9` checks the enemy systems on the test field (a machine-gun nest, mines, a trench, a tank, sight lines,
 // alerts spreading and the alarm's reinforcements).
 const isG9 = scene === 'g9';
+const isAim = scene.startsWith('aim');
+const aimMap = scene.split(':')[1] ?? 'mission1';
 const arsenalMap = scene.split(':')[1] ?? 'mission1';
-const sceneKey = isMission ? 'mission' : isArsenal ? 'loadout' : isG9 ? 'field' : scene;
+const sceneKey = isMission || isAim ? 'mission' : isArsenal ? 'loadout' : isG9 ? 'field' : scene;
 const missionMap = scene === 'mission' ? 'mission1' : scene;
 const env = { ...process.env };
 delete env.DISPLAY;
@@ -34,8 +40,8 @@ const base = url.replace(/\/$/, '');
 await page.goto(
   scene === 'title'
     ? url
-    : isMission
-      ? `${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`
+    : isMission || isAim
+      ? `${base}/?scene=mission&mission=${encodeURIComponent(isAim ? aimMap : missionMap)}`
       : isArsenal
         ? `${base}/?scene=loadout&mission=${encodeURIComponent(arsenalMap)}`
         : `${base}/?scene=${encodeURIComponent(isG9 ? 'field' : scene)}`,
@@ -113,6 +119,11 @@ try {
       }
       await page.waitForTimeout(2500); // smoke and fire on the wreck for the screenshot
     }
+    ok = (await aimChecks(page, 'field')) && ok;
+  }
+  if (isAim) {
+    ok = (await aimChecks(page, 'mission', 'docs/screenshots/g12-mouse-aim.png')) && ok;
+    shotTaken = true;
   }
   if (isArsenal) ok = (await arsenalChecks(page)) && ok;
   if (isG9) {
@@ -1184,4 +1195,140 @@ async function g9Checks(page) {
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'test-results/g9.png' }).catch(() => undefined);
   return ok;
+}
+
+// ---- G12: mouse aim ----
+
+/**
+ * Mouse aim in a field scene: move the mouse to points at known world offsets from the commando and check his
+ * facing, a carbine shot's direction, a right-click grenade's landing point (and its clamp to 8 m), a LAW's
+ * direction, held fire repeating, the hidden system cursor, and keyboard-only movement turning mouse aim off.
+ */
+async function aimChecks(page, key, shot) {
+  const res = {};
+  let good = true;
+  const fail = (msg) => {
+    good = false;
+    console.log(`MOUSE AIM: ${msg}`);
+  };
+  // Stand still, unhurtable, stocked; log every bullet's and rocket's world direction.
+  await page.evaluate((key) => {
+    const m = window.game.scene.getScene(key);
+    m.god = true;
+    m.grenadesLeft = 9;
+    m.lawsLeft = 9;
+    m.magsLeft = 9;
+    m.weapon = 'carbine';
+    m.prone = false;
+    for (const e of m.enemies) if (e.state !== 'dead') (e.state = 'patrol'), (e.reaction = 99), (e.cooldown = 99);
+    window.__aim = { bullets: [], rockets: [] };
+    const fb = m.fireBullet.bind(m);
+    m.fireBullet = (from, muzzle, dir, ...rest) => {
+      if (rest[1] === 'ranger') window.__aim.bullets.push(dir);
+      return fb(from, muzzle, dir, ...rest);
+    };
+  }, key);
+  // Client (page) px of a ground point `w` world metres from the commando's feet.
+  const clientAt = (w) =>
+    page.evaluate(
+      ({ key, w }) => {
+        const m = window.game.scene.getScene(key);
+        const cam = m.cameras.main;
+        const sx = m.ranger.x + w.x * m.ppm - cam.worldView.x;
+        const sy = m.ranger.y - w.y * m.ppm * 0.5 - cam.worldView.y;
+        const r = window.game.canvas.getBoundingClientRect();
+        const ds = window.game.scale.displayScale;
+        return { x: r.left + (sx * cam.zoom) / ds.x, y: r.top + (sy * cam.zoom) / ds.y };
+      },
+      { key, w },
+    );
+  const angle = (d) => (Math.atan2(d.y, d.x) * 180) / Math.PI;
+  const off = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+  const idle = () => until(page, (key) => !window.game.scene.getScene(key).busy, key, 20000);
+  await page.mouse.move(5, 5);
+  // 1. Facing: the cursor 6 m to the north-west (a direction he doesn't face at the drop).
+  const nw = { x: -4.24, y: 4.24 };
+  let p = await clientAt(nw);
+  await page.mouse.move(p.x, p.y, { steps: 4 });
+  res.facesNW = await until(page, (key) => window.game.scene.getScene(key).facing === 'NW', key, 10000);
+  res.cursor = await page.evaluate(() => window.game.canvas.style.cursor);
+  res.on = await page.evaluate((key) => window.game.scene.getScene(key).aim?.on, key);
+  if (!res.on || !res.facesNW) fail(`want the commando facing NW toward the cursor (on ${res.on}, faces NW ${res.facesNW})`);
+  if (res.cursor !== 'none') fail(`want the system cursor hidden in the game (got "${res.cursor}")`);
+  // 2. A click shoots toward the cursor: 7 m at 20° north of west (between two sprite directions: the bullet follows
+  // the cursor, not the nearest of the 8).
+  const a20 = (160 * Math.PI) / 180;
+  p = await clientAt({ x: 7 * Math.cos(a20), y: 7 * Math.sin(a20) });
+  await page.mouse.move(p.x, p.y, { steps: 3 });
+  await page.waitForTimeout(300);
+  await page.mouse.down();
+  await page.mouse.up();
+  await until(page, () => window.__aim.bullets.length > 0, null, 15000);
+  const b0 = await page.evaluate(() => window.__aim.bullets[0] ?? null);
+  res.shot = b0 ? Math.round(angle(b0)) : null;
+  res.shotFacing = await page.evaluate((key) => window.game.scene.getScene(key).facing, key);
+  // The muzzle sits off his feet, so allow a few degrees.
+  if (!b0 || off(angle(b0), 160) > 8) fail(`want a shot toward 160° (got ${res.shot})`);
+  // 3. Held fire repeats at the carbine's rate.
+  await idle();
+  const n0 = await page.evaluate(() => window.__aim.bullets.length);
+  await page.mouse.down();
+  await until(page, (n0) => window.__aim.bullets.length >= n0 + 3, n0, 20000);
+  await page.mouse.up();
+  res.held = (await page.evaluate(() => window.__aim.bullets.length)) - n0;
+  if (res.held < 3) fail(`want held fire to repeat (got ${res.held} shots)`);
+  // 4. A right click throws a grenade at the cursor: 5 m south-east, then 11 m east (lands at 8 m).
+  const grenadeTo = async (w) => {
+    await idle();
+    const q = await clientAt(w);
+    await page.mouse.move(q.x, q.y, { steps: 3 });
+    await page.waitForTimeout(300);
+    const g0 = await page.evaluate((key) => window.game.scene.getScene(key).grenadesThrown, key);
+    await page.mouse.down({ button: 'right' });
+    await page.mouse.up({ button: 'right' });
+    await until(page, ({ key, g0 }) => window.game.scene.getScene(key).grenadesThrown > g0 && window.game.scene.getScene(key).grenades.length > 0, { key, g0 }, 15000);
+    return page.evaluate((key) => {
+      const m = window.game.scene.getScene(key);
+      const g = m.grenades[m.grenades.length - 1];
+      if (!g) return null;
+      // Where it lands, in world metres from where he stood (his feet when he threw: he stands still).
+      return { x: +((g.to.x - m.ranger.x) / m.ppm).toFixed(2), y: +(-(g.to.y - m.ranger.y) / (m.ppm * 0.5)).toFixed(2) };
+    }, key);
+  };
+  const se = { x: 3.54, y: -3.54 };
+  res.grenadeSE = await grenadeTo(se);
+  if (!res.grenadeSE || Math.hypot(res.grenadeSE.x - se.x, res.grenadeSE.y - se.y) > 0.3) fail(`want the grenade to land 5 m SE at the cursor (got ${JSON.stringify(res.grenadeSE)})`);
+  res.grenadeFar = await grenadeTo({ x: 11, y: 0 });
+  if (!res.grenadeFar || Math.abs(res.grenadeFar.x - 8) > 0.3 || Math.abs(res.grenadeFar.y) > 0.3) fail(`want a grenade aimed 11 m east to land at 8 m (got ${JSON.stringify(res.grenadeFar)})`);
+  // 5. The LAW flies toward the cursor (north-east, 10 m).
+  await idle();
+  await page.keyboard.press('3');
+  p = await clientAt({ x: 7.07, y: 7.07 });
+  await page.mouse.move(p.x, p.y, { steps: 3 });
+  await page.waitForTimeout(300);
+  await page.mouse.down();
+  await page.mouse.up();
+  await until(page, (key) => window.game.scene.getScene(key).rockets.length > 0, key, 15000);
+  const rk = await page.evaluate((key) => window.game.scene.getScene(key).rockets[0]?.dir ?? null, key);
+  res.law = rk ? Math.round(angle(rk)) : null;
+  if (!rk || off(angle(rk), 45) > 8) fail(`want the LAW toward 45° (got ${res.law})`);
+  // The screenshot: the grenade selected (its range ring) and the crosshair beyond it, 10 m west.
+  await idle();
+  await page.keyboard.press('2');
+  p = await clientAt({ x: -10, y: -1 });
+  await page.mouse.move(p.x, p.y, { steps: 3 });
+  await page.waitForTimeout(1500);
+  res.ring = await page.evaluate((key) => !!window.game.scene.getScene(key).aim?.ring?.visible, key);
+  if (!res.ring) fail('want the grenade range ring shown with the grenade selected');
+  if (shot) await page.screenshot({ path: shot });
+  await page.screenshot({ path: `test-results/${scene}-aim.png` });
+  // 6. Keyboard only: walking with the mouse left alone turns mouse aim off (the system cursor comes back).
+  await page.keyboard.down('d');
+  await until(page, (key) => !window.game.scene.getScene(key).aim?.on, key, 8000);
+  await page.keyboard.up('d');
+  res.offAfterKeys = await page.evaluate((key) => !window.game.scene.getScene(key).aim?.on, key);
+  res.cursorBack = await page.evaluate(() => window.game.canvas.style.cursor);
+  if (!res.offAfterKeys || res.cursorBack === 'none') fail(`want keyboard-only movement to turn mouse aim off (off ${res.offAfterKeys}, cursor "${res.cursorBack}")`);
+  console.log('mouse aim:', JSON.stringify(res));
+  return good;
 }
