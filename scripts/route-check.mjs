@@ -71,11 +71,11 @@ for (const name of names) {
     console.log(`  MINES ON THE ROUTE: ${hz.mined} cells`);
     failed++;
   }
-  if (process.env.ROUTE_DUMP) fs.writeFileSync(path.join(process.env.ROUTE_DUMP, `${name}.route.json`), JSON.stringify({ in: ra.cells, out: rb.cells }));
   const wa = clearRoute(tmj, ra.cells);
   const wb = clearRoute(tmj, rb.cells);
   if (wa.cells.length && wb.cells.length) console.log(`  walk route (one cell of clearance, FB-125): ${wa.m.toFixed(0)} + ${wb.m.toFixed(0)} m`);
   else if (Number.isFinite(total)) console.log("  walk route: none with a cell of clearance (FB-125), the walk follows the generator's");
+  if (process.env.ROUTE_DUMP) fs.writeFileSync(path.join(process.env.ROUTE_DUMP, `${name}.route.json`), JSON.stringify({ in: ra.cells, out: rb.cells, walkIn: wa.cells, walkOut: wb.cells }));
   if (browser) {
     // FB-125: `ssg map route` keeps no gap round props, and the game's colliders aren't cell aligned, so its route can
     // squeeze through a one-cell gap the Ranger doesn't fit (mission 3's wire, sandbags and rock). The walk follows a
@@ -91,6 +91,11 @@ for (const name of names) {
       m.god = true;
       // G8: objectives that fail when the Ranger is seen (missions 9, 12) would end the walk: nobody sees him.
       if (m.objective) m.sees = () => false;
+      // The people he escorts (mission 6's officer, prisoners, hostages) are unhurtable too: a guard's stray bullet
+      // killing the officer failed the mission, and a finished mission stops the Ranger (mission 6 stuck at 56/79).
+      const spare = () => {
+        for (const b of m.bystanders ?? []) if (!b.walkSpared) Object.assign(b, { walkSpared: true, hit: () => {} });
+      };
       const k = m.keys;
       const t0 = m.timeLeft;
       let i = 0;
@@ -102,7 +107,9 @@ for (const name of names) {
       const wall0 = performance.now();
       while (i < way.length && performance.now() - wall0 < 20 * 60 * 1000) {
         await new Promise((r) => requestAnimationFrame(r));
+        spare();
         const c = m.rangerCell();
+        if (m.outcome && m.outcome !== 'accomplished') return { reached: i, of: way.length, at: c, gameSeconds: +(t0 - m.timeLeft).toFixed(1), ended: m.outcome };
         const [wx, wy] = way[i];
         // Cells → world (x east, y north): +x cell is south-east, +y cell south-west.
         const dxc = wx - c.x;
@@ -132,7 +139,7 @@ for (const name of names) {
           sideDir = -sideDir;
           unstick++;
         }
-        if (stuck > 300) return { reached: i, of: way.length, at: c, gameSeconds: t0 - m.timeLeft, stuck: true };
+        if (stuck > 300) return { reached: i, of: way.length, at: c, gameSeconds: +(t0 - m.timeLeft).toFixed(1), stuck: true };
       }
       for (const key of ['W', 'A', 'S', 'D', 'SHIFT']) k[key].isDown = false;
       return { reached: i, of: way.length, gameSeconds: +(t0 - m.timeLeft).toFixed(1), unstick };
