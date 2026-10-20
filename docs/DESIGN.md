@@ -72,7 +72,11 @@ into `maps/<mission>.ops.json` before the first scatter), then `node scripts/bui
   Ranger (`Objective.exposed`): mission 6's officer once captured, mission 8's prisoners once the gate is open,
   mission 10's freed hostages. An alerted soldier within 12 m with a clear line fires at one every 2.5 s, an alerted
   machine-gun nest a 3-round burst inside its arc every 2.6 s; 35 % × the difficulty's accuracy of a round going true.
-  Any enemy bullet (also a miss aimed at the Ranger) passing within 0.45 m kills one. The officer killed: the mission
+  Any enemy bullet (also a miss aimed at the Ranger) passing within 0.45 m wounds one (G15, `src/enemies/wounds.ts`):
+  5 / 4 / 3 hits to die on Easy / Normal / Hard, and for 1.5 s after a hit further rounds are stopped but do nothing
+  (a nest's burst or two soldiers firing together cost one hit); a hit flashes him red and he blinks through the grace,
+  and once hurt a row of pips over him shows the hits left (the last one red). The Ranger's own bullets and blasts
+  still kill outright. The officer killed: the mission
   fails ("killed (enemy fire)" in the debriefing); prisoners and hostages: the count drops, all dead fails.
 - **Sight lines:** besides props' colliders (buildings, walls, trunks, rocks) tree canopies (the export's
   `canopyPolygon`, the middle 70 %) hide the Ranger. The view range is ×0.7 at dusk (×0.5 at night), ×0.6 prone,
@@ -119,7 +123,7 @@ into `maps/<mission>.ops.json` before the first scatter), then `node scripts/bui
   nest bursts then destroyed by grenades, tank driving, firing, shrugging off a grenade and destroyed by a LAW, an
   alert spreading, the alarm's reinforcements, dusk); the mission checks count each map's nests, minefields, trenches
   and tanks and finish through the plane call (every mission 1–12 must carry them, G10); missions 6, 8 and 10 also
-  check an alerted soldier shooting the exposed escort dead (the officer fails the mission, a prisoner or hostage
+  check an alerted soldier shooting the exposed escort dead after three wounds (the officer fails the mission, a prisoner or hostage
   lowers the count); the title check cycles the difficulty and starts and advances a campaign.
 
 ## Large maps (G6)

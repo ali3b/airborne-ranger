@@ -1014,7 +1014,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: `avoidRoute` is one object with one `from`/`to`, so each minefield guards only the leg it is nearer to; a minefield beside the objective can sit on the other leg unnoticed. The refusal also says only "within 3 m" (not how close, nor which cells), so moving the zone is guesswork with `map route --cells`.
 - Workaround: `scripts/build-maps.mjs` runs `scripts/route-check.mjs` (both legs via `ssg map route --cells`, minefield cells counted) after the build; each minefield's `avoidRoute` names its nearer leg.
 - Suggested change: let `avoidRoute` take a list (`[{from, to}, …]`) or a chain (`{via: ["drop", "code book", "extraction"], margin}`), and put the closest distance and the cells in the refusal.
-- Status: open
+- Re-test (G15, 2026-10-20): works. Both minefields of every mission now guard the whole way, `{"from": "drop", "via": [<objective>], "to": "extraction", "margin": 3, "at": "end"}`, with the same via as route-check (the custom `route` zone: code book, enemy officer, camp exit; mission 10's `approach` cell `[22.5, 33]`; mission 11's extraction is `border`), in maps/<mission>.ops.json and their stage3 / g10 sources. A minefield put on mission 6's second leg (officer → extraction, which the old per-leg guard didn't see) is refused with the leg, the distance and the cell: `zone g9_mines2 (minefield) would be on the route enemy officer→extraction at (67, 40), inside its 3 m margin (10 route cells within it)`; nearer misses say how close (`1.1 m from the route drop→Radar array at (45, 63)`), so moving the zone is no longer guesswork. `ssg map check-route <map>` reports `checked: 2` on the built maps. route-check (still the final check) finds no mine cells on any route, and `--walk` reaches the end on all twelve.
+- Status: verified
 
 ## FB-123 · `avoidRoute` on `addZone` is checked against the map before the batch's scatters
 - Severity: workaround        Milestone: wave 13
@@ -1023,7 +1024,8 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: the route is computed where the op stands in the batch, on open ground. Missions 3, 5, 6 and 8 were refused although their minefields were 12–30 m off the finished map's route: mission 8's `g9_mines2` is 29 m from the final drop → camp exit route but within 3 m of the pre-scatter one (`op 81 (addZone): zone g9_mines2 would be within 3 m of the route from drop to camp exit`). The reverse also happens: a zone that passes the guard can end up on the final route once the scatters bend it.
 - Workaround: those four minefields were moved 3–10 cells more so they clear both routes (worked out by replaying the ops up to the zone on a scratch map and asking `map route`), and FB-122's post-build check covers the finished route.
 - Suggested change: an option to check after the whole batch (`avoidRoute: {…, at: "end"}`, refusing the batch then), or a `checkRoute` op that asserts at its place in the batch that the route from → to keeps clear of named zones (`avoid: ["g9_mines1", …]` or `{kind: "custom", property: "minefield"}`).
-- Status: open
+- Re-test (G15, 2026-10-20): works. With `at: "end"` the minefields stay before the scatters (the order G10 needs) and are judged on the finished map. The FB-123 moves were tried back at their first positions: mission 5's and 8's `g9_mines2` (62,140 and 4,90) and mission 6's `g9_mines2` (14,62) are accepted now and keep 0 route cells, so they are back where they were designed; the other first positions (missions 1, 2, 3, 11) are refused on the finished route too, so those moves were real and stay. The reverse case also showed up: mission 2's `g9_mines2` and mission 11's `g9_mines1` had passed the old pre-scatter guard but were 1.1 m from the finished route; `at: "end"` refused them and they moved 3 cells east (maps/g6/mission2/stage3.json, maps/g10/mission11.json). A refused batch leaves the map as it was.
+- Status: verified
 
 ## FB-125 · `map route` keeps no clearance: its route squeezes through gaps the Ranger doesn't fit
 - Severity: workaround        Milestone: wave 14 (G13)
@@ -1032,4 +1034,14 @@ Status: `open` → `triaged (TODO: …)` → `fixed (<commit>)` → `verified` (
 - Got: mission 3's drop → Airfield route goes through the one-cell gap at (71, 66–67) between a wire (69, 66.5, 4×1), sandbags (66.5, 68) and a rock (68.5, 68.5); their collision polygons aren't cell aligned and overlap the gap, so the Ranger stuck there (`reached 43 of 73`, 590 game seconds). The other eleven routes were walked, with up to 16 sidesteps on corners (mission 4).
 - Workaround: `scripts/route-check.mjs` still takes metres and hazards from `ssg map route`, but the in-game walk follows its own route between the same end cells with one cell of clearance round the collision layer and the object footprints (`clearRoute`, marked FB-125); it prints both lengths (`walk route (one cell of clearance, FB-125): 198 + 143 m` on mission 3 against the generator's 182 + 132 m). With it all twelve missions walk to the end (mission 3: 77 of 77 waypoints, no sidesteps; mission 4's sidesteps drop from 16 to 8). Mission 6 once stopped at 56 of 79: not the route but a guard's stray bullet killing the captured officer, which failed the mission; the walk now spares the escorted people too and reports a mission that ends early (`ended: "failed"`).
 - Suggested change: `clearance` on `map route` (CLI `--clearance <m>`, MCP `clearance`), counted from the collision layer and footprints (or the objects' collision polygons), and the same option on `avoidRoute`.
+- Update (G15, 2026-10-20): the walk no longer spares the escorted people: enemy rounds now only wound them (the game's own change, src/enemies/wounds.ts: 4 hits on Normal, 1.5 s grace after each). Mission 6 walked to the end four times with the officer captured at 1:24 and following (once he took a wound on the way, which used to end the walk).
+- Status: open
+
+## FB-127 · `ssg map check-route` makes a new map revision
+- Severity: polish        Milestone: wave 15 (G15)
+- Tried: `ssg map check-route mission1` after `build-maps` (README: re-check every guarded zone and object after a later edit).
+- Wanted: a read-only check: report `checked` / refuse, and leave the map's revision alone.
+- Got: it runs as a one-op `map edit` (`{"applied": 1, "reports": [{"op": "checkRoute", "checked": 2, …}]}`) and the revision goes 23 → 24 (mission 6: 10 → 11) with nothing changed, so the map looks newer than the .tmj that `build-maps` exported from it.
+- Workaround: none needed; the game checks with `at: "end"` inside the build batch and doesn't call `check-route` after it.
+- Suggested change: don't bump the revision (or add a history entry) for a batch that only has `checkRoute` ops, or make `map check-route` a read (`GET …/check-route`).
 - Status: open

@@ -2,8 +2,8 @@
   {"op": "place", "sprite": "mg_nest", "x": 52, "y": 64, "facing": "SW", "state": "intact", "id": "g9_nest1", "properties": {"kind": "mg_nest"}}, 
   {"op": "place", "sprite": "mg_nest", "x": 14, "y": 50, "facing": "SE", "state": "intact", "id": "g9_nest2", "properties": {"kind": "mg_nest"}}, 
   {"op": "place", "sprite": "mg_nest", "x": 88, "y": 150, "facing": "SW", "state": "intact", "id": "g9_nest3", "properties": {"kind": "mg_nest"}}, 
-  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[50, 14], [60, 12], [62, 24], [52, 26]], "properties": {"minefield": true, "mines": 8}, "avoidRoute": {"from": "drop", "to": "code book", "margin": 3}},
-  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[71, 135], [83, 131], [85, 139], [73, 143]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "drop", "to": "code book", "margin": 3}},
+  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[50, 14], [60, 12], [62, 24], [52, 26]], "properties": {"minefield": true, "mines": 8}, "avoidRoute": {"from": "drop", "via": ["code book"], "to": "extraction", "margin": 3, "at": "end"}},
+  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[62, 140], [74, 136], [76, 144], [64, 148]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "drop", "via": ["code book"], "to": "extraction", "margin": 3, "at": "end"}},
   {"op": "addZone", "kind": "custom", "id": "g9_trench1", "name": "trench", "shape": "polyline", "points": [[0, 96], [18, 90], [34, 86]], "properties": {"trench": true, "width": 2.2}}, 
   {"op": "addZone", "kind": "custom", "id": "g9_trench2", "name": "trench", "shape": "polyline", "points": [[48, 82], [76, 76], [102, 70], [127.9, 64]], "properties": {"trench": true, "width": 2.2}}, 
   {"op": "addZone", "kind": "custom", "id": "g9_tank1", "name": "tank route", "shape": "polyline", "points": [[72, 110], [100, 100], [124, 96]], "properties": {"tank": true, "speed": 1.8}}]}

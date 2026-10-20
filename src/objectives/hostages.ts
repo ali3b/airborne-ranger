@@ -3,6 +3,7 @@ import { animKey } from '../assets';
 import { DIRS8, dirFromWorld, screenToWorldDelta, tileToScreen, worldToScreenDelta, type Dir8 } from '../iso';
 import { circleHitsPolygon, type Placed, type Pt } from '../scenes/Field';
 import { distM, type MissionView } from './g8b-view';
+import { woundEscort } from '../enemies/wounds';
 
 /**
  * G8 (lane g8b): people who follow the Ranger once freed (mission 10's hostages). They sit (`hostage` sit) until
@@ -87,7 +88,8 @@ export class Followers {
         const fw = v.worldOf(f.sprite);
         if (distM(b.pos, fw) < 0.45) {
           b.left = 0;
-          this.kill(f, { x: fw.x - b.pos.x, y: fw.y - b.pos.y }, 'shot');
+          // G15: a round wounds (src/enemies/wounds.ts); the last one kills.
+          woundEscort(f.sprite, () => f.alive, () => this.kill(f, { x: fw.x - b.pos.x, y: fw.y - b.pos.y }, 'shot'));
           break;
         }
       }

@@ -2,6 +2,6 @@
   {"op": "place", "sprite": "mg_nest", "x": 63, "y": 78, "facing": "NW", "state": "intact", "id": "g9_nest1", "properties": {"kind": "mg_nest"}}, 
   {"op": "place", "sprite": "mg_nest", "x": 90, "y": 150, "facing": "NW", "state": "intact", "id": "g9_nest2", "properties": {"kind": "mg_nest"}}, 
   {"op": "place", "sprite": "mg_nest", "x": 110, "y": 60, "facing": "SW", "state": "intact", "id": "g9_nest3", "properties": {"kind": "mg_nest"}}, 
-  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[86, 104], [98, 100], [100, 108], [88, 112]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "drop", "to": "SAM site", "margin": 3}},
-  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[20, 100], [32, 96], [34, 104], [22, 108]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "SAM site", "to": "extraction", "margin": 3}},
+  {"op": "addZone", "kind": "custom", "id": "g9_mines1", "name": "minefield", "shape": "polygon", "points": [[86, 104], [98, 100], [100, 108], [88, 112]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "drop", "via": ["SAM site"], "to": "extraction", "margin": 3, "at": "end"}},
+  {"op": "addZone", "kind": "custom", "id": "g9_mines2", "name": "minefield", "shape": "polygon", "points": [[20, 100], [32, 96], [34, 104], [22, 108]], "properties": {"minefield": true, "mines": 7}, "avoidRoute": {"from": "drop", "via": ["SAM site"], "to": "extraction", "margin": 3, "at": "end"}},
   {"op": "addZone", "kind": "custom", "id": "g9_tank1", "name": "tank route", "shape": "polyline", "points": [[122, 148], [104, 145], [90, 144]], "properties": {"tank": true, "speed": 1.8}}]}

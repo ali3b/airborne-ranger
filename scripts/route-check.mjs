@@ -3,7 +3,7 @@
 //   node scripts/route-check.mjs [mission1 …] [--walk http://localhost:5296]
 // The routes come from the generator (`ssg map route`, FB-110: collision and solid object footprints block, 8-way, on
 // the map as built in the project, which is what build-maps exported); the hazards are read from the exported .tmj.
-// --walk: the Ranger (unhurtable) then runs that route in the game, steered waypoint to waypoint with the keyboard
+// --walk: the Ranger (unhurtable; the people he escorts are not, G15) then runs that route in the game, steered waypoint to waypoint with the keyboard
 // state, through the game's own collision; it prints the mission clock it took and whether he got there.
 // Exits 1 when a route is missing or crosses a minefield, or the walk doesn't get to the end.
 import { execFileSync } from 'node:child_process';
@@ -91,10 +91,13 @@ for (const name of names) {
       m.god = true;
       // G8: objectives that fail when the Ranger is seen (missions 9, 12) would end the walk: nobody sees him.
       if (m.objective) m.sees = () => false;
-      // The people he escorts (mission 6's officer, prisoners, hostages) are unhurtable too: a guard's stray bullet
-      // killing the officer failed the mission, and a finished mission stops the Ranger (mission 6 stuck at 56/79).
-      const spare = () => {
-        for (const b of m.bystanders ?? []) if (!b.walkSpared) Object.assign(b, { walkSpared: true, hit: () => {} });
+      // G15: the people he escorts (mission 6's officer) are no longer made unhurtable: enemy rounds only wound them
+      // now (src/enemies/wounds.ts), and a walk that ends early still reports it (`ended`).
+      // G15: what enemy fire did to the escort on the way (wounds, rounds stopped in a grace, kills).
+      const escort = () => {
+        const w = m.g9?.escort?.wounds;
+        const o = m.objective?.stats?.(m);
+        return { ...(w && w.wounds + w.graced + w.kills ? { escortWounds: { ...w } } : {}), ...(o && Object.keys(o).length ? { objective: o } : {}) };
       };
       const k = m.keys;
       const t0 = m.timeLeft;
@@ -107,9 +110,8 @@ for (const name of names) {
       const wall0 = performance.now();
       while (i < way.length && performance.now() - wall0 < 20 * 60 * 1000) {
         await new Promise((r) => requestAnimationFrame(r));
-        spare();
         const c = m.rangerCell();
-        if (m.outcome && m.outcome !== 'accomplished') return { reached: i, of: way.length, at: c, gameSeconds: +(t0 - m.timeLeft).toFixed(1), ended: m.outcome };
+        if (m.outcome && m.outcome !== 'accomplished') return { reached: i, of: way.length, at: c, gameSeconds: +(t0 - m.timeLeft).toFixed(1), ended: m.outcome, reason: m.result?.reason ?? null, ...escort() };
         const [wx, wy] = way[i];
         // Cells → world (x east, y north): +x cell is south-east, +y cell south-west.
         const dxc = wx - c.x;
@@ -142,7 +144,7 @@ for (const name of names) {
         if (stuck > 300) return { reached: i, of: way.length, at: c, gameSeconds: +(t0 - m.timeLeft).toFixed(1), stuck: true };
       }
       for (const key of ['W', 'A', 'S', 'D', 'SHIFT']) k[key].isDown = false;
-      return { reached: i, of: way.length, gameSeconds: +(t0 - m.timeLeft).toFixed(1), unstick };
+      return { reached: i, of: way.length, gameSeconds: +(t0 - m.timeLeft).toFixed(1), unstick, ...escort() };
     }, way);
     console.log(`  walk: ${JSON.stringify(res)}`);
     if (res.reached < res.of) {

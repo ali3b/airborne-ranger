@@ -77,7 +77,7 @@ class Officer implements Objective {
   /** G10: once captured he walks with the Ranger, and the enemy shoots at him too. */
   exposed(): Escortee[] {
     const o = this.officer;
-    return o && this.state === 'captured' && o.alive ? [{ sprite: o.sprite, alive: true, hit: (from) => o.hit('enemy', from) }] : [];
+    return o && this.state === 'captured' && o.alive ? [{ sprite: o.sprite, get alive() { return o.alive; }, hit: (from) => o.hit('enemy', from) }] : [];
   }
 
   marker(m: Mission) {

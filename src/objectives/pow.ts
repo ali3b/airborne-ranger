@@ -108,7 +108,7 @@ class Pow implements Objective {
   /** G10: once the gate is open the prisoners are out in the open, and the enemy shoots at them. */
   exposed(): Escortee[] {
     if (!this.open || !this.escort) return [];
-    return this.escort.alive.map((f) => ({ sprite: f.sprite, alive: true, hit: (from) => f.hit('enemy', from) }));
+    return this.escort.alive.map((f) => ({ sprite: f.sprite, get alive() { return f.alive; }, hit: (from) => f.hit('enemy', from) }));
   }
 
   marker(m: Mission) {

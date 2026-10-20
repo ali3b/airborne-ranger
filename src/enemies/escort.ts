@@ -4,6 +4,7 @@ import { sfx } from '../sound';
 import type { Placed, Pt } from '../scenes/Field';
 import { distW, type FieldHost } from './host';
 import type { G9 } from './index';
+import { resetWounds, updateWounds, woundEscort, woundStats } from './wounds';
 
 /**
  * G10: the enemy shoots at the people the Ranger leads out (mission 6's officer, mission 8's prisoners, mission 10's
@@ -11,7 +12,8 @@ import type { G9 } from './index';
  * officer once captured, prisoners once the gate is open, hostages once freed); everything else is here:
  * - an alerted soldier within FIRE_RANGE with a clear line fires at one of them every FIRE_EVERY seconds;
  * - a manned machine-gun nest that is on alert fires a short burst at one inside its arc and range;
- * - any enemy bullet (these, and the ones aimed at the Ranger that miss him) that passes within HIT_R of one kills him.
+ * - any enemy bullet (these, and the ones aimed at the Ranger that miss him) that passes within HIT_R of one wounds
+ *   him (G15, src/enemies/wounds.ts: several hits to die, a short grace after each).
  * An aimed round has AIMED × the difficulty's accuracy of going true; the rest are aimed past. The objective decides
  * what a death means (the officer: failed; prisoners and hostages: the count drops, all dead: failed).
  */
@@ -24,10 +26,10 @@ const NEST_EVERY = 2.6; // seconds between bursts at them
 const NEST_ROUNDS = 3;
 const HIT_R = 0.45; // metres
 
-/** Someone enemies may shoot at (alive while `alive`); `hit` gets the bullet's world direction. */
+/** Someone enemies may shoot at (alive while `alive`); `hit` kills him and gets the bullet's world direction. */
 export interface Escortee {
   sprite: Phaser.GameObjects.Sprite;
-  alive: boolean;
+  readonly alive: boolean;
   hit(from: Pt): void;
 }
 
@@ -35,13 +37,17 @@ export class EscortFire {
   /** Off for scripted checks that need the escort to survive a teleport into a guarded area. */
   enabled = true;
   stats = { shots: 0, bursts: 0, hits: 0 };
+  /** G15: wounds, rounds stopped in a grace, kills (every escort, also mission 10's own hostage bullets). */
+  readonly wounds = woundStats;
   private cool = new Map<object, number>();
   private last = new WeakMap<object, Pt>();
 
   constructor(
     private host: FieldHost,
     private g9: G9,
-  ) {}
+  ) {
+    resetWounds();
+  }
 
   private targets(): Escortee[] {
     const h = this.host;
@@ -51,6 +57,7 @@ export class EscortFire {
   update(dt: number) {
     const h = this.host;
     const targets = this.targets();
+    updateWounds();
     // Enemy bullets on their way (traced from where they were last frame, so a fast one can't skip a man).
     for (const b of h.bullets) {
       if (b.owner !== 'enemy' || b.left <= 0) continue;
@@ -59,7 +66,7 @@ export class EscortFire {
       for (const t of targets) {
         if (!t.alive || segDist(h.worldOf(t.sprite), p0, b.pos) > HIT_R) continue;
         b.left = 0;
-        t.hit(b.dir);
+        woundEscort(t.sprite, () => t.alive, () => t.hit(b.dir));
         this.stats.hits++;
         break;
       }

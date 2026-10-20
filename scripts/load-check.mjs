@@ -672,7 +672,7 @@ async function escortFireCheck(page, scene, kind) {
     const t0 = performance.now();
     const shots0 = m.g9.escort.stats.shots;
     const alive = () => o.exposed(m).some((x) => x.sprite === t.sprite);
-    while (performance.now() - t0 < 60000 && alive()) {
+    while (performance.now() - t0 < 120000 && alive()) {
       e.state = 'alert';
       e.unseen = 0;
       e.reaction = 99;
@@ -683,18 +683,20 @@ async function escortFireCheck(page, scene, kind) {
     const until = performance.now();
     while (kind === 'officer' && performance.now() - until < 5000 && !m.outcome) await wait(100);
     const stats = o.stats?.(m) ?? {};
-    return { kind, died: !alive(), shots: m.g9.escort.stats.shots - shots0, hits: m.g9.escort.stats.hits, outcome: m.outcome, reason: m.result?.reason ?? null, hud: o.hud(m), stats, left: o.exposed(m).length };
+    return { kind, died: !alive(), shots: m.g9.escort.stats.shots - shots0, hits: m.g9.escort.stats.hits, wounds: { ...m.g9.escort.wounds }, outcome: m.outcome, reason: m.result?.reason ?? null, hud: o.hud(m), stats, left: o.exposed(m).length };
   }, kind);
   console.log('g10 escort fire:', JSON.stringify(r));
   await page.screenshot({ path: `test-results/${scene}-escort-fire.png` }).catch(() => undefined);
   let good = !r.error && r.died && r.shots > 0 && r.hits > 0;
+  // G15: one round doesn't kill: he took the normal difficulty's hits (4: three wounds, then the kill).
+  good &&= (r.wounds?.wounds ?? 0) >= 3 && (r.wounds?.kills ?? 0) >= 1;
   if (kind === 'officer') good &&= r.outcome === 'failed' && /officer/i.test(r.reason ?? '') && /enemy fire/.test(String(r.stats?.officer ?? ''));
   else good &&= r.outcome !== 'failed' && r.left > 0 && Number(r.stats?.[kind === 'pow' ? 'prisoners killed' : 'hostages killed'] ?? 0) >= 1;
   // The checks after this one want the mission as dropped.
   await page.goto(`${base}/?scene=mission&mission=${encodeURIComponent(missionMap)}`);
   await page.waitForFunction(() => window.game?.scene?.getScene('mission')?.ranger && window.game.scene.getScene('mission').g9, null, { timeout: 90000 });
   await page.waitForTimeout(1000);
-  if (!good) console.log('G10 ESCORT FIRE CHECK FAILED (want: an alerted soldier shoots the exposed escort dead; the officer fails the mission, a prisoner/hostage lowers the count)');
+  if (!good) console.log('G10 ESCORT FIRE CHECK FAILED (want: an alerted soldier shoots the exposed escort dead, after three wounds (G15); the officer fails the mission, a prisoner/hostage lowers the count)');
   return good;
 }
 

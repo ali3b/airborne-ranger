@@ -100,7 +100,7 @@ class Rescue implements Objective {
 
   /** G10: freed hostages are shot at by alerted soldiers and machine-gun nests (src/enemies/escort.ts). */
   exposed(): Escortee[] {
-    return this.hostages.list.filter((f) => f.alive && f.free).map((f) => ({ sprite: f.sprite, alive: true, hit: (from) => this.hostages.kill(f, from, 'shot') }));
+    return this.hostages.list.filter((f) => f.alive && f.free).map((f) => ({ sprite: f.sprite, get alive() { return f.alive; }, hit: (from) => this.hostages.kill(f, from, 'shot') }));
   }
 
   marker(m: Mission) {
