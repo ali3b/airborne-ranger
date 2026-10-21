@@ -1,0 +1,7 @@
+{
+  "anims": [
+    {"key": "fuel_tank/intact_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_WaterTank_01", "frame": "intact_SE_0"}]},
+    {"key": "fuel_tank/destroyed_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_WaterTank_01", "frame": "destroyed_SE_0"}]},
+    {"key": "fuel_tank/intact_to_destroyed_SE", "frameRate": 10, "repeat": 0, "flipX": false, "frames": [{"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_0"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_1"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_2"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_3"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_4"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_5"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_6"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_7"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_8"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_9"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_10"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_11"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_12"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_13"}, {"key": "Bld_WaterTank_01", "frame": "intact_to_destroyed_SE_14"}]}
+  ]
+}

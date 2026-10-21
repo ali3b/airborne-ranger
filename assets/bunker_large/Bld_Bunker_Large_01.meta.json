@@ -1,0 +1,592 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T17:04:30.717Z"
+  },
+  "asset": {
+    "name": "SM_Bld_Bunker_Large_01",
+    "pack": "POLYGON_War",
+    "kind": "prop"
+  },
+  "blend": "normal",
+  "frameWidth": 612,
+  "frameHeight": 558,
+  "fps": 10,
+  "pivot": {
+    "x": 306,
+    "y": 379
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 8.932,
+      "d": 10.062,
+      "minX": -4.466,
+      "maxX": 4.466,
+      "minZ": -5.031,
+      "maxZ": 5.031
+    },
+    "height": 5.744,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 9,
+      "d": 11,
+      "wExact": 8.932,
+      "dExact": 10.062,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -4.466,
+          -4.891
+        ],
+        [
+          -3.663,
+          -5.031
+        ],
+        [
+          3.663,
+          -5.031
+        ],
+        [
+          4.466,
+          -4.891
+        ],
+        [
+          4.466,
+          4.216
+        ],
+        [
+          3.966,
+          5.031
+        ],
+        [
+          -3.966,
+          5.031
+        ],
+        [
+          -4.466,
+          4.216
+        ]
+      ]
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 306,
+      "y": 379
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 306,
+          "y": 379
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            6.58,
+            372.2
+          ],
+          [
+            27.79,
+            357.11
+          ],
+          [
+            262.22,
+            239.9
+          ],
+          [
+            292.4,
+            229.29
+          ],
+          [
+            583.82,
+            375
+          ],
+          [
+            593.9,
+            396.04
+          ],
+          [
+            340.08,
+            522.95
+          ],
+          [
+            298,
+            517.91
+          ]
+        ],
+        "tiles": {
+          "u": 11,
+          "v": 9,
+          "uExact": 10.062,
+          "vExact": 8.932,
+          "polygon": [
+            [
+              -4.891,
+              4.466
+            ],
+            [
+              -5.031,
+              3.663
+            ],
+            [
+              -5.031,
+              -3.663
+            ],
+            [
+              -4.891,
+              -4.466
+            ],
+            [
+              4.216,
+              -4.466
+            ],
+            [
+              5.031,
+              -3.966
+            ],
+            [
+              5.031,
+              3.966
+            ],
+            [
+              4.216,
+              4.466
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Bld_Bunker_Large_01",
+        "footprint": {
+          "w": 8.932,
+          "d": 10.062,
+          "minX": -4.466,
+          "maxX": 4.466,
+          "minZ": -5.031,
+          "maxZ": 5.031
+        },
+        "height": 5.744,
+        "bottom": 0,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 9,
+          "d": 11,
+          "wExact": 8.932,
+          "dExact": 10.062,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -4.466,
+              -4.891
+            ],
+            [
+              -3.663,
+              -5.031
+            ],
+            [
+              3.663,
+              -5.031
+            ],
+            [
+              4.466,
+              -4.891
+            ],
+            [
+              4.466,
+              4.216
+            ],
+            [
+              3.966,
+              5.031
+            ],
+            [
+              -3.966,
+              5.031
+            ],
+            [
+              -4.466,
+              4.216
+            ]
+          ]
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                6.58,
+                372.2
+              ],
+              [
+                27.79,
+                357.11
+              ],
+              [
+                262.22,
+                239.9
+              ],
+              [
+                292.4,
+                229.29
+              ],
+              [
+                583.82,
+                375
+              ],
+              [
+                593.9,
+                396.04
+              ],
+              [
+                340.08,
+                522.95
+              ],
+              [
+                298,
+                517.91
+              ]
+            ],
+            "tiles": {
+              "u": 11,
+              "v": 9,
+              "polygon": [
+                [
+                  -4.891,
+                  4.466
+                ],
+                [
+                  -5.031,
+                  3.663
+                ],
+                [
+                  -5.031,
+                  -3.663
+                ],
+                [
+                  -4.891,
+                  -4.466
+                ],
+                [
+                  4.216,
+                  -4.466
+                ],
+                [
+                  5.031,
+                  -3.966
+                ],
+                [
+                  5.031,
+                  3.966
+                ],
+                [
+                  4.216,
+                  4.466
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Bld_Bunker_Large_01",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 9.121,
+          "d": 10.072,
+          "minX": -4.666,
+          "maxX": 4.455,
+          "minZ": -4.958,
+          "maxZ": 5.114
+        },
+        "height": 5.176,
+        "bottom": -0.629,
+        "centre": {
+          "x": -0.106,
+          "z": 0.078
+        },
+        "tiles": {
+          "w": 10,
+          "d": 11,
+          "wExact": 9.121,
+          "dExact": 10.072,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -4.666,
+              -4.81
+            ],
+            [
+              -4.637,
+              -4.822
+            ],
+            [
+              -4.59,
+              -4.841
+            ],
+            [
+              -4.47,
+              -4.889
+            ],
+            [
+              -3.856,
+              -4.954
+            ],
+            [
+              -3.592,
+              -4.958
+            ],
+            [
+              -3.233,
+              -4.958
+            ],
+            [
+              3.219,
+              -4.955
+            ],
+            [
+              3.461,
+              -4.95
+            ],
+            [
+              4.451,
+              -4.885
+            ],
+            [
+              4.455,
+              4.056
+            ],
+            [
+              3.789,
+              5.102
+            ],
+            [
+              3.76,
+              5.114
+            ],
+            [
+              -4.162,
+              5.11
+            ],
+            [
+              -4.662,
+              4.295
+            ]
+          ]
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                2.77,
+                376.7
+              ],
+              [
+                3.31,
+                376.04
+              ],
+              [
+                4.21,
+                374.98
+              ],
+              [
+                6.51,
+                372.3
+              ],
+              [
+                24.08,
+                361.43
+              ],
+              [
+                32.4,
+                357.14
+              ],
+              [
+                43.89,
+                351.4
+              ],
+              [
+                250.45,
+                248.22
+              ],
+              [
+                258.35,
+                244.42
+              ],
+              [
+                292.11,
+                229.62
+              ],
+              [
+                578.35,
+                372.62
+              ],
+              [
+                590.51,
+                400.01
+              ],
+              [
+                589.97,
+                400.66
+              ],
+              [
+                336.34,
+                527.35
+              ],
+              [
+                294.26,
+                522.31
+              ]
+            ],
+            "tiles": {
+              "u": 11,
+              "v": 10,
+              "polygon": [
+                [
+                  -4.81,
+                  4.666
+                ],
+                [
+                  -4.822,
+                  4.637
+                ],
+                [
+                  -4.841,
+                  4.59
+                ],
+                [
+                  -4.889,
+                  4.47
+                ],
+                [
+                  -4.954,
+                  3.856
+                ],
+                [
+                  -4.958,
+                  3.592
+                ],
+                [
+                  -4.958,
+                  3.233
+                ],
+                [
+                  -4.955,
+                  -3.219
+                ],
+                [
+                  -4.95,
+                  -3.461
+                ],
+                [
+                  -4.885,
+                  -4.451
+                ],
+                [
+                  4.056,
+                  -4.454
+                ],
+                [
+                  5.102,
+                  -3.788
+                ],
+                [
+                  5.114,
+                  -3.759
+                ],
+                [
+                  5.11,
+                  4.163
+                ],
+                [
+                  4.295,
+                  4.663
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Bld_Bunker_Large_01"
+      }
+    ]
+  }
+}

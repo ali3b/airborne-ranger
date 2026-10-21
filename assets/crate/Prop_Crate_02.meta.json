@@ -1,0 +1,544 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T17:04:23.731Z"
+  },
+  "asset": {
+    "name": "SM_Prop_Crate_02",
+    "pack": "POLYGON_War",
+    "kind": "prop"
+  },
+  "blend": "normal",
+  "frameWidth": 94,
+  "frameHeight": 88,
+  "fps": 10,
+  "pivot": {
+    "x": 47,
+    "y": 59
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 1.012,
+      "d": 1.596,
+      "minX": -0.506,
+      "maxX": 0.506,
+      "minZ": -0.798,
+      "maxZ": 0.798
+    },
+    "height": 0.879,
+    "bottom": -0.022,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 2,
+      "d": 2,
+      "wExact": 1.012,
+      "dExact": 1.596,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -0.506,
+          -0.717
+        ],
+        [
+          -0.497,
+          -0.789
+        ],
+        [
+          0.431,
+          -0.798
+        ],
+        [
+          0.506,
+          -0.792
+        ],
+        [
+          0.506,
+          0.792
+        ],
+        [
+          0.167,
+          0.798
+        ],
+        [
+          -0.122,
+          0.798
+        ],
+        [
+          -0.5,
+          0.792
+        ],
+        [
+          -0.506,
+          0.568
+        ]
+      ]
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 47,
+      "y": 59
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 47,
+          "y": 59
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            7.86,
+            55.62
+          ],
+          [
+            5.85,
+            54.33
+          ],
+          [
+            35.26,
+            39.34
+          ],
+          [
+            37.85,
+            38.23
+          ],
+          [
+            88.54,
+            63.58
+          ],
+          [
+            77.88,
+            69.1
+          ],
+          [
+            68.63,
+            73.72
+          ],
+          [
+            56.34,
+            79.67
+          ],
+          [
+            48.98,
+            76.18
+          ]
+        ],
+        "tiles": {
+          "u": 2,
+          "v": 2,
+          "uExact": 1.596,
+          "vExact": 1.012,
+          "polygon": [
+            [
+              -0.717,
+              0.506
+            ],
+            [
+              -0.789,
+              0.497
+            ],
+            [
+              -0.798,
+              -0.431
+            ],
+            [
+              -0.792,
+              -0.506
+            ],
+            [
+              0.792,
+              -0.506
+            ],
+            [
+              0.798,
+              -0.167
+            ],
+            [
+              0.798,
+              0.122
+            ],
+            [
+              0.792,
+              0.5
+            ],
+            [
+              0.568,
+              0.506
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Prop_Crate_02",
+        "footprint": {
+          "w": 1.012,
+          "d": 1.596,
+          "minX": -0.506,
+          "maxX": 0.506,
+          "minZ": -0.798,
+          "maxZ": 0.798
+        },
+        "height": 0.879,
+        "bottom": -0.022,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 2,
+          "d": 2,
+          "wExact": 1.012,
+          "dExact": 1.596,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.506,
+              -0.717
+            ],
+            [
+              -0.497,
+              -0.789
+            ],
+            [
+              0.431,
+              -0.798
+            ],
+            [
+              0.506,
+              -0.792
+            ],
+            [
+              0.506,
+              0.792
+            ],
+            [
+              0.167,
+              0.798
+            ],
+            [
+              -0.122,
+              0.798
+            ],
+            [
+              -0.5,
+              0.792
+            ],
+            [
+              -0.506,
+              0.568
+            ]
+          ]
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                7.86,
+                55.62
+              ],
+              [
+                5.85,
+                54.33
+              ],
+              [
+                35.26,
+                39.34
+              ],
+              [
+                37.85,
+                38.23
+              ],
+              [
+                88.54,
+                63.58
+              ],
+              [
+                77.88,
+                69.1
+              ],
+              [
+                68.63,
+                73.72
+              ],
+              [
+                56.34,
+                79.67
+              ],
+              [
+                48.98,
+                76.18
+              ]
+            ],
+            "tiles": {
+              "u": 2,
+              "v": 2,
+              "polygon": [
+                [
+                  -0.717,
+                  0.506
+                ],
+                [
+                  -0.789,
+                  0.497
+                ],
+                [
+                  -0.798,
+                  -0.431
+                ],
+                [
+                  -0.792,
+                  -0.506
+                ],
+                [
+                  0.792,
+                  -0.506
+                ],
+                [
+                  0.798,
+                  -0.167
+                ],
+                [
+                  0.798,
+                  0.122
+                ],
+                [
+                  0.792,
+                  0.5
+                ],
+                [
+                  0.568,
+                  0.506
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Prop_Crate_02",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 1.037,
+          "d": 1.609,
+          "minX": -0.53,
+          "maxX": 0.507,
+          "minZ": -0.789,
+          "maxZ": 0.82
+        },
+        "height": 0.8,
+        "bottom": -0.113,
+        "centre": {
+          "x": -0.012,
+          "z": 0.015
+        },
+        "tiles": {
+          "w": 2,
+          "d": 2,
+          "wExact": 1.037,
+          "dExact": 1.609,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.53,
+              0.749
+            ],
+            [
+              -0.528,
+              -0.76
+            ],
+            [
+              -0.497,
+              -0.789
+            ],
+            [
+              0.503,
+              -0.789
+            ],
+            [
+              0.507,
+              0.712
+            ],
+            [
+              0.505,
+              0.793
+            ],
+            [
+              0.472,
+              0.817
+            ],
+            [
+              -0.483,
+              0.82
+            ],
+            [
+              -0.528,
+              0.818
+            ]
+          ]
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                54.01,
+                79.46
+              ],
+              [
+                5.78,
+                55.29
+              ],
+              [
+                5.85,
+                54.33
+              ],
+              [
+                37.85,
+                38.33
+              ],
+              [
+                86.01,
+                62.28
+              ],
+              [
+                88.54,
+                63.61
+              ],
+              [
+                88.25,
+                64.52
+              ],
+              [
+                57.78,
+                79.85
+              ],
+              [
+                56.28,
+                80.54
+              ]
+            ],
+            "tiles": {
+              "u": 2,
+              "v": 2,
+              "polygon": [
+                [
+                  0.748,
+                  0.531
+                ],
+                [
+                  -0.761,
+                  0.528
+                ],
+                [
+                  -0.79,
+                  0.497
+                ],
+                [
+                  -0.789,
+                  -0.503
+                ],
+                [
+                  0.712,
+                  -0.506
+                ],
+                [
+                  0.793,
+                  -0.504
+                ],
+                [
+                  0.817,
+                  -0.471
+                ],
+                [
+                  0.819,
+                  0.484
+                ],
+                [
+                  0.817,
+                  0.529
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Prop_Crate_02"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "textures": [
+    {
+      "image": "Veh_American_Plane_Transport_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 2944, "h": 680},
+      "scale": 1,
+      "frames": [
+        {"filename": "propeller_spin_S_0", "frame": {"x": 1, "y": 1, "w": 1469, "h": 678}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 99, "w": 1469, "h": 678}, "sourceSize": {"w": 1474, "h": 1064}, "pivot": {"x": 0.5, "y": 0.54076}},
+        {"filename": "propeller_spin_S_1", "frame": {"x": 1474, "y": 1, "w": 1469, "h": 678}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 99, "w": 1469, "h": 678}, "sourceSize": {"w": 1474, "h": 1064}, "pivot": {"x": 0.5, "y": 0.54076}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

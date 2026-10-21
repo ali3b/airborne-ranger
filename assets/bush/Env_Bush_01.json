@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Env_Bush_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 99, "h": 62},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 97, "h": 60}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 20, "w": 97, "h": 60}, "sourceSize": {"w": 106, "h": 88}, "pivot": {"x": 0.5017, "y": 0.64295}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

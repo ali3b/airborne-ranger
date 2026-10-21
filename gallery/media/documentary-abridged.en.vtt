@@ -1,0 +1,484 @@
+WEBVTT
+
+00:00:00.350 --> 00:00:01.142
+Previously.
+
+00:00:01.142 --> 00:00:04.670
+On Sidefighter: The Week That Changed Everything.
+
+00:00:05.820 --> 00:00:07.120
+Six fighters.
+
+00:00:07.120 --> 00:00:08.420
+One fireball.
+
+00:00:08.420 --> 00:00:09.520
+No regrets.
+
+00:00:09.520 --> 00:00:12.420
+And one review, from one man.
+
+00:00:13.770 --> 00:00:15.450
+Kinda janky, he said.
+
+00:00:15.450 --> 00:00:17.690
+Basically, Mortal Kombat it.
+
+00:00:20.040 --> 00:00:21.198
+That man was Tony.
+
+00:00:21.198 --> 00:00:22.999
+This film is not about Tony.
+
+00:00:22.999 --> 00:00:25.122
+Tony would want you to know that.
+
+00:00:25.122 --> 00:00:28.210
+Tony would also want you to know about the jank.
+
+00:00:30.360 --> 00:00:31.182
+In the beginning...
+
+00:00:31.182 --> 00:00:31.960
+there was nothing.
+
+00:00:34.510 --> 00:00:39.439
+Just twelve thousand, one hundred and two three-dimensional models.
+
+00:00:39.439 --> 00:00:40.101
+Sleeping.
+
+00:00:40.101 --> 00:00:40.910
+In folders.
+
+00:00:42.460 --> 00:00:44.549
+Soldiers who had never walked.
+
+00:00:44.549 --> 00:00:46.917
+Tanks that had never fired a shot.
+
+00:00:46.917 --> 00:00:50.190
+Trees that had never cast a shadow on anything.
+
+00:00:51.940 --> 00:00:54.745
+This is the story of what happened next.
+
+00:00:54.745 --> 00:00:56.007
+It took four days.
+
+00:00:56.007 --> 00:00:57.690
+Tony would say it shows.
+
+00:01:10.740 --> 00:01:13.256
+Thursday, the fifteenth of October.
+
+00:01:13.256 --> 00:01:16.060
+Twenty-nine minutes past ten, at night.
+
+00:01:17.310 --> 00:01:22.442
+While the rest of the world was asleep, one commit landed.
+
+00:01:22.442 --> 00:01:23.061
+Ingest.
+
+00:01:23.061 --> 00:01:23.769
+Library.
+
+00:01:23.769 --> 00:01:24.831
+Retargeting.
+
+00:01:24.831 --> 00:01:25.450
+Studio.
+
+00:01:26.700 --> 00:01:29.336
+Eight minutes later: view standards.
+
+00:01:29.336 --> 00:01:33.070
+Projections, direction sets, mirroring, scale lock.
+
+00:01:34.320 --> 00:01:38.893
+Fifteen minutes after that: export formats for every engine that mattered.
+
+00:01:38.893 --> 00:01:41.427
+Most companies would call that a quarter.
+
+00:01:41.427 --> 00:01:42.910
+We called it a Thursday.
+
+00:01:48.360 --> 00:01:51.578
+Here is the problem every game developer knows.
+
+00:01:51.578 --> 00:01:53.358
+You have beautiful 3D art.
+
+00:01:53.358 --> 00:01:54.727
+You need 2D sprites.
+
+00:01:54.727 --> 00:01:56.233
+And between the two...
+
+00:01:56.233 --> 00:01:57.260
+lies suffering.
+
+00:01:58.510 --> 00:02:01.050
+The Synty Sprite Generator ends the suffering.
+
+00:02:02.600 --> 00:02:03.851
+Eight directions.
+
+00:02:03.851 --> 00:02:04.587
+Isometric.
+
+00:02:04.587 --> 00:02:12.165
+Real scale, locked to the tile, so a soldier is the size of a soldier and a tank is the size of a tank.
+
+00:02:12.165 --> 00:02:13.636
+That sounds obvious.
+
+00:02:13.636 --> 00:02:14.740
+Nobody does it.
+
+00:02:15.990 --> 00:02:17.666
+Objects have states.
+
+00:02:17.666 --> 00:02:19.257
+A bunker is intact.
+
+00:02:19.257 --> 00:02:20.849
+Then it is damaged.
+
+00:02:20.849 --> 00:02:24.200
+Then it is a smoking hole in the ground.
+
+00:02:24.200 --> 00:02:25.122
+One sprite.
+
+00:02:25.122 --> 00:02:26.127
+Every state.
+
+00:02:26.127 --> 00:02:27.970
+Every collision shape.
+
+00:02:34.120 --> 00:02:35.561
+We built a game.
+
+00:02:35.561 --> 00:02:36.552
+A real one.
+
+00:02:36.552 --> 00:02:37.994
+Solitary Strike.
+
+00:02:37.994 --> 00:02:40.876
+One soldier, behind enemy lines.
+
+00:02:42.126 --> 00:02:44.653
+And we gave the game one rule.
+
+00:02:44.653 --> 00:02:47.095
+You may not touch the engine.
+
+00:02:47.095 --> 00:02:48.779
+You may only ask it.
+
+00:02:48.779 --> 00:02:49.874
+Command line.
+
+00:02:49.874 --> 00:02:50.211
+MCP.
+
+00:02:50.211 --> 00:02:51.306
+Nothing else.
+
+00:02:52.556 --> 00:02:58.338
+Every time the game needed something the engine couldn't do, it wrote it down.
+
+00:02:58.338 --> 00:02:59.598
+A feedback entry.
+
+00:02:59.598 --> 00:03:00.265
+Numbered.
+
+00:03:00.265 --> 00:03:00.710
+Dated.
+
+00:03:00.710 --> 00:03:01.896
+Brutally honest.
+
+00:03:03.146 --> 00:03:04.756
+Ninety-nine of them.
+
+00:03:04.756 --> 00:03:06.848
+The engine read every one.
+
+00:03:06.848 --> 00:03:07.975
+It fixed them.
+
+00:03:07.975 --> 00:03:13.046
+The game came back, deleted its workaround, and wrote one word.
+
+00:03:13.046 --> 00:03:13.770
+Verified.
+
+00:03:13.770 --> 00:03:16.346
+Sixty-seven times, and counting.
+
+00:03:18.496 --> 00:03:20.591
+And some were found by Tony.
+
+00:03:20.591 --> 00:03:21.788
+Tony has a gift.
+
+00:03:21.788 --> 00:03:28.446
+He looks at the thing everyone else has stared at for six hours, and he says the obvious.
+
+00:03:28.446 --> 00:03:29.120
+Out loud.
+
+00:03:29.120 --> 00:03:29.943
+Every time.
+
+00:03:29.943 --> 00:03:31.364
+He is always right.
+
+00:03:31.364 --> 00:03:32.636
+It is unbearable.
+
+00:03:38.986 --> 00:03:41.225
+How do you build this much, this fast?
+
+00:03:41.225 --> 00:03:43.346
+You don't do it one thing at a time.
+
+00:03:44.596 --> 00:03:45.509
+Twelve waves.
+
+00:03:45.509 --> 00:03:48.178
+Three hundred and thirty-four commits.
+
+00:03:48.178 --> 00:03:50.637
+Eighty-five thousand lines of code.
+
+00:03:50.637 --> 00:03:51.550
+In four days.
+
+00:03:51.550 --> 00:03:56.186
+Andrew estimates it is only a few million commits away from ready.
+
+00:04:02.536 --> 00:04:03.070
+And this...
+
+00:04:03.070 --> 00:04:03.896
+is what it built.
+
+00:04:05.246 --> 00:04:06.057
+One commando.
+
+00:04:06.057 --> 00:04:12.419
+Dropped behind enemy lines, with three supply pods and a clock that does not care about your feelings.
+
+00:04:13.669 --> 00:04:15.223
+Machine-gun nests.
+
+00:04:15.223 --> 00:04:16.778
+Hidden minefields.
+
+00:04:16.778 --> 00:04:17.555
+Trenches.
+
+00:04:17.555 --> 00:04:21.959
+Tanks, that only a rocket or a time bomb will stop.
+
+00:04:23.209 --> 00:04:24.340
+Blow the depot.
+
+00:04:24.340 --> 00:04:25.849
+Steal the code book.
+
+00:04:25.849 --> 00:04:30.677
+Capture the officer, and he surrenders, and he follows you home.
+
+00:04:30.677 --> 00:04:32.110
+Free the prisoners.
+
+00:04:32.110 --> 00:04:34.599
+Photograph the prototype, unseen.
+
+00:04:35.849 --> 00:04:37.349
+Then call the plane.
+
+00:04:37.349 --> 00:04:38.249
+And hold on.
+
+00:04:40.399 --> 00:04:44.296
+Today, Solitary Strike is played all over the world.
+
+00:04:44.296 --> 00:04:44.895
+By Tony.
+
+00:04:52.045 --> 00:04:54.371
+Monday, the nineteenth of October.
+
+00:04:54.371 --> 00:04:55.876
+Seventeen forty-seven.
+
+00:04:55.876 --> 00:04:58.475
+The first playtester enters the field.
+
+00:04:59.825 --> 00:05:01.194
+His first finding.
+
+00:05:01.194 --> 00:05:03.627
+An enemy soldier, incapacitated.
+
+00:05:03.627 --> 00:05:07.125
+In his words, overwhelmed by holding that gun.
+
+00:05:07.125 --> 00:05:09.635
+And somehow, impossible to shoot.
+
+00:05:11.185 --> 00:05:13.910
+Undeterred, he destroys a tank.
+
+00:05:13.910 --> 00:05:15.493
+With a LAW rocket.
+
+00:05:15.493 --> 00:05:17.251
+Exactly as designed.
+
+00:05:17.251 --> 00:05:19.625
+History will remember this.
+
+00:05:21.375 --> 00:05:22.851
+He clears the stage.
+
+00:05:22.851 --> 00:05:25.138
+He reaches the extraction zone.
+
+00:05:25.138 --> 00:05:26.835
+He waits for the plane.
+
+00:05:28.785 --> 00:05:29.584
+And he waits.
+
+00:05:29.584 --> 00:05:35.175
+Standing, and I quote, with his dick in his hand, waiting for a plane that is never coming.
+
+00:05:38.125 --> 00:05:39.386
+There was a key.
+
+00:05:39.386 --> 00:05:39.543
+C.
+
+00:05:39.543 --> 00:05:40.725
+Call the plane.
+
+00:05:40.725 --> 00:05:42.932
+It had been there all along.
+
+00:05:42.932 --> 00:05:45.138
+He found it in a screenshot.
+
+00:05:45.138 --> 00:05:46.005
+Afterwards.
+
+00:05:47.755 --> 00:05:50.187
+His final report was two words long.
+
+00:05:50.187 --> 00:05:50.795
+The fuck.
+
+00:05:53.945 --> 00:05:59.911
+Less than three hours later, wave twelve put it on the screen, in plain English.
+
+00:05:59.911 --> 00:06:00.433
+Then C.
+
+00:06:00.433 --> 00:06:01.551
+Call the plane.
+
+00:06:01.551 --> 00:06:02.744
+Thank you, Tony.
+
+00:06:02.744 --> 00:06:05.205
+Head of Pointing Out the Obvious.
+
+00:06:11.755 --> 00:06:13.930
+You may have seen the first film.
+
+00:06:13.930 --> 00:06:14.721
+Sidefighter.
+
+00:06:14.721 --> 00:06:20.455
+Two mercenaries, a fireball, and a man named Ryker, who did not become a better person.
+
+00:06:21.705 --> 00:06:24.551
+Ryker is still not a better person.
+
+00:06:24.551 --> 00:06:25.527
+Same engine.
+
+00:06:25.527 --> 00:06:26.341
+Same rule.
+
+00:06:26.341 --> 00:06:28.455
+Completely different game.
+
+00:06:30.805 --> 00:06:32.795
+Four days ago, there was nothing.
+
+00:06:35.145 --> 00:06:41.039
+Today there are twelve thousand models that can walk, run, fight, burn and fall.
+
+00:06:41.039 --> 00:06:43.102
+A hundred and fifty sprites.
+
+00:06:43.102 --> 00:06:44.207
+Seventeen maps.
+
+00:06:44.207 --> 00:06:44.944
+Two games.
+
+00:06:44.944 --> 00:06:49.365
+And one engine that makes the next one easier than the last.
+
+00:06:51.315 --> 00:06:51.569
+Oh.
+
+00:06:51.569 --> 00:06:53.175
+And one more thing.
+
+00:06:55.725 --> 00:06:56.390
+This film.
+
+00:06:56.390 --> 00:06:58.451
+The shots, the music, the edit.
+
+00:06:58.451 --> 00:07:00.845
+The voice you are hearing right now.
+
+00:07:00.845 --> 00:07:04.835
+Made on the same machine, by the same process, this evening.
+
+00:07:06.585 --> 00:07:08.664
+We didn't just build a sprite engine.
+
+00:07:08.664 --> 00:07:11.025
+We built the thing that builds the things.
+
+00:07:12.975 --> 00:07:14.039
+From nothing.
+
+00:07:14.039 --> 00:07:15.185
+To everything.
+
+00:07:16.735 --> 00:07:17.204
+Tony.
+
+00:07:17.204 --> 00:07:19.548
+If you are watching this.
+
+00:07:19.548 --> 00:07:21.705
+It's not janky anymore.
+
+00:07:21.705 --> 00:07:22.455
+Press C.

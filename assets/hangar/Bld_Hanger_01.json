@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Bld_Hanger_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 992, "h": 756},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 990, "h": 754}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 91, "w": 990, "h": 754}, "sourceSize": {"w": 1008, "h": 870}, "pivot": {"x": 0.5, "y": 0.7092}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

@@ -1,0 +1,568 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T17:04:36.252Z"
+  },
+  "asset": {
+    "name": "SM_Bld_Camonetting_Tent_01",
+    "pack": "POLYGON_War",
+    "kind": "prop"
+  },
+  "blend": "normal",
+  "frameWidth": 306,
+  "frameHeight": 310,
+  "fps": 10,
+  "pivot": {
+    "x": 153,
+    "y": 221
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 4.876,
+      "d": 4.676,
+      "minX": -2.438,
+      "maxX": 2.438,
+      "minZ": -2.338,
+      "maxZ": 2.338
+    },
+    "height": 3.639,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 5,
+      "d": 5,
+      "wExact": 4.876,
+      "dExact": 4.676,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -2.438,
+          -2.271
+        ],
+        [
+          -2.404,
+          -2.308
+        ],
+        [
+          2.26,
+          -2.338
+        ],
+        [
+          2.293,
+          -2.3
+        ],
+        [
+          2.438,
+          2.213
+        ],
+        [
+          2.409,
+          2.254
+        ],
+        [
+          0.798,
+          2.325
+        ],
+        [
+          -2.245,
+          2.338
+        ],
+        [
+          -2.277,
+          2.299
+        ],
+        [
+          -2.356,
+          0.961
+        ]
+      ]
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 153,
+      "y": 221
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 153,
+          "y": 221
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            2.31,
+            223.67
+          ],
+          [
+            2.22,
+            222.54
+          ],
+          [
+            150.5,
+            147.43
+          ],
+          [
+            152.78,
+            147.51
+          ],
+          [
+            301.83,
+            217.4
+          ],
+          [
+            302.22,
+            218.52
+          ],
+          [
+            252.94,
+            245.43
+          ],
+          [
+            155.98,
+            294.33
+          ],
+          [
+            153.7,
+            294.22
+          ],
+          [
+            108.36,
+            274.07
+          ]
+        ],
+        "tiles": {
+          "u": 5,
+          "v": 5,
+          "uExact": 4.676,
+          "vExact": 4.876,
+          "polygon": [
+            [
+              -2.271,
+              2.438
+            ],
+            [
+              -2.308,
+              2.404
+            ],
+            [
+              -2.338,
+              -2.26
+            ],
+            [
+              -2.3,
+              -2.293
+            ],
+            [
+              2.213,
+              -2.438
+            ],
+            [
+              2.254,
+              -2.409
+            ],
+            [
+              2.325,
+              -0.798
+            ],
+            [
+              2.338,
+              2.245
+            ],
+            [
+              2.299,
+              2.277
+            ],
+            [
+              0.961,
+              2.356
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Bld_Camonetting_Tent_01",
+        "footprint": {
+          "w": 4.876,
+          "d": 4.676,
+          "minX": -2.438,
+          "maxX": 2.438,
+          "minZ": -2.338,
+          "maxZ": 2.338
+        },
+        "height": 3.639,
+        "bottom": 0,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 5,
+          "d": 5,
+          "wExact": 4.876,
+          "dExact": 4.676,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -2.438,
+              -2.271
+            ],
+            [
+              -2.404,
+              -2.308
+            ],
+            [
+              2.26,
+              -2.338
+            ],
+            [
+              2.293,
+              -2.3
+            ],
+            [
+              2.438,
+              2.213
+            ],
+            [
+              2.409,
+              2.254
+            ],
+            [
+              0.798,
+              2.325
+            ],
+            [
+              -2.245,
+              2.338
+            ],
+            [
+              -2.277,
+              2.299
+            ],
+            [
+              -2.356,
+              0.961
+            ]
+          ]
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                2.31,
+                223.67
+              ],
+              [
+                2.22,
+                222.54
+              ],
+              [
+                150.5,
+                147.43
+              ],
+              [
+                152.78,
+                147.51
+              ],
+              [
+                301.83,
+                217.4
+              ],
+              [
+                302.22,
+                218.52
+              ],
+              [
+                252.94,
+                245.43
+              ],
+              [
+                155.98,
+                294.33
+              ],
+              [
+                153.7,
+                294.22
+              ],
+              [
+                108.36,
+                274.07
+              ]
+            ],
+            "tiles": {
+              "u": 5,
+              "v": 5,
+              "polygon": [
+                [
+                  -2.271,
+                  2.438
+                ],
+                [
+                  -2.308,
+                  2.404
+                ],
+                [
+                  -2.338,
+                  -2.26
+                ],
+                [
+                  -2.3,
+                  -2.293
+                ],
+                [
+                  2.213,
+                  -2.438
+                ],
+                [
+                  2.254,
+                  -2.409
+                ],
+                [
+                  2.325,
+                  -0.798
+                ],
+                [
+                  2.338,
+                  2.245
+                ],
+                [
+                  2.299,
+                  2.277
+                ],
+                [
+                  0.961,
+                  2.356
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Bld_Camonetting_Tent_01",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 4.87,
+          "d": 4.676,
+          "minX": -2.429,
+          "maxX": 2.441,
+          "minZ": -2.339,
+          "maxZ": 2.337
+        },
+        "height": 3.126,
+        "bottom": -0.273,
+        "centre": {
+          "x": 0.006,
+          "z": -0.001
+        },
+        "tiles": {
+          "w": 5,
+          "d": 5,
+          "wExact": 4.87,
+          "dExact": 4.676,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -2.429,
+              -2.272
+            ],
+            [
+              -2.395,
+              -2.309
+            ],
+            [
+              2.261,
+              -2.339
+            ],
+            [
+              2.295,
+              -2.301
+            ],
+            [
+              2.441,
+              2.213
+            ],
+            [
+              2.411,
+              2.254
+            ],
+            [
+              0.887,
+              2.311
+            ],
+            [
+              -2.236,
+              2.337
+            ],
+            [
+              -2.268,
+              2.298
+            ]
+          ]
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                2.57,
+                223.51
+              ],
+              [
+                2.47,
+                222.38
+              ],
+              [
+                150.5,
+                147.4
+              ],
+              [
+                152.81,
+                147.46
+              ],
+              [
+                301.93,
+                217.35
+              ],
+              [
+                302.28,
+                218.49
+              ],
+              [
+                255.34,
+                243.78
+              ],
+              [
+                156.23,
+                294.17
+              ],
+              [
+                153.96,
+                294.06
+              ]
+            ],
+            "tiles": {
+              "u": 5,
+              "v": 5,
+              "polygon": [
+                [
+                  -2.272,
+                  2.429
+                ],
+                [
+                  -2.309,
+                  2.395
+                ],
+                [
+                  -2.339,
+                  -2.261
+                ],
+                [
+                  -2.301,
+                  -2.295
+                ],
+                [
+                  2.213,
+                  -2.441
+                ],
+                [
+                  2.254,
+                  -2.411
+                ],
+                [
+                  2.311,
+                  -0.887
+                ],
+                [
+                  2.337,
+                  2.236
+                ],
+                [
+                  2.298,
+                  2.268
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Bld_Camonetting_Tent_01"
+      }
+    ]
+  }
+}

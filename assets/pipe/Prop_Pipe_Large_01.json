@@ -1,0 +1,15 @@
+{
+  "textures": [
+    {
+      "image": "Prop_Pipe_Large_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 473, "h": 161},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SW_0", "frame": {"x": 1, "y": 1, "w": 235, "h": 159}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 21, "y": 25, "w": 235, "h": 159}, "sourceSize": {"w": 276, "h": 200}, "pivot": {"x": 0.5, "y": 0.65}},
+        {"filename": "still_SE_0", "frame": {"x": 240, "y": 1, "w": 232, "h": 159}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 23, "y": 26, "w": 232, "h": 159}, "sourceSize": {"w": 276, "h": 200}, "pivot": {"x": 0.5, "y": 0.65}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

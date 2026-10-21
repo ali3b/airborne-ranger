@@ -1,0 +1,15 @@
+{
+  "textures": [
+    {
+      "image": "Prop_Fence_Wire_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 372, "h": 181},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SW_0", "frame": {"x": 1, "y": 1, "w": 185, "h": 179}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 66, "y": 46, "w": 185, "h": 179}, "sourceSize": {"w": 458, "h": 338}, "pivot": {"x": 0.32924, "y": 0.54136}},
+        {"filename": "still_SE_0", "frame": {"x": 190, "y": 1, "w": 181, "h": 179}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 70, "y": 113, "w": 181, "h": 179}, "sourceSize": {"w": 458, "h": 338}, "pivot": {"x": 0.32959, "y": 0.77249}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

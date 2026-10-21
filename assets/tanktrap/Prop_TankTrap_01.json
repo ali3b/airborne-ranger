@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Prop_TankTrap_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 86, "h": 82},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 84, "h": 80}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 22, "w": 84, "h": 80}, "sourceSize": {"w": 94, "h": 110}, "pivot": {"x": 0.5, "y": 0.75455}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

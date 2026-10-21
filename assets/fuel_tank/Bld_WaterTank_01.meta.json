@@ -1,0 +1,680 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-19T06:42:11.011Z"
+  },
+  "asset": {
+    "name": "SM_Bld_WaterTank_01",
+    "pack": "POLYGON_Apocalypse",
+    "kind": "prop",
+    "category": "building"
+  },
+  "blend": "normal",
+  "frameWidth": 408,
+  "frameHeight": 444,
+  "fps": 10,
+  "pivot": {
+    "x": 204,
+    "y": 319
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 8.482,
+      "d": 8.482,
+      "minX": -4.241,
+      "maxX": 4.241,
+      "minZ": -4.241,
+      "maxZ": 4.241
+    },
+    "height": 5.504,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 9,
+      "d": 9,
+      "wExact": 8.482,
+      "dExact": 8.482,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -4.241,
+          -1.136
+        ],
+        [
+          -3.105,
+          -3.105
+        ],
+        [
+          -1.136,
+          -4.241
+        ],
+        [
+          1.136,
+          -4.241
+        ],
+        [
+          3.105,
+          -3.105
+        ],
+        [
+          4.241,
+          -1.136
+        ],
+        [
+          4.241,
+          1.136
+        ],
+        [
+          3.105,
+          3.105
+        ],
+        [
+          1.136,
+          4.241
+        ],
+        [
+          -1.136,
+          4.241
+        ],
+        [
+          -3.105,
+          3.105
+        ],
+        [
+          -4.241,
+          1.136
+        ]
+      ],
+      "rule": "vehicle"
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 204,
+      "y": 319
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 204,
+          "y": 319
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            31.94,
+            368.68
+          ],
+          [
+            5.28,
+            319
+          ],
+          [
+            31.94,
+            269.32
+          ],
+          [
+            104.64,
+            232.97
+          ],
+          [
+            204,
+            219.64
+          ],
+          [
+            303.36,
+            232.97
+          ],
+          [
+            376.06,
+            269.32
+          ],
+          [
+            402.72,
+            319
+          ],
+          [
+            376.06,
+            368.68
+          ],
+          [
+            303.36,
+            405.03
+          ],
+          [
+            204,
+            418.36
+          ],
+          [
+            104.64,
+            405.03
+          ]
+        ],
+        "tiles": {
+          "u": 9,
+          "v": 9,
+          "uExact": 8.482,
+          "vExact": 8.482,
+          "polygon": [
+            [
+              -1.136,
+              4.241
+            ],
+            [
+              -3.105,
+              3.105
+            ],
+            [
+              -4.241,
+              1.136
+            ],
+            [
+              -4.241,
+              -1.136
+            ],
+            [
+              -3.105,
+              -3.105
+            ],
+            [
+              -1.136,
+              -4.241
+            ],
+            [
+              1.136,
+              -4.241
+            ],
+            [
+              3.105,
+              -3.105
+            ],
+            [
+              4.241,
+              -1.136
+            ],
+            [
+              4.241,
+              1.136
+            ],
+            [
+              3.105,
+              3.105
+            ],
+            [
+              1.136,
+              4.241
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model. collision.rule says why: vehicle/building = always the whole hull; thin (trees, poles, lamps, signs) = the slice when it is at most half the hull; shape = the slice only under 15 % of the hull and near the middle; height = collisionHeight was given; asked = collision \"base\" or \"full\" was given.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Bld_WaterTank_01",
+        "footprint": {
+          "w": 8.482,
+          "d": 8.482,
+          "minX": -4.241,
+          "maxX": 4.241,
+          "minZ": -4.241,
+          "maxZ": 4.241
+        },
+        "height": 5.504,
+        "bottom": 0,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 9,
+          "d": 9,
+          "wExact": 8.482,
+          "dExact": 8.482,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -4.241,
+              -1.136
+            ],
+            [
+              -3.105,
+              -3.105
+            ],
+            [
+              -1.136,
+              -4.241
+            ],
+            [
+              1.136,
+              -4.241
+            ],
+            [
+              3.105,
+              -3.105
+            ],
+            [
+              4.241,
+              -1.136
+            ],
+            [
+              4.241,
+              1.136
+            ],
+            [
+              3.105,
+              3.105
+            ],
+            [
+              1.136,
+              4.241
+            ],
+            [
+              -1.136,
+              4.241
+            ],
+            [
+              -3.105,
+              3.105
+            ],
+            [
+              -4.241,
+              1.136
+            ]
+          ],
+          "rule": "vehicle"
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                31.94,
+                368.68
+              ],
+              [
+                5.28,
+                319
+              ],
+              [
+                31.94,
+                269.32
+              ],
+              [
+                104.64,
+                232.97
+              ],
+              [
+                204,
+                219.64
+              ],
+              [
+                303.36,
+                232.97
+              ],
+              [
+                376.06,
+                269.32
+              ],
+              [
+                402.72,
+                319
+              ],
+              [
+                376.06,
+                368.68
+              ],
+              [
+                303.36,
+                405.03
+              ],
+              [
+                204,
+                418.36
+              ],
+              [
+                104.64,
+                405.03
+              ]
+            ],
+            "tiles": {
+              "u": 9,
+              "v": 9,
+              "polygon": [
+                [
+                  -1.136,
+                  4.241
+                ],
+                [
+                  -3.105,
+                  3.105
+                ],
+                [
+                  -4.241,
+                  1.136
+                ],
+                [
+                  -4.241,
+                  -1.136
+                ],
+                [
+                  -3.105,
+                  -3.105
+                ],
+                [
+                  -1.136,
+                  -4.241
+                ],
+                [
+                  1.136,
+                  -4.241
+                ],
+                [
+                  3.105,
+                  -3.105
+                ],
+                [
+                  4.241,
+                  -1.136
+                ],
+                [
+                  4.241,
+                  1.136
+                ],
+                [
+                  3.105,
+                  3.105
+                ],
+                [
+                  1.136,
+                  4.241
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Bld_WaterTank_01",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 8.482,
+          "d": 8.545,
+          "minX": -4.241,
+          "maxX": 4.241,
+          "minZ": -4.31,
+          "maxZ": 4.235
+        },
+        "height": 4.928,
+        "bottom": -0.554,
+        "centre": {
+          "x": 0,
+          "z": -0.037
+        },
+        "tiles": {
+          "w": 9,
+          "d": 9,
+          "wExact": 8.482,
+          "dExact": 8.545,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -4.241,
+              -1.148
+            ],
+            [
+              -3.104,
+              -3.114
+            ],
+            [
+              -2.984,
+              -3.217
+            ],
+            [
+              -1.088,
+              -4.31
+            ],
+            [
+              1.101,
+              -4.31
+            ],
+            [
+              2.997,
+              -3.217
+            ],
+            [
+              3.105,
+              -3.114
+            ],
+            [
+              4.241,
+              -1.148
+            ],
+            [
+              4.241,
+              1.135
+            ],
+            [
+              3.105,
+              3.1
+            ],
+            [
+              1.137,
+              4.235
+            ],
+            [
+              -1.136,
+              4.235
+            ],
+            [
+              -3.104,
+              3.1
+            ],
+            [
+              -4.241,
+              1.135
+            ]
+          ],
+          "rule": "vehicle"
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                31.55,
+                368.49
+              ],
+              [
+                5.02,
+                318.84
+              ],
+              [
+                5.57,
+                315.27
+              ],
+              [
+                31.26,
+                267.45
+              ],
+              [
+                101.31,
+                232.42
+              ],
+              [
+                196.96,
+                219.58
+              ],
+              [
+                203.71,
+                219.5
+              ],
+              [
+                302.98,
+                232.78
+              ],
+              [
+                376.03,
+                269.3
+              ],
+              [
+                402.56,
+                318.92
+              ],
+              [
+                375.9,
+                368.57
+              ],
+              [
+                303.17,
+                404.94
+              ],
+              [
+                203.87,
+                418.26
+              ],
+              [
+                104.61,
+                405.02
+              ]
+            ],
+            "tiles": {
+              "u": 9,
+              "v": 9,
+              "polygon": [
+                [
+                  -1.148,
+                  4.241
+                ],
+                [
+                  -3.114,
+                  3.104
+                ],
+                [
+                  -3.217,
+                  2.984
+                ],
+                [
+                  -4.31,
+                  1.088
+                ],
+                [
+                  -4.309,
+                  -1.101
+                ],
+                [
+                  -3.216,
+                  -2.997
+                ],
+                [
+                  -3.113,
+                  -3.105
+                ],
+                [
+                  -1.147,
+                  -4.241
+                ],
+                [
+                  1.136,
+                  -4.241
+                ],
+                [
+                  3.101,
+                  -3.105
+                ],
+                [
+                  4.236,
+                  -1.137
+                ],
+                [
+                  4.235,
+                  1.136
+                ],
+                [
+                  3.1,
+                  3.104
+                ],
+                [
+                  1.135,
+                  4.241
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Bld_WaterTank_01"
+      }
+    ]
+  }
+}

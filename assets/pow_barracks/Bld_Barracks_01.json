@@ -1,0 +1,15 @@
+{
+  "textures": [
+    {
+      "image": "Bld_Barracks_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 1354, "h": 454},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SW_0", "frame": {"x": 1, "y": 1, "w": 674, "h": 452}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 18, "y": 69, "w": 674, "h": 452}, "sourceSize": {"w": 710, "h": 550}, "pivot": {"x": 0.5, "y": 0.67455}},
+        {"filename": "still_SE_0", "frame": {"x": 679, "y": 1, "w": 674, "h": 452}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 18, "y": 69, "w": 674, "h": 452}, "sourceSize": {"w": 710, "h": 550}, "pivot": {"x": 0.5, "y": 0.67455}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

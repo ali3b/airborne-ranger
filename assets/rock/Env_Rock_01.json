@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Env_Rock_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 129, "h": 103},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 127, "h": 101}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 21, "w": 127, "h": 101}, "sourceSize": {"w": 164, "h": 146}, "pivot": {"x": 0.5, "y": 0.67808}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "explosion/explosion_S", "frameRate": 10, "repeat": 0, "flipX": false, "frames": [{"key": "Particle_Smoke_01", "frame": "explosion_S_0"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_1"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_2"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_3"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_4"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_5"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_6"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_7"}, {"key": "Particle_Smoke_01", "frame": "explosion_S_8"}]}
+  ]
+}

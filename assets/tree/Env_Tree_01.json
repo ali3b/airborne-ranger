@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Env_Tree_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 262, "h": 503},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 260, "h": 501}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 4, "y": 53, "w": 260, "h": 501}, "sourceSize": {"w": 308, "h": 628}, "pivot": {"x": 0.46432, "y": 0.88054}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

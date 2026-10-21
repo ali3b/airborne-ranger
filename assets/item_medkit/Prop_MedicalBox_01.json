@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Prop_MedicalBox_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 114, "h": 75},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 112, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 8, "y": 28, "w": 112, "h": 73}, "sourceSize": {"w": 128, "h": 128}, "pivot": {"x": 0.5, "y": 0.58203}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

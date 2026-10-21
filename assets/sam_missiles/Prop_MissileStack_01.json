@@ -1,0 +1,30 @@
+{
+  "textures": [
+    {
+      "image": "Prop_MissileStack_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 97, "h": 546},
+      "scale": 1,
+      "frames": [
+        {"filename": "intact_SE_0", "frame": {"x": 1, "y": 103, "w": 44, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 6, "w": 44, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "destroyed_SE_0", "frame": {"x": 47, "y": 254, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_0", "frame": {"x": 1, "y": 205, "w": 42, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 7, "w": 42, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_1", "frame": {"x": 1, "y": 1, "w": 47, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 6, "w": 47, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_2", "frame": {"x": 1, "y": 256, "w": 42, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 8, "y": 6, "w": 42, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_3", "frame": {"x": 1, "y": 52, "w": 46, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 6, "w": 46, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_4", "frame": {"x": 1, "y": 154, "w": 44, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 7, "w": 44, "h": 47}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_5", "frame": {"x": 1, "y": 307, "w": 44, "h": 46}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 8, "w": 44, "h": 46}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_6", "frame": {"x": 47, "y": 205, "w": 44, "h": 45}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 9, "w": 44, "h": 45}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_7", "frame": {"x": 49, "y": 103, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_8", "frame": {"x": 51, "y": 52, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_9", "frame": {"x": 52, "y": 1, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_10", "frame": {"x": 49, "y": 151, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_11", "frame": {"x": 1, "y": 357, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_12", "frame": {"x": 1, "y": 405, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_13", "frame": {"x": 1, "y": 453, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}},
+        {"filename": "intact_to_destroyed_SE_14", "frame": {"x": 1, "y": 501, "w": 44, "h": 44}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 10, "w": 44, "h": 44}, "sourceSize": {"w": 52, "h": 62}, "pivot": {"x": 0.5, "y": 0.72581}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

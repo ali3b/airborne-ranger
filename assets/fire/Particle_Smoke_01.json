@@ -1,0 +1,20 @@
+{
+  "textures": [
+    {
+      "image": "Particle_Smoke_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 89, "h": 335},
+      "scale": 1,
+      "frames": [
+        {"filename": "fire_loop_S_0", "frame": {"x": 43, "y": 69, "w": 44, "h": 63}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 18, "y": 18, "w": 44, "h": 63}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_1", "frame": {"x": 1, "y": 137, "w": 48, "h": 63}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 14, "y": 18, "w": 48, "h": 63}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_2", "frame": {"x": 1, "y": 271, "w": 35, "h": 63}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 19, "y": 18, "w": 35, "h": 63}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_3", "frame": {"x": 1, "y": 69, "w": 38, "h": 64}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 18, "y": 17, "w": 38, "h": 64}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_4", "frame": {"x": 49, "y": 1, "w": 39, "h": 63}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 14, "y": 18, "w": 39, "h": 63}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_5", "frame": {"x": 1, "y": 1, "w": 44, "h": 64}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 15, "y": 17, "w": 44, "h": 64}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}},
+        {"filename": "fire_loop_S_6", "frame": {"x": 1, "y": 204, "w": 38, "h": 63}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 18, "w": 38, "h": 63}, "sourceSize": {"w": 74, "h": 118}, "pivot": {"x": 0.5, "y": 0.66102}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

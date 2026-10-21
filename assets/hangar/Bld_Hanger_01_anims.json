@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "hangar/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_Hanger_01", "frame": "still_SE_0"}]}
+  ]
+}

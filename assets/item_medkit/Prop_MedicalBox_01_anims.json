@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "item_medkit/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Prop_MedicalBox_01", "frame": "still_SE_0"}]}
+  ]
+}

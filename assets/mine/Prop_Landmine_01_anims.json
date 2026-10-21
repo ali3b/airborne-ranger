@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "mine/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Prop_Landmine_01", "frame": "still_SE_0"}]}
+  ]
+}

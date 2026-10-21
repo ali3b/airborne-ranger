@@ -1,0 +1,40 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-18T10:13:50.725Z"
+  },
+  "asset": {
+    "name": "SM_Wep_RPG_Rocket_Active_01",
+    "pack": "POLYGON_BattleRoyale",
+    "kind": "weapon",
+    "category": null
+  },
+  "blend": "normal",
+  "frameWidth": 52,
+  "frameHeight": 38,
+  "fps": 10,
+  "pivot": {
+    "x": 26,
+    "y": 19
+  },
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "projectile",
+      "loop": true,
+      "frameCount": 5,
+      "events": []
+    }
+  ]
+}

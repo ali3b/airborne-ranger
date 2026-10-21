@@ -1,0 +1,620 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-19T06:41:43.405Z"
+  },
+  "asset": {
+    "name": "SM_Veh_Rocket_01",
+    "pack": "POLYGON_War",
+    "kind": "prop",
+    "category": "misc"
+  },
+  "blend": "normal",
+  "frameWidth": 192,
+  "frameHeight": 690,
+  "fps": 10,
+  "pivot": {
+    "x": 96,
+    "y": 604
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 3.916,
+      "d": 3.916,
+      "minX": -1.958,
+      "maxX": 1.958,
+      "minZ": -1.958,
+      "maxZ": 1.958
+    },
+    "height": 14.153,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 4,
+      "d": 4,
+      "wExact": 3.916,
+      "dExact": 3.916,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -1.958,
+          -0.049
+        ],
+        [
+          -0.049,
+          -1.958
+        ],
+        [
+          0.049,
+          -1.958
+        ],
+        [
+          1.958,
+          -0.049
+        ],
+        [
+          1.958,
+          0.049
+        ],
+        [
+          0.049,
+          1.958
+        ],
+        [
+          -0.049,
+          1.958
+        ],
+        [
+          -1.958,
+          0.049
+        ]
+      ],
+      "rule": "vehicle"
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 96,
+      "y": 604
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 96,
+          "y": 604
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            31.78,
+            634.54
+          ],
+          [
+            31.78,
+            573.46
+          ],
+          [
+            34.91,
+            571.89
+          ],
+          [
+            157.09,
+            571.89
+          ],
+          [
+            160.22,
+            573.46
+          ],
+          [
+            160.22,
+            634.54
+          ],
+          [
+            157.09,
+            636.11
+          ],
+          [
+            34.91,
+            636.11
+          ]
+        ],
+        "tiles": {
+          "u": 4,
+          "v": 4,
+          "uExact": 3.916,
+          "vExact": 3.916,
+          "polygon": [
+            [
+              -0.049,
+              1.958
+            ],
+            [
+              -1.958,
+              0.049
+            ],
+            [
+              -1.958,
+              -0.049
+            ],
+            [
+              -0.049,
+              -1.958
+            ],
+            [
+              0.049,
+              -1.958
+            ],
+            [
+              1.958,
+              -0.049
+            ],
+            [
+              1.958,
+              0.049
+            ],
+            [
+              0.049,
+              1.958
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model. collision.rule says why: vehicle/building = always the whole hull; thin (trees, poles, lamps, signs) = the slice when it is at most half the hull; shape = the slice only under 15 % of the hull and near the middle; height = collisionHeight was given; asked = collision \"base\" or \"full\" was given.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Veh_Rocket_01",
+        "footprint": {
+          "w": 3.916,
+          "d": 3.916,
+          "minX": -1.958,
+          "maxX": 1.958,
+          "minZ": -1.958,
+          "maxZ": 1.958
+        },
+        "height": 14.153,
+        "bottom": 0,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 4,
+          "d": 4,
+          "wExact": 3.916,
+          "dExact": 3.916,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -1.958,
+              -0.049
+            ],
+            [
+              -0.049,
+              -1.958
+            ],
+            [
+              0.049,
+              -1.958
+            ],
+            [
+              1.958,
+              -0.049
+            ],
+            [
+              1.958,
+              0.049
+            ],
+            [
+              0.049,
+              1.958
+            ],
+            [
+              -0.049,
+              1.958
+            ],
+            [
+              -1.958,
+              0.049
+            ]
+          ],
+          "rule": "vehicle"
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                31.78,
+                634.54
+              ],
+              [
+                31.78,
+                573.46
+              ],
+              [
+                34.91,
+                571.89
+              ],
+              [
+                157.09,
+                571.89
+              ],
+              [
+                160.22,
+                573.46
+              ],
+              [
+                160.22,
+                634.54
+              ],
+              [
+                157.09,
+                636.11
+              ],
+              [
+                34.91,
+                636.11
+              ]
+            ],
+            "tiles": {
+              "u": 4,
+              "v": 4,
+              "polygon": [
+                [
+                  -0.049,
+                  1.958
+                ],
+                [
+                  -1.958,
+                  0.049
+                ],
+                [
+                  -1.958,
+                  -0.049
+                ],
+                [
+                  -0.049,
+                  -1.958
+                ],
+                [
+                  0.049,
+                  -1.958
+                ],
+                [
+                  1.958,
+                  -0.049
+                ],
+                [
+                  1.958,
+                  0.049
+                ],
+                [
+                  0.049,
+                  1.958
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Veh_Rocket_01",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 3.967,
+          "d": 4.026,
+          "minX": -2.009,
+          "maxX": 1.958,
+          "minZ": -1.956,
+          "maxZ": 2.07
+        },
+        "height": 12.154,
+        "bottom": -0.944,
+        "centre": {
+          "x": -0.025,
+          "z": 0.057
+        },
+        "tiles": {
+          "w": 4,
+          "d": 5,
+          "wExact": 3.967,
+          "dExact": 4.026,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -2.009,
+              0.064
+            ],
+            [
+              -1.958,
+              -0.05
+            ],
+            [
+              -1.013,
+              -1.3
+            ],
+            [
+              -0.942,
+              -1.375
+            ],
+            [
+              -0.897,
+              -1.421
+            ],
+            [
+              -0.05,
+              -1.956
+            ],
+            [
+              0.048,
+              -1.956
+            ],
+            [
+              0.325,
+              -1.768
+            ],
+            [
+              1.568,
+              -0.741
+            ],
+            [
+              1.958,
+              -0.048
+            ],
+            [
+              1.958,
+              0.05
+            ],
+            [
+              1.906,
+              0.164
+            ],
+            [
+              1.138,
+              1.22
+            ],
+            [
+              -0.002,
+              2.07
+            ],
+            [
+              -0.099,
+              2.07
+            ],
+            [
+              -1.568,
+              0.771
+            ],
+            [
+              -2.009,
+              0.161
+            ]
+          ],
+          "rule": "vehicle"
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                33.76,
+                637.17
+              ],
+              [
+                31.74,
+                634.53
+              ],
+              [
+                21.98,
+                599.41
+              ],
+              [
+                21.86,
+                597.07
+              ],
+              [
+                21.82,
+                595.62
+              ],
+              [
+                31.81,
+                573.5
+              ],
+              [
+                34.94,
+                571.94
+              ],
+              [
+                49.82,
+                570.51
+              ],
+              [
+                122.46,
+                567.06
+              ],
+              [
+                157.12,
+                571.9
+              ],
+              [
+                160.26,
+                573.47
+              ],
+              [
+                162.24,
+                576.13
+              ],
+              [
+                171.46,
+                605.31
+              ],
+              [
+                162.18,
+                637.15
+              ],
+              [
+                159.07,
+                638.7
+              ],
+              [
+                70.5,
+                641.42
+              ],
+              [
+                36.86,
+                638.72
+              ]
+            ],
+            "tiles": {
+              "u": 5,
+              "v": 4,
+              "polygon": [
+                [
+                  0.064,
+                  2.009
+                ],
+                [
+                  -0.05,
+                  1.958
+                ],
+                [
+                  -1.3,
+                  1.012
+                ],
+                [
+                  -1.375,
+                  0.941
+                ],
+                [
+                  -1.421,
+                  0.896
+                ],
+                [
+                  -1.956,
+                  0.049
+                ],
+                [
+                  -1.956,
+                  -0.049
+                ],
+                [
+                  -1.768,
+                  -0.326
+                ],
+                [
+                  -0.741,
+                  -1.569
+                ],
+                [
+                  -0.048,
+                  -1.959
+                ],
+                [
+                  0.05,
+                  -1.959
+                ],
+                [
+                  0.164,
+                  -1.906
+                ],
+                [
+                  1.22,
+                  -1.138
+                ],
+                [
+                  2.07,
+                  0.002
+                ],
+                [
+                  2.07,
+                  0.099
+                ],
+                [
+                  0.771,
+                  1.568
+                ],
+                [
+                  0.161,
+                  2.009
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Veh_Rocket_01"
+      }
+    ]
+  }
+}

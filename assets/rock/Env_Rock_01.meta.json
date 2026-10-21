@@ -1,0 +1,345 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T10:25:22.475Z"
+  },
+  "asset": {
+    "name": "SM_Env_Rock_01",
+    "pack": "POLYGON_BattleRoyale",
+    "kind": "prop"
+  },
+  "blend": "normal",
+  "frameWidth": 164,
+  "frameHeight": 146,
+  "fps": 10,
+  "pivot": {
+    "x": 82,
+    "y": 99
+  },
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "still",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 2.644,
+      "d": 2.332,
+      "minX": -1.567,
+      "maxX": 1.077,
+      "minZ": -1.367,
+      "maxZ": 0.965
+    },
+    "height": 1.458,
+    "bottom": -0.121,
+    "centre": {
+      "x": -0.245,
+      "z": -0.201
+    },
+    "tiles": {
+      "w": 3,
+      "d": 3,
+      "wExact": 2.644,
+      "dExact": 2.332,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "base",
+      "points": [
+        [
+          -1.338,
+          0.004
+        ],
+        [
+          0.437,
+          -0.376
+        ],
+        [
+          0.785,
+          0.016
+        ],
+        [
+          0.769,
+          0.292
+        ],
+        [
+          0.602,
+          0.784
+        ],
+        [
+          -0.011,
+          0.754
+        ],
+        [
+          -0.524,
+          0.681
+        ],
+        [
+          -1.294,
+          0.291
+        ]
+      ],
+      "cut": 0.237
+    },
+    "canopy": {
+      "source": "hull",
+      "points": [
+        [
+          -1.567,
+          -0.001
+        ],
+        [
+          -1.518,
+          -0.456
+        ],
+        [
+          -1.404,
+          -0.951
+        ],
+        [
+          -1.324,
+          -1.107
+        ],
+        [
+          -1.186,
+          -1.291
+        ],
+        [
+          -0.78,
+          -1.355
+        ],
+        [
+          -0.667,
+          -1.367
+        ],
+        [
+          0.356,
+          -1.277
+        ],
+        [
+          0.944,
+          -1.109
+        ],
+        [
+          1.065,
+          -0.804
+        ],
+        [
+          1.077,
+          -0.427
+        ],
+        [
+          1.035,
+          0.184
+        ],
+        [
+          0.828,
+          0.656
+        ],
+        [
+          0.546,
+          0.958
+        ],
+        [
+          0.45,
+          0.965
+        ],
+        [
+          -0.055,
+          0.937
+        ],
+        [
+          -1.28,
+          0.718
+        ],
+        [
+          -1.498,
+          0.578
+        ]
+      ]
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 67.73,
+      "y": 99.7
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 67.73,
+          "y": 99.7
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            39.31,
+            120.47
+          ],
+          [
+            83.95,
+            85.99
+          ],
+          [
+            107.63,
+            86.7
+          ],
+          [
+            115.95,
+            91.37
+          ],
+          [
+            126.35,
+            101.91
+          ],
+          [
+            105.78,
+            111.24
+          ],
+          [
+            87.02,
+            118.28
+          ],
+          [
+            49.9,
+            124.36
+          ]
+        ],
+        "canopyPolygon": [
+          [
+            31.82,
+            124.06
+          ],
+          [
+            18.83,
+            115.99
+          ],
+          [
+            6.64,
+            106.25
+          ],
+          [
+            4.21,
+            102.47
+          ],
+          [
+            2.74,
+            97.32
+          ],
+          [
+            13.68,
+            89.8
+          ],
+          [
+            16.91,
+            87.8
+          ],
+          [
+            52.53,
+            72.87
+          ],
+          [
+            76.72,
+            66.15
+          ],
+          [
+            90.35,
+            69.1
+          ],
+          [
+            102.8,
+            74.94
+          ],
+          [
+            121.01,
+            85.38
+          ],
+          [
+            129.49,
+            96.25
+          ],
+          [
+            130.13,
+            105.59
+          ],
+          [
+            127.28,
+            107.24
+          ],
+          [
+            110.22,
+            114.87
+          ],
+          [
+            64.02,
+            130.97
+          ],
+          [
+            52.56,
+            132.22
+          ]
+        ],
+        "tiles": {
+          "u": 3,
+          "v": 3,
+          "uExact": 2.332,
+          "vExact": 2.644,
+          "polygon": [
+            [
+              0.205,
+              1.093
+            ],
+            [
+              -0.175,
+              -0.682
+            ],
+            [
+              0.217,
+              -1.03
+            ],
+            [
+              0.493,
+              -1.014
+            ],
+            [
+              0.985,
+              -0.847
+            ],
+            [
+              0.955,
+              -0.234
+            ],
+            [
+              0.882,
+              0.279
+            ],
+            [
+              0.492,
+              1.049
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model."
+  }
+}

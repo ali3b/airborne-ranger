@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "Env_Rock_01/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Env_Rock_01", "frame": "still_SE_0"}]}
+  ]
+}

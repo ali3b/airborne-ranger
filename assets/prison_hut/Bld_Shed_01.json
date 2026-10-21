@@ -1,0 +1,15 @@
+{
+  "textures": [
+    {
+      "image": "Bld_Shed_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 605, "h": 232},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SW_0", "frame": {"x": 1, "y": 1, "w": 300, "h": 205}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 14, "y": 62, "w": 300, "h": 205}, "sourceSize": {"w": 330, "h": 286}, "pivot": {"x": 0.5, "y": 0.70629}},
+        {"filename": "still_SE_0", "frame": {"x": 305, "y": 1, "w": 299, "h": 230}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 17, "y": 39, "w": 299, "h": 230}, "sourceSize": {"w": 330, "h": 286}, "pivot": {"x": 0.5, "y": 0.70629}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

@@ -1,0 +1,170 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T11:50:57.944Z"
+  },
+  "asset": {
+    "name": "SM_Bld_Guard_Tower_01",
+    "pack": "POLYGON_War",
+    "kind": "multipart"
+  },
+  "blend": "normal",
+  "frameWidth": 272,
+  "frameHeight": 444,
+  "fps": 10,
+  "pivot": {
+    "x": 136,
+    "y": 375
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "still",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 3.814,
+      "d": 4.516,
+      "minX": -1.907,
+      "maxX": 1.907,
+      "minZ": -2.258,
+      "maxZ": 2.258
+    },
+    "height": 7.773,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 4,
+      "d": 5,
+      "wExact": 3.814,
+      "dExact": 4.516,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -1.907,
+          -1.556
+        ],
+        [
+          -1.395,
+          -2.258
+        ],
+        [
+          1.365,
+          -2.258
+        ],
+        [
+          1.907,
+          -1.556
+        ],
+        [
+          1.907,
+          2.258
+        ],
+        [
+          -1.907,
+          2.258
+        ]
+      ]
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 136,
+      "y": 375
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 136,
+          "y": 375
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            25.18,
+            380.62
+          ],
+          [
+            19.1,
+            361.19
+          ],
+          [
+            107.42,
+            317.03
+          ],
+          [
+            147.23,
+            319.59
+          ],
+          [
+            269.28,
+            380.62
+          ],
+          [
+            147.23,
+            441.64
+          ]
+        ],
+        "tiles": {
+          "u": 5,
+          "v": 4,
+          "uExact": 4.516,
+          "vExact": 3.814,
+          "polygon": [
+            [
+              -1.556,
+              1.907
+            ],
+            [
+              -2.258,
+              1.395
+            ],
+            [
+              -2.258,
+              -1.365
+            ],
+            [
+              -1.556,
+              -1.907
+            ],
+            [
+              2.258,
+              -1.907
+            ],
+            [
+              2.258,
+              1.907
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model."
+  }
+}

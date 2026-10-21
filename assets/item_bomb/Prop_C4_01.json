@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Prop_C4_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 104, "h": 64},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 102, "h": 62}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 10, "y": 38, "w": 102, "h": 62}, "sourceSize": {"w": 128, "h": 128}, "pivot": {"x": 0.5, "y": 0.57875}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

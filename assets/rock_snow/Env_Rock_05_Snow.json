@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Env_Rock_05_Snow_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 120, "h": 93},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 118, "h": 91}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 13, "y": 12, "w": 118, "h": 91}, "sourceSize": {"w": 146, "h": 114}, "pivot": {"x": 0.51027, "y": 0.61333}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

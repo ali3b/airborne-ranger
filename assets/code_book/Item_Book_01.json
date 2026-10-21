@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Item_Book_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 24, "h": 16},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 22, "h": 14}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 4, "y": 5, "w": 22, "h": 14}, "sourceSize": {"w": 30, "h": 22}, "pivot": {"x": 0.5, "y": 0.59091}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

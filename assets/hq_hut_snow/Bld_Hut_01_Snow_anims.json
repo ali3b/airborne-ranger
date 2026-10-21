@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "hq_hut_snow/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_Hut_01_Snow", "frame": "still_SE_0"}]}
+  ]
+}

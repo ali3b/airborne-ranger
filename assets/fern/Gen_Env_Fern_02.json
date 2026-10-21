@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Gen_Env_Fern_02_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 73, "h": 49},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 71, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 11, "w": 71, "h": 47}, "sourceSize": {"w": 90, "h": 72}, "pivot": {"x": 0.471, "y": 0.68694}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

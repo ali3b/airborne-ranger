@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "plane_pickup/propeller_spin_S", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Veh_American_Plane_Transport_01", "frame": "propeller_spin_S_0"}, {"key": "Veh_American_Plane_Transport_01", "frame": "propeller_spin_S_1"}]}
+  ]
+}

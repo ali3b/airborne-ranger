@@ -1,0 +1,53 @@
+{
+  "textures": [
+    {
+      "image": "Prop_Searchlight_Base_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 110, "h": 2118},
+      "scale": 1,
+      "frames": [
+        {"filename": "turret_sweep_SE_0", "frame": {"x": 1, "y": 2046, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_1", "frame": {"x": 1, "y": 1432, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_2", "frame": {"x": 1, "y": 1198, "w": 50, "h": 74}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 13, "w": 50, "h": 74}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_3", "frame": {"x": 1, "y": 961, "w": 50, "h": 75}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 12, "w": 50, "h": 75}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_4", "frame": {"x": 1, "y": 481, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_5", "frame": {"x": 1, "y": 1, "w": 52, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 52, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_6", "frame": {"x": 1, "y": 81, "w": 52, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 52, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_7", "frame": {"x": 1, "y": 321, "w": 51, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 51, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_8", "frame": {"x": 1, "y": 561, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_9", "frame": {"x": 1, "y": 641, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_10", "frame": {"x": 1, "y": 1040, "w": 50, "h": 75}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 12, "w": 50, "h": 75}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_11", "frame": {"x": 1, "y": 721, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_12", "frame": {"x": 1, "y": 801, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_13", "frame": {"x": 1, "y": 401, "w": 51, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 51, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_14", "frame": {"x": 1, "y": 161, "w": 52, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 52, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_15", "frame": {"x": 1, "y": 241, "w": 52, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 52, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_16", "frame": {"x": 1, "y": 881, "w": 50, "h": 76}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 11, "w": 50, "h": 76}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_17", "frame": {"x": 1, "y": 1119, "w": 50, "h": 75}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 12, "w": 50, "h": 75}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_18", "frame": {"x": 1, "y": 1276, "w": 50, "h": 74}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 13, "w": 50, "h": 74}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_19", "frame": {"x": 1, "y": 1509, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_20", "frame": {"x": 55, "y": 481, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_21", "frame": {"x": 57, "y": 151, "w": 51, "h": 70}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 17, "w": 51, "h": 70}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_22", "frame": {"x": 55, "y": 704, "w": 50, "h": 69}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 18, "w": 50, "h": 69}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_23", "frame": {"x": 55, "y": 777, "w": 50, "h": 69}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 18, "w": 50, "h": 69}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_24", "frame": {"x": 57, "y": 225, "w": 51, "h": 70}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 4, "y": 17, "w": 51, "h": 70}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_25", "frame": {"x": 56, "y": 321, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_26", "frame": {"x": 56, "y": 396, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_27", "frame": {"x": 1, "y": 1894, "w": 50, "h": 72}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 15, "w": 50, "h": 72}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_28", "frame": {"x": 1, "y": 1586, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_29", "frame": {"x": 1, "y": 1663, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_30", "frame": {"x": 1, "y": 1354, "w": 50, "h": 74}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 13, "w": 50, "h": 74}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_31", "frame": {"x": 1, "y": 1740, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_32", "frame": {"x": 1, "y": 1817, "w": 50, "h": 73}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 14, "w": 50, "h": 73}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_33", "frame": {"x": 1, "y": 1970, "w": 50, "h": 72}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 15, "w": 50, "h": 72}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_34", "frame": {"x": 57, "y": 1, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_35", "frame": {"x": 57, "y": 76, "w": 52, "h": 71}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 16, "w": 52, "h": 71}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_36", "frame": {"x": 55, "y": 556, "w": 51, "h": 70}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 4, "y": 17, "w": 51, "h": 70}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_37", "frame": {"x": 55, "y": 850, "w": 50, "h": 69}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 18, "w": 50, "h": 69}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_38", "frame": {"x": 55, "y": 923, "w": 50, "h": 69}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 18, "w": 50, "h": 69}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}},
+        {"filename": "turret_sweep_SE_39", "frame": {"x": 55, "y": 630, "w": 51, "h": 70}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 17, "w": 51, "h": 70}, "sourceSize": {"w": 60, "h": 90}, "pivot": {"x": 0.5165, "y": 0.82778}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

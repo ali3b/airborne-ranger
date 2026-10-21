@@ -1,0 +1,300 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-19T06:37:28.303Z"
+  },
+  "asset": {
+    "name": "SM_Prop_Table_01",
+    "pack": "POLYGON_War",
+    "kind": "prop",
+    "category": "furniture"
+  },
+  "blend": "normal",
+  "frameWidth": 122,
+  "frameHeight": 96,
+  "fps": 10,
+  "pivot": {
+    "x": 61,
+    "y": 64
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "still",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 2.41,
+      "d": 1.076,
+      "minX": -1.205,
+      "maxX": 1.205,
+      "minZ": -0.538,
+      "maxZ": 0.538
+    },
+    "height": 0.823,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 3,
+      "d": 2,
+      "wExact": 2.41,
+      "dExact": 1.076,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -1.205,
+          0.042
+        ],
+        [
+          -1.174,
+          -0.538
+        ],
+        [
+          1.174,
+          -0.538
+        ],
+        [
+          1.205,
+          0.018
+        ],
+        [
+          1.205,
+          0.019
+        ],
+        [
+          1.183,
+          0.389
+        ],
+        [
+          1.181,
+          0.421
+        ],
+        [
+          1.174,
+          0.525
+        ],
+        [
+          -1.161,
+          0.538
+        ]
+      ],
+      "rule": "shape"
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 61,
+      "y": 64
+    },
+    "directions": [
+      {
+        "name": "SW",
+        "worldAngle": 225,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 61,
+          "y": 64
+        },
+        "facing": "+v",
+        "polygon": [
+          [
+            21.1,
+            45.39
+          ],
+          [
+            40.65,
+            36.61
+          ],
+          [
+            115.78,
+            74.18
+          ],
+          [
+            98.98,
+            83.57
+          ],
+          [
+            98.95,
+            83.58
+          ],
+          [
+            86.41,
+            89.15
+          ],
+          [
+            85.32,
+            89.63
+          ],
+          [
+            81.77,
+            91.18
+          ],
+          [
+            6.63,
+            54.03
+          ]
+        ],
+        "tiles": {
+          "u": 3,
+          "v": 2,
+          "uExact": 2.41,
+          "vExact": 1.076,
+          "polygon": [
+            [
+              -1.205,
+              0.042
+            ],
+            [
+              -1.174,
+              -0.538
+            ],
+            [
+              1.174,
+              -0.538
+            ],
+            [
+              1.205,
+              0.018
+            ],
+            [
+              1.205,
+              0.019
+            ],
+            [
+              1.183,
+              0.389
+            ],
+            [
+              1.181,
+              0.421
+            ],
+            [
+              1.174,
+              0.525
+            ],
+            [
+              -1.161,
+              0.538
+            ]
+          ]
+        }
+      },
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 61,
+          "y": 64
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            23.78,
+            83.95
+          ],
+          [
+            6.22,
+            74.18
+          ],
+          [
+            81.35,
+            36.61
+          ],
+          [
+            100.14,
+            45.01
+          ],
+          [
+            100.17,
+            45.02
+          ],
+          [
+            111.3,
+            51.3
+          ],
+          [
+            112.26,
+            51.84
+          ],
+          [
+            115.37,
+            53.62
+          ],
+          [
+            41.06,
+            91.18
+          ]
+        ],
+        "tiles": {
+          "u": 2,
+          "v": 3,
+          "uExact": 1.076,
+          "vExact": 2.41,
+          "polygon": [
+            [
+              0.042,
+              1.205
+            ],
+            [
+              -0.538,
+              1.174
+            ],
+            [
+              -0.538,
+              -1.174
+            ],
+            [
+              0.018,
+              -1.205
+            ],
+            [
+              0.019,
+              -1.205
+            ],
+            [
+              0.389,
+              -1.183
+            ],
+            [
+              0.421,
+              -1.181
+            ],
+            [
+              0.525,
+              -1.174
+            ],
+            [
+              0.538,
+              1.161
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model. collision.rule says why: vehicle/building = always the whole hull; thin (trees, poles, lamps, signs) = the slice when it is at most half the hull; shape = the slice only under 15 % of the hull and near the middle; height = collisionHeight was given; asked = collision \"base\" or \"full\" was given."
+  }
+}

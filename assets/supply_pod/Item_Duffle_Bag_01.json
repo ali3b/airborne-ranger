@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Item_Duffle_Bag_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 44, "h": 29},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 42, "h": 27}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 8, "w": 42, "h": 27}, "sourceSize": {"w": 48, "h": 40}, "pivot": {"x": 0.50604, "y": 0.67825}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

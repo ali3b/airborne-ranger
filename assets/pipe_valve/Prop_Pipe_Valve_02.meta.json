@@ -1,0 +1,692 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-18T00:53:49.363Z"
+  },
+  "asset": {
+    "name": "SM_Prop_Pipe_Valve_02",
+    "pack": "POLYGON_Apocalypse",
+    "kind": "prop",
+    "category": "misc"
+  },
+  "blend": "normal",
+  "frameWidth": 88,
+  "frameHeight": 172,
+  "fps": 10,
+  "pivot": {
+    "x": 60.69,
+    "y": 144.66
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 0.451,
+      "d": 1.11,
+      "minX": -0.048,
+      "maxX": 0.403,
+      "minZ": -0.211,
+      "maxZ": 0.899
+    },
+    "height": 3,
+    "bottom": 0,
+    "centre": {
+      "x": 0.178,
+      "z": 0.344
+    },
+    "tiles": {
+      "w": 1,
+      "d": 2,
+      "wExact": 0.451,
+      "dExact": 1.11,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -0.048,
+          0.737
+        ],
+        [
+          0.128,
+          -0.079
+        ],
+        [
+          0.177,
+          -0.207
+        ],
+        [
+          0.266,
+          -0.211
+        ],
+        [
+          0.355,
+          -0.207
+        ],
+        [
+          0.403,
+          -0.079
+        ],
+        [
+          0.403,
+          0.079
+        ],
+        [
+          0.394,
+          0.377
+        ],
+        [
+          0.347,
+          0.696
+        ],
+        [
+          0.285,
+          0.837
+        ],
+        [
+          0.136,
+          0.899
+        ],
+        [
+          -0.048,
+          0.899
+        ]
+      ],
+      "rule": "shape"
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 60.69,
+      "y": 144.66
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 60.69,
+          "y": 144.66
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            66.05,
+            154.56
+          ],
+          [
+            45.57,
+            138.69
+          ],
+          [
+            43.04,
+            135.86
+          ],
+          [
+            45.76,
+            134.37
+          ],
+          [
+            48.74,
+            133.01
+          ],
+          [
+            54.37,
+            134.29
+          ],
+          [
+            59.42,
+            136.82
+          ],
+          [
+            68.67,
+            141.73
+          ],
+          [
+            77.38,
+            147.58
+          ],
+          [
+            79.9,
+            150.83
+          ],
+          [
+            77.12,
+            154.21
+          ],
+          [
+            71.23,
+            157.15
+          ]
+        ],
+        "tiles": {
+          "u": 2,
+          "v": 1,
+          "uExact": 1.11,
+          "vExact": 0.451,
+          "polygon": [
+            [
+              0.393,
+              0.226
+            ],
+            [
+              -0.423,
+              0.049
+            ],
+            [
+              -0.551,
+              0
+            ],
+            [
+              -0.555,
+              -0.089
+            ],
+            [
+              -0.551,
+              -0.178
+            ],
+            [
+              -0.423,
+              -0.226
+            ],
+            [
+              -0.265,
+              -0.226
+            ],
+            [
+              0.033,
+              -0.217
+            ],
+            [
+              0.352,
+              -0.169
+            ],
+            [
+              0.493,
+              -0.107
+            ],
+            [
+              0.555,
+              0.042
+            ],
+            [
+              0.555,
+              0.226
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model. collision.rule says why: vehicle/building = always the whole hull; thin (trees, poles, lamps, signs) = the slice when it is at most half the hull; shape = the slice only under 15 % of the hull and near the middle; height = collisionHeight was given; asked = collision \"base\" or \"full\" was given.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Prop_Pipe_Valve_02",
+        "footprint": {
+          "w": 0.451,
+          "d": 1.11,
+          "minX": -0.048,
+          "maxX": 0.403,
+          "minZ": -0.211,
+          "maxZ": 0.899
+        },
+        "height": 3,
+        "bottom": 0,
+        "centre": {
+          "x": 0.178,
+          "z": 0.344
+        },
+        "tiles": {
+          "w": 1,
+          "d": 2,
+          "wExact": 0.451,
+          "dExact": 1.11,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.048,
+              0.737
+            ],
+            [
+              0.128,
+              -0.079
+            ],
+            [
+              0.177,
+              -0.207
+            ],
+            [
+              0.266,
+              -0.211
+            ],
+            [
+              0.355,
+              -0.207
+            ],
+            [
+              0.403,
+              -0.079
+            ],
+            [
+              0.403,
+              0.079
+            ],
+            [
+              0.394,
+              0.377
+            ],
+            [
+              0.347,
+              0.696
+            ],
+            [
+              0.285,
+              0.837
+            ],
+            [
+              0.136,
+              0.899
+            ],
+            [
+              -0.048,
+              0.899
+            ]
+          ],
+          "rule": "shape"
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                66.05,
+                154.56
+              ],
+              [
+                45.57,
+                138.69
+              ],
+              [
+                43.04,
+                135.86
+              ],
+              [
+                45.76,
+                134.37
+              ],
+              [
+                48.74,
+                133.01
+              ],
+              [
+                54.37,
+                134.29
+              ],
+              [
+                59.42,
+                136.82
+              ],
+              [
+                68.67,
+                141.73
+              ],
+              [
+                77.38,
+                147.58
+              ],
+              [
+                79.9,
+                150.83
+              ],
+              [
+                77.12,
+                154.21
+              ],
+              [
+                71.23,
+                157.15
+              ]
+            ],
+            "tiles": {
+              "u": 2,
+              "v": 1,
+              "polygon": [
+                [
+                  0.393,
+                  0.226
+                ],
+                [
+                  -0.423,
+                  0.049
+                ],
+                [
+                  -0.551,
+                  0
+                ],
+                [
+                  -0.555,
+                  -0.089
+                ],
+                [
+                  -0.551,
+                  -0.178
+                ],
+                [
+                  -0.423,
+                  -0.226
+                ],
+                [
+                  -0.265,
+                  -0.226
+                ],
+                [
+                  0.033,
+                  -0.217
+                ],
+                [
+                  0.352,
+                  -0.169
+                ],
+                [
+                  0.493,
+                  -0.107
+                ],
+                [
+                  0.555,
+                  0.042
+                ],
+                [
+                  0.555,
+                  0.226
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Prop_Pipe_Valve_02",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 0.479,
+          "d": 1.114,
+          "minX": -0.096,
+          "maxX": 0.383,
+          "minZ": -0.222,
+          "maxZ": 0.892
+        },
+        "height": 2.581,
+        "bottom": -0.182,
+        "centre": {
+          "x": 0.144,
+          "z": 0.335
+        },
+        "tiles": {
+          "w": 1,
+          "d": 2,
+          "wExact": 0.479,
+          "dExact": 1.114,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.096,
+              0.81
+            ],
+            [
+              -0.094,
+              0.729
+            ],
+            [
+              -0.028,
+              0.232
+            ],
+            [
+              0.029,
+              -0.097
+            ],
+            [
+              0.112,
+              -0.219
+            ],
+            [
+              0.202,
+              -0.222
+            ],
+            [
+              0.291,
+              -0.219
+            ],
+            [
+              0.369,
+              -0.082
+            ],
+            [
+              0.383,
+              0.449
+            ],
+            [
+              0.288,
+              0.782
+            ],
+            [
+              0.268,
+              0.808
+            ],
+            [
+              0.243,
+              0.829
+            ],
+            [
+              0.094,
+              0.891
+            ],
+            [
+              -0.09,
+              0.892
+            ],
+            [
+              -0.094,
+              0.891
+            ]
+          ],
+          "rule": "shape"
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                66.85,
+                156.5
+              ],
+              [
+                64.32,
+                155.17
+              ],
+              [
+                50.53,
+                146.16
+              ],
+              [
+                41.82,
+                139.98
+              ],
+              [
+                40.58,
+                136.7
+              ],
+              [
+                43.36,
+                135.22
+              ],
+              [
+                46.3,
+                133.84
+              ],
+              [
+                53.18,
+                134.78
+              ],
+              [
+                70.62,
+                143.06
+              ],
+              [
+                78.24,
+                149.9
+              ],
+              [
+                78.43,
+                150.64
+              ],
+              [
+                78.3,
+                151.38
+              ],
+              [
+                75.52,
+                154.75
+              ],
+              [
+                69.66,
+                157.71
+              ],
+              [
+                69.5,
+                157.76
+              ]
+            ],
+            "tiles": {
+              "u": 2,
+              "v": 1,
+              "polygon": [
+                [
+                  0.466,
+                  0.274
+                ],
+                [
+                  0.385,
+                  0.272
+                ],
+                [
+                  -0.112,
+                  0.205
+                ],
+                [
+                  -0.441,
+                  0.148
+                ],
+                [
+                  -0.563,
+                  0.065
+                ],
+                [
+                  -0.566,
+                  -0.025
+                ],
+                [
+                  -0.563,
+                  -0.114
+                ],
+                [
+                  -0.426,
+                  -0.192
+                ],
+                [
+                  0.105,
+                  -0.205
+                ],
+                [
+                  0.438,
+                  -0.11
+                ],
+                [
+                  0.464,
+                  -0.09
+                ],
+                [
+                  0.485,
+                  -0.065
+                ],
+                [
+                  0.547,
+                  0.084
+                ],
+                [
+                  0.548,
+                  0.268
+                ],
+                [
+                  0.547,
+                  0.272
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Prop_Pipe_Valve_02"
+      }
+    ]
+  }
+}

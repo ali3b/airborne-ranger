@@ -1,0 +1,548 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-19T06:37:42.148Z"
+  },
+  "asset": {
+    "name": "SM_Prop_MissileStack_01",
+    "pack": "POLYGON_BattleRoyale",
+    "kind": "prop",
+    "category": "misc"
+  },
+  "blend": "normal",
+  "frameWidth": 52,
+  "frameHeight": 62,
+  "fps": 10,
+  "pivot": {
+    "x": 26,
+    "y": 45
+  },
+  "pivotSource": "anchor",
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "intact",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "destroyed",
+      "loop": true,
+      "frameCount": 1,
+      "events": []
+    },
+    {
+      "name": "intact_to_destroyed",
+      "loop": false,
+      "frameCount": 15,
+      "events": [
+        {
+          "frame": 0,
+          "name": "impact"
+        }
+      ]
+    }
+  ],
+  "object": {
+    "footprint": {
+      "w": 0.896,
+      "d": 0.448,
+      "minX": -0.448,
+      "maxX": 0.448,
+      "minZ": -0.224,
+      "maxZ": 0.224
+    },
+    "height": 0.749,
+    "bottom": 0,
+    "centre": {
+      "x": 0,
+      "z": 0
+    },
+    "tiles": {
+      "w": 1,
+      "d": 1,
+      "wExact": 0.896,
+      "dExact": 0.448,
+      "tilePx": 64,
+      "metresPerTile": 1,
+      "shape": "diamond"
+    },
+    "collision": {
+      "source": "hull",
+      "points": [
+        [
+          -0.448,
+          -0.205
+        ],
+        [
+          -0.315,
+          -0.224
+        ],
+        [
+          0.315,
+          -0.224
+        ],
+        [
+          0.448,
+          -0.205
+        ],
+        [
+          0.448,
+          0.205
+        ],
+        [
+          0.315,
+          0.224
+        ],
+        [
+          -0.315,
+          0.224
+        ],
+        [
+          -0.448,
+          0.205
+        ]
+      ],
+      "rule": "shape"
+    },
+    "pixelsPerMetre": 45.2548,
+    "anchor": {
+      "x": 26,
+      "y": 45
+    },
+    "directions": [
+      {
+        "name": "SE",
+        "worldAngle": 315,
+        "mirrorOf": null,
+        "anchor": {
+          "x": 26,
+          "y": 45
+        },
+        "facing": "+u",
+        "polygon": [
+          [
+            5.1,
+            48.89
+          ],
+          [
+            8.75,
+            46.46
+          ],
+          [
+            28.91,
+            36.38
+          ],
+          [
+            33.78,
+            34.55
+          ],
+          [
+            46.9,
+            41.11
+          ],
+          [
+            43.25,
+            43.54
+          ],
+          [
+            23.09,
+            53.62
+          ],
+          [
+            18.22,
+            55.45
+          ]
+        ],
+        "tiles": {
+          "u": 1,
+          "v": 1,
+          "uExact": 0.448,
+          "vExact": 0.896,
+          "polygon": [
+            [
+              -0.205,
+              0.448
+            ],
+            [
+              -0.224,
+              0.315
+            ],
+            [
+              -0.224,
+              -0.315
+            ],
+            [
+              -0.205,
+              -0.448
+            ],
+            [
+              0.205,
+              -0.448
+            ],
+            [
+              0.224,
+              -0.315
+            ],
+            [
+              0.224,
+              0.315
+            ],
+            [
+              0.205,
+              0.448
+            ]
+          ]
+        }
+      }
+    ],
+    "note": "Metres are in the model's own axes (x right, z towards the camera in the S / single-direction sprite, y up; origin = the model pivot). anchor = the pixel (untrimmed frame, from top-left) where the footprint's ground centre is drawn: put it on the centre of the tiles the object covers (an even tile count puts it on a tile corner). Diamond tiles: u runs down-right, v down-left (Tiled isometric); square tiles: u right, v down. polygon = the ground collision polygon in frame pixels; tiles.polygon = the same polygon in tile units around the anchor. collision.source \"base\" = the hull of what stands on the ground (vertices below collision.cut metres above the bottom, e.g. a tree trunk); the whole model's hull is then canopy (canopyPolygon per direction), and footprint/tiles still cover the whole model. collision.rule says why: vehicle/building = always the whole hull; thin (trees, poles, lamps, signs) = the slice when it is at most half the hull; shape = the slice only under 15 % of the hull and near the middle; height = collisionHeight was given; asked = collision \"base\" or \"full\" was given.",
+    "states": [
+      {
+        "name": "intact",
+        "animation": "intact",
+        "asset": "SM_Prop_MissileStack_01",
+        "footprint": {
+          "w": 0.896,
+          "d": 0.448,
+          "minX": -0.448,
+          "maxX": 0.448,
+          "minZ": -0.224,
+          "maxZ": 0.224
+        },
+        "height": 0.749,
+        "bottom": 0,
+        "centre": {
+          "x": 0,
+          "z": 0
+        },
+        "tiles": {
+          "w": 1,
+          "d": 1,
+          "wExact": 0.896,
+          "dExact": 0.448,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.448,
+              -0.205
+            ],
+            [
+              -0.315,
+              -0.224
+            ],
+            [
+              0.315,
+              -0.224
+            ],
+            [
+              0.448,
+              -0.205
+            ],
+            [
+              0.448,
+              0.205
+            ],
+            [
+              0.315,
+              0.224
+            ],
+            [
+              -0.315,
+              0.224
+            ],
+            [
+              -0.448,
+              0.205
+            ]
+          ],
+          "rule": "shape"
+        },
+        "sameAsBase": true,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                5.1,
+                48.89
+              ],
+              [
+                8.75,
+                46.46
+              ],
+              [
+                28.91,
+                36.38
+              ],
+              [
+                33.78,
+                34.55
+              ],
+              [
+                46.9,
+                41.11
+              ],
+              [
+                43.25,
+                43.54
+              ],
+              [
+                23.09,
+                53.62
+              ],
+              [
+                18.22,
+                55.45
+              ]
+            ],
+            "tiles": {
+              "u": 1,
+              "v": 1,
+              "polygon": [
+                [
+                  -0.205,
+                  0.448
+                ],
+                [
+                  -0.224,
+                  0.315
+                ],
+                [
+                  -0.224,
+                  -0.315
+                ],
+                [
+                  -0.205,
+                  -0.448
+                ],
+                [
+                  0.205,
+                  -0.448
+                ],
+                [
+                  0.224,
+                  -0.315
+                ],
+                [
+                  0.224,
+                  0.315
+                ],
+                [
+                  0.205,
+                  0.448
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "destroyed",
+        "animation": "destroyed",
+        "asset": "SM_Prop_MissileStack_01",
+        "look": "scorch:dark=0.9",
+        "footprint": {
+          "w": 0.927,
+          "d": 0.455,
+          "minX": -0.445,
+          "maxX": 0.482,
+          "minZ": -0.232,
+          "maxZ": 0.223
+        },
+        "height": 0.662,
+        "bottom": -0.06,
+        "centre": {
+          "x": 0.018,
+          "z": -0.005
+        },
+        "tiles": {
+          "w": 1,
+          "d": 1,
+          "wExact": 0.927,
+          "dExact": 0.455,
+          "tilePx": 64,
+          "metresPerTile": 1,
+          "shape": "diamond"
+        },
+        "collision": {
+          "source": "hull",
+          "points": [
+            [
+              -0.445,
+              -0.206
+            ],
+            [
+              -0.415,
+              -0.213
+            ],
+            [
+              -0.28,
+              -0.232
+            ],
+            [
+              0.066,
+              -0.232
+            ],
+            [
+              0.35,
+              -0.231
+            ],
+            [
+              0.482,
+              -0.213
+            ],
+            [
+              0.482,
+              0.198
+            ],
+            [
+              0.45,
+              0.205
+            ],
+            [
+              0.317,
+              0.223
+            ],
+            [
+              -0.313,
+              0.223
+            ],
+            [
+              -0.445,
+              0.204
+            ]
+          ],
+          "rule": "shape"
+        },
+        "sameAsBase": false,
+        "directions": [
+          {
+            "name": "SE",
+            "polygon": [
+              [
+                5.17,
+                48.82
+              ],
+              [
+                5.9,
+                48.23
+              ],
+              [
+                9.62,
+                45.77
+              ],
+              [
+                20.69,
+                40.23
+              ],
+              [
+                29.81,
+                35.7
+              ],
+              [
+                34.61,
+                33.88
+              ],
+              [
+                47.76,
+                40.46
+              ],
+              [
+                46.96,
+                41.08
+              ],
+              [
+                43.28,
+                43.5
+              ],
+              [
+                23.12,
+                53.58
+              ],
+              [
+                18.29,
+                55.38
+              ]
+            ],
+            "tiles": {
+              "u": 1,
+              "v": 1,
+              "polygon": [
+                [
+                  -0.207,
+                  0.445
+                ],
+                [
+                  -0.214,
+                  0.415
+                ],
+                [
+                  -0.233,
+                  0.28
+                ],
+                [
+                  -0.232,
+                  -0.066
+                ],
+                [
+                  -0.231,
+                  -0.35
+                ],
+                [
+                  -0.213,
+                  -0.482
+                ],
+                [
+                  0.198,
+                  -0.481
+                ],
+                [
+                  0.205,
+                  -0.449
+                ],
+                [
+                  0.223,
+                  -0.316
+                ],
+                [
+                  0.222,
+                  0.314
+                ],
+                [
+                  0.203,
+                  0.446
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "animation": "intact_to_destroyed",
+        "from": "intact",
+        "to": "destroyed",
+        "asset": "SM_Prop_MissileStack_01"
+      }
+    ]
+  }
+}

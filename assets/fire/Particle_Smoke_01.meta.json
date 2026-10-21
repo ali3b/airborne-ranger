@@ -1,0 +1,39 @@
+{
+  "schema": "ssg-meta/1",
+  "generator": {
+    "name": "Synty Sprite Generator",
+    "version": "0.3",
+    "generatedAt": "2026-10-17T17:04:38.333Z"
+  },
+  "asset": {
+    "name": "SM_Particle_Smoke_01",
+    "pack": "POLYGON_Particle_FX",
+    "kind": "fx"
+  },
+  "blend": "add",
+  "frameWidth": 74,
+  "frameHeight": 118,
+  "fps": 10,
+  "pivot": {
+    "x": 37,
+    "y": 78
+  },
+  "pixelsPerMetre": 45.25483399593904,
+  "scale": {
+    "mode": "tile",
+    "pixelsPerMetre": 45.2548,
+    "tilePx": 64,
+    "tileHeightPx": 32,
+    "metresPerTile": 1,
+    "shape": "diamond"
+  },
+  "note": "Socket positions are pixels from the untrimmed frame top-left; for flipX animations use x = frameWidth - x.",
+  "clips": [
+    {
+      "name": "fire_loop",
+      "loop": true,
+      "frameCount": 7,
+      "events": []
+    }
+  ]
+}

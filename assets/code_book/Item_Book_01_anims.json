@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "code_book/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Item_Book_01", "frame": "still_SE_0"}]}
+  ]
+}

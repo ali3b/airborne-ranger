@@ -1,0 +1,21 @@
+{
+  "textures": [
+    {
+      "image": "Wep_Grenade_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 77, "h": 267},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_E_0", "frame": {"x": 40, "y": 1, "w": 36, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 3, "y": 9, "w": 36, "h": 47}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_NE_0", "frame": {"x": 1, "y": 1, "w": 35, "h": 51}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 4, "y": 7, "w": 35, "h": 51}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_N_0", "frame": {"x": 1, "y": 111, "w": 32, "h": 51}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 8, "w": 32, "h": 51}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_NW_0", "frame": {"x": 1, "y": 56, "w": 33, "h": 51}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 7, "w": 33, "h": 51}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_W_0", "frame": {"x": 1, "y": 219, "w": 36, "h": 47}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 9, "w": 36, "h": 47}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_SW_0", "frame": {"x": 1, "y": 166, "w": 35, "h": 49}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 7, "w": 35, "h": 49}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_S_0", "frame": {"x": 38, "y": 56, "w": 32, "h": 48}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 7, "y": 8, "w": 32, "h": 48}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}},
+        {"filename": "still_SE_0", "frame": {"x": 37, "y": 111, "w": 33, "h": 49}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 33, "h": 49}, "sourceSize": {"w": 46, "h": 66}, "pivot": {"x": 0.5, "y": 0.57576}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "fire/fire_loop_S", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Particle_Smoke_01", "frame": "fire_loop_S_0"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_1"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_2"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_3"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_4"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_5"}, {"key": "Particle_Smoke_01", "frame": "fire_loop_S_6"}]}
+  ]
+}

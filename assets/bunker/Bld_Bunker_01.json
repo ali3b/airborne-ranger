@@ -1,0 +1,17 @@
+{
+  "textures": [
+    {
+      "image": "Bld_Bunker_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 1174, "h": 543},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_NE_0", "frame": {"x": 408, "y": 261, "w": 358, "h": 281}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 23, "y": 44, "w": 358, "h": 281}, "sourceSize": {"w": 428, "h": 336}, "pivot": {"x": 0.5, "y": 0.67857}},
+        {"filename": "still_NW_0", "frame": {"x": 1, "y": 1, "w": 403, "h": 288}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 5, "y": 35, "w": 403, "h": 288}, "sourceSize": {"w": 428, "h": 336}, "pivot": {"x": 0.5, "y": 0.67857}},
+        {"filename": "still_SW_0", "frame": {"x": 815, "y": 1, "w": 358, "h": 287}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 47, "y": 45, "w": 358, "h": 287}, "sourceSize": {"w": 428, "h": 336}, "pivot": {"x": 0.5, "y": 0.67857}},
+        {"filename": "still_SE_0", "frame": {"x": 408, "y": 1, "w": 403, "h": 256}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 52, "w": 403, "h": 256}, "sourceSize": {"w": 428, "h": 336}, "pivot": {"x": 0.5, "y": 0.67857}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

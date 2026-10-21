@@ -1,0 +1,6 @@
+{
+  "anims": [
+    {"key": "prison_hut/still_SW", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_Shed_01", "frame": "still_SW_0"}]},
+    {"key": "prison_hut/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Bld_Shed_01", "frame": "still_SE_0"}]}
+  ]
+}

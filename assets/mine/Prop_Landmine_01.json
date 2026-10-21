@@ -1,0 +1,14 @@
+{
+  "textures": [
+    {
+      "image": "Prop_Landmine_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 26, "h": 17},
+      "scale": 1,
+      "frames": [
+        {"filename": "still_SE_0", "frame": {"x": 1, "y": 1, "w": 24, "h": 15}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 24, "h": 15}, "sourceSize": {"w": 34, "h": 26}, "pivot": {"x": 0.54, "y": 0.64154}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}

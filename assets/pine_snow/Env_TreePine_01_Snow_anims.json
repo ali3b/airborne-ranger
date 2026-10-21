@@ -1,0 +1,5 @@
+{
+  "anims": [
+    {"key": "pine_snow/still_SE", "frameRate": 10, "repeat": -1, "flipX": false, "frames": [{"key": "Env_TreePine_01_Snow", "frame": "still_SE_0"}]}
+  ]
+}

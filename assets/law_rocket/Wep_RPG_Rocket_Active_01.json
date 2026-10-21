@@ -1,0 +1,53 @@
+{
+  "textures": [
+    {
+      "image": "Wep_RPG_Rocket_Active_01_0.png",
+      "format": "RGBA8888",
+      "size": {"w": 862, "h": 65},
+      "scale": 1,
+      "frames": [
+        {"filename": "projectile_E_0", "frame": {"x": 261, "y": 1, "w": 48, "h": 8}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 15, "w": 48, "h": 8}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_E_1", "frame": {"x": 313, "y": 1, "w": 48, "h": 8}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 15, "w": 48, "h": 8}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_E_2", "frame": {"x": 365, "y": 1, "w": 48, "h": 8}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 15, "w": 48, "h": 8}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_E_3", "frame": {"x": 417, "y": 1, "w": 48, "h": 8}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 15, "w": 48, "h": 8}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_E_4", "frame": {"x": 469, "y": 1, "w": 48, "h": 8}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 15, "w": 48, "h": 8}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NE_0", "frame": {"x": 124, "y": 15, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 10, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NE_1", "frame": {"x": 165, "y": 15, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 10, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NE_2", "frame": {"x": 206, "y": 15, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 10, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NE_3", "frame": {"x": 562, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 10, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NE_4", "frame": {"x": 603, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 10, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_N_0", "frame": {"x": 849, "y": 1, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_N_1", "frame": {"x": 562, "y": 26, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_N_2", "frame": {"x": 507, "y": 27, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_N_3", "frame": {"x": 523, "y": 27, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_N_4", "frame": {"x": 539, "y": 27, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NW_0", "frame": {"x": 521, "y": 1, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 10, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NW_1", "frame": {"x": 261, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 10, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NW_2", "frame": {"x": 302, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 10, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NW_3", "frame": {"x": 343, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 10, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_NW_4", "frame": {"x": 384, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 10, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_W_0", "frame": {"x": 1, "y": 1, "w": 48, "h": 10}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 14, "w": 48, "h": 10}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_W_1", "frame": {"x": 53, "y": 1, "w": 48, "h": 10}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 14, "w": 48, "h": 10}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_W_2", "frame": {"x": 105, "y": 1, "w": 48, "h": 10}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 14, "w": 48, "h": 10}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_W_3", "frame": {"x": 157, "y": 1, "w": 48, "h": 10}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 14, "w": 48, "h": 10}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_W_4", "frame": {"x": 209, "y": 1, "w": 48, "h": 10}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 2, "y": 14, "w": 48, "h": 10}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SW_0", "frame": {"x": 425, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 6, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SW_1", "frame": {"x": 466, "y": 13, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 6, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SW_2", "frame": {"x": 1, "y": 15, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 6, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SW_3", "frame": {"x": 42, "y": 15, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 6, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SW_4", "frame": {"x": 83, "y": 15, "w": 37, "h": 22}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 9, "y": 6, "w": 37, "h": 22}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_S_0", "frame": {"x": 247, "y": 39, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_S_1", "frame": {"x": 124, "y": 40, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_S_2", "frame": {"x": 140, "y": 40, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_S_3", "frame": {"x": 156, "y": 40, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_S_4", "frame": {"x": 172, "y": 40, "w": 12, "h": 24}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 20, "y": 7, "w": 12, "h": 24}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SE_0", "frame": {"x": 644, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SE_1", "frame": {"x": 685, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SE_2", "frame": {"x": 726, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SE_3", "frame": {"x": 767, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}},
+        {"filename": "projectile_SE_4", "frame": {"x": 808, "y": 1, "w": 37, "h": 21}, "rotated": false, "trimmed": true, "spriteSourceSize": {"x": 6, "y": 7, "w": 37, "h": 21}, "sourceSize": {"w": 52, "h": 38}, "pivot": {"x": 0.5, "y": 0.5}}
+      ]
+    }
+  ],
+  "meta": {"app": "Synty Sprite Generator", "version": "0.3"}
+}
