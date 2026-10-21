@@ -108,10 +108,10 @@ export type Cause = 'rifle' | 'grenade' | 'law' | 'bomb' | 'knife' | 'enemy'; //
 
 export type Pt = { x: number; y: number };
 
-/** G14: the commando split at the waist (FB-124, `ranger_split` in ssg.assets.json): legs and torso sheets. A second
- * sprite next to the whole-body `ranger`: a split export has no whole-body sheet (FB-126). */
-const SPLIT_LEGS = 'ranger_split_legs';
-const SPLIT_TORSO = 'ranger_split_torso';
+/** G14: the commando split at the waist (FB-124): legs and torso sheets, rendered with the whole-body `ranger` and its
+ * framing from the one `ranger` declaration (`split.whole`, FB-126 verified). */
+const SPLIT_LEGS = 'ranger_legs';
+const SPLIT_TORSO = 'ranger_torso';
 
 /** A prop on the field: its collision polygon in world metres and its screen outline for depth sorting. */
 export interface Placed {

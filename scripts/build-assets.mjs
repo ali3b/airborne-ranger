@@ -61,9 +61,13 @@ function ssg(args, { input } = {}) {
 
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 
-/** The sheets of a sprite split at the waist (FB-124): `<name>_legs` and `<name>_torso` in the manifest (FB-126). */
+/**
+ * The sheets of a sprite split at the waist (FB-124): `<name>_legs` and `<name>_torso` in the manifest, and with
+ * `split.whole` (FB-126) the whole-body `<name>` as well, all from one render.
+ */
 const SPLIT_PARTS = ['legs', 'torso'];
-const manifestNames = (s) => (s.split ? SPLIT_PARTS.map((p) => `${s.name}_${p}`) : [s.name]);
+const splitWhole = (s) => s.split === 'waist+whole' || s.split?.whole === true;
+const manifestNames = (s) => (s.split ? [...(splitWhole(s) ? [s.name] : []), ...SPLIT_PARTS.map((p) => `${s.name}_${p}`)] : [s.name]);
 
 /**
  * Manifest entry for one downloaded sprite folder public/assets/<name>/. A split sprite (G14) has two sheets in its
@@ -117,8 +121,9 @@ function describe(s, part) {
     blend: meta?.blend ?? null,
     layered,
     validation,
-    // G14: which half of a waist split this sheet is (its meta's `ssg-split/1` block), and the other sheet's entry.
-    split: meta?.split ? { part: meta.split.sheet, other: `${s.name}_${meta.split.sheet === 'legs' ? 'torso' : 'legs'}` } : null,
+    // G14: which sheet of a waist split this is (its meta's `ssg-split/1` block: legs, torso or, FB-126, whole) and the
+    // manifest entries of the others.
+    split: meta?.split ? { part: meta.split.sheet, others: manifestNames(s).filter((n) => n !== (part ? `${s.name}_${part}` : s.name)) } : null,
   };
 }
 
@@ -175,7 +180,8 @@ if (sprites.length || tilesets.length) {
     try {
       fs.rmSync(path.join(out, s.name, 'previews'), { recursive: true, force: true });
       if (s.split) {
-        delete manifest.sprites[s.name];
+        if (splitWhole(s)) manifest.sprites[s.name] = describe(s);
+        else delete manifest.sprites[s.name];
         for (const p of SPLIT_PARTS) manifest.sprites[`${s.name}_${p}`] = describe(s, p);
       } else manifest.sprites[s.name] = describe(s);
     } catch (e) {

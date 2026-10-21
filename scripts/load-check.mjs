@@ -1368,9 +1368,9 @@ async function aimChecks(page, key, shot, strafeShot) {
         // The waist in screen px: the frame's pivot sits at the sprite's position.
         return w ? { x: s.x + w.x - meta.pivot.x, y: s.y + w.y - meta.pivot.y } : null;
       };
-      if (!m.legs) return { error: 'no split sprites (ranger_split not built?)' };
-      const lw = waist(m.legs, 'ranger_split_legs');
-      const tw = waist(m.torso, 'ranger_split_torso');
+      if (!m.legs) return { error: 'no split sprites (ranger not built with split.whole?)' };
+      const lw = waist(m.legs, 'ranger_legs');
+      const tw = waist(m.torso, 'ranger_torso');
       return {
         split: m.split,
         legs: k(m.legs),
@@ -1402,8 +1402,8 @@ async function aimChecks(page, key, shot, strafeShot) {
   if (st?.error) fail(st.error);
   else {
     if (!st.split || !st.visible.legs || !st.visible.torso || st.visible.body) fail(`want the split sprites drawn under mouse aim (got ${JSON.stringify(st)})`);
-    if (!/^ranger_split\/legs\/rifle_walk_E$/.test(st.legs ?? '')) fail(`walking east while aiming north: want legs walking E (got ${st.legs})`);
-    if (!/^ranger_split\/torso\/rifle_walk_N$/.test(st.torso ?? '')) fail(`walking east while aiming north: want the torso facing N (got ${st.torso})`);
+    if (!/^ranger\/legs\/rifle_walk_E$/.test(st.legs ?? '')) fail(`walking east while aiming north: want legs walking E (got ${st.legs})`);
+    if (!/^ranger\/torso\/rifle_walk_N$/.test(st.torso ?? '')) fail(`walking east while aiming north: want the torso facing N (got ${st.torso})`);
     if (!(st.x > x0 + 5)) fail(`want him walking east while aiming north (x ${x0} → ${st.x})`);
     if (st.seam === null || st.seam > 1.5) fail(`want the torso's waist on the legs' waist (off by ${st.seam} px)`);
     if (!st.torsoOver) fail('want the torso drawn over the legs');

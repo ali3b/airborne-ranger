@@ -37,7 +37,7 @@ and to find its gaps. Game design: `docs/DESIGN.md`. The orchestration loop: the
   select → enlist → mission select), `field`, `mission`, `mission2`, `mission3`, `mission4`, `mission5`…`mission8` (G8 objectives: code book, officer, SAM site, P.O.W. camp), `mission9`–`mission12` (photo, hostages, diversion, sabotage with their failure rules; `scripts/g8b-checks.mjs`) (each plays to the debriefing; mission 4 also checks the driving
   truck, its wreck and the animated props), and `arsenal` (G7: the supply pod screen, pods, reload, first aid, knife, LAW,
   time bomb, then the same by touch on an emulated iPhone in landscape), and `aim` (G12 mouse aim; G14: walking east
-  while aiming north draws the waist-split `ranger_split` legs E and torso N, `docs/screenshots/g14-strafe.png`). G9: `g9` (the test field's machine-gun nest, mines, trench, tank, alerts and alarm). It
+  while aiming north draws the waist-split `ranger_legs` E and `ranger_torso` N (one `ranger` declaration with `split.whole`, G17), `docs/screenshots/g14-strafe.png`). G9: `g9` (the test field's machine-gun nest, mines, trench, tank, alerts and alarm). It
   needs no page errors, and it writes `test-results/<scene>.png`.
 - Big maps (G6): `node scripts/route-check.mjs [--walk <url>]` (the shortest walkable route per mission, and running it
   in the game) and `node scripts/perf-check.mjs <url> [missions] [--phone] [--gpu]` (frame rate and CPU per frame).

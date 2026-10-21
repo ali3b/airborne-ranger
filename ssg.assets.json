@@ -60,39 +60,10 @@
           "with": "POLYGON_Apocalypse/SM_Item_Camera_01",
           "as": "camera"
         }
-      ]
-    },
-    {
-      "name": "ranger_split",
-      "asset": "POLYGON_War/Character_American_Soldier_01",
-      "class": "rifle",
-      "anim": [
-        "idle",
-        "walk",
-        "run",
-        "shoot",
-        "reload"
-      ],
-      "with": [
-        "POLYGON_War/SM_Wep_American_Rifle_01",
-        "POLYGON_War/SM_Char_Attach_American_Helmet_01"
-      ],
-      "dirs": "8",
-      "uniform": true,
-      "template": [
-        {
-          "template": "throw",
-          "with": "POLYGON_War/SM_Wep_American_Grenade_01",
-          "as": "grenade"
-        },
-        {
-          "template": "shoulder_fire",
-          "with": "POLYGON_War/SM_Wep_American_RocketLauncher_01",
-          "as": "law"
-        }
       ],
       "split": {
         "at": "waist",
+        "whole": true,
         "legs": [
           "idle",
           "walk",
