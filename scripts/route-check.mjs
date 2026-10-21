@@ -84,13 +84,14 @@ for (const name of names) {
     console.log(`  MINES ON THE ROUTE: ${hz.mined} cells`);
     failed++;
   }
-  // The route the walk follows: the generator's, kept WALK_CLEARANCE m off blocked cells and footprints (FB-125). Where
-  // it finds none (a drop or objective in a thicket: FB-128), that leg falls back to the game's own clearRoute.
+  // The route the walk follows: the generator's, kept WALK_CLEARANCE m off blocked cells and the solid objects' collision
+  // polygons (FB-125, FB-128 verified). A leg with no such route fails the check (the walk then tries the shortest).
   const walkLeg = (from, to, leg) => {
     const g = WALK_CLEARANCE ? route(name, from, to, WALK_CLEARANCE) : leg;
-    if (g.cells.length) return { ...g, how: `generator, clearance ${WALK_CLEARANCE} m` };
-    const c = clearRoute(tmj, leg.cells); // FB-128
-    return c.cells.length ? { ...c, how: 'own clearRoute, FB-128' } : { ...leg, how: "generator's shortest" };
+    if (g.cells.length) return { ...g, how: WALK_CLEARANCE ? `generator, clearance ${WALK_CLEARANCE} m` : "generator's shortest" };
+    console.log(`  NO CLEARANCE ROUTE ${from} → ${to}`);
+    failed++;
+    return { ...leg, how: "generator's shortest" };
   };
   const wa = walkLeg(drop.name, oref, ra);
   const wb = walkLeg(oref, ex.name, rb);
@@ -247,109 +248,4 @@ function hazards(tmj, th, inLeg, outLeg) {
   }
   for (const z of zones.filter((z) => pz(z).trench)) list.push(`${z.name}#${z.id}`);
   return { list, mined };
-}
-
-/**
- * FB-128 workaround (was FB-125's): the shortest 8-way route from the first to the last cell of `leg` (a generator route) over the
- * exported map, with the collision layer and object footprints (trees, palms, bushes: their trunk cell) blocked and a
- * band of one cell round them, and the minefields blocked. Cells within 3 of the start and 6 of the goal may lie in the band (zones touch props).
- * Used for a leg only when `ssg map route --clearance` finds none: the generator counts the clearance from the 3×3 and
- * 6×6 footprints of trees and bushes, not their trunk polygons, so in a thicket any clearance shuts every gap (FB-128).
- * Remove once the clearance is counted from the collision polygons.
- */
-function clearRoute(tmj, leg) {
-  if (!leg.length) return { m: Infinity, cells: [] };
-  const { width: W, height: H, tileheight: th } = tmj;
-  const layer = (k) => tmj.layers.find((l) => (l.class ?? l.name) === k)?.objects ?? [];
-  const hard = new Uint8Array(W * H);
-  const mark = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (hard[y * W + x] = 1);
-  for (const o of layer('collision')) for (let y = Math.floor(o.y / th); y < Math.ceil((o.y + o.height) / th); y++) for (let x = Math.floor(o.x / th); x < Math.ceil((o.x + o.width) / th); x++) mark(x, y);
-  for (const o of layer('objects')) {
-    const p = Object.fromEntries((o.properties ?? []).map((q) => [q.name, q.value]));
-    if (p.collision === undefined && p.footprintW === undefined) continue;
-    const fw = Number(p.footprintW ?? 1);
-    const fh = Number(p.footprintH ?? 1);
-    const base = /tree|palm|pine|fern|bush/.test(String(p.sprite));
-    const x0 = Math.round(o.x / th - (base ? 0.5 : fw / 2));
-    const y0 = Math.round(o.y / th - (base ? 0.5 : fh / 2));
-    for (let y = y0; y < y0 + (base ? 1 : fh); y++) for (let x = x0; x < x0 + (base ? 1 : fw); x++) mark(x, y);
-  }
-  // The minefields are blocked too (no band round them): the walk keeps out as the generator's guards do.
-  const mined = new Uint8Array(W * H);
-  for (const z of layer('zones')) {
-    if (!(z.properties ?? []).some((q) => q.name === 'minefield' && q.value)) continue;
-    const poly = (z.polygon ?? []).map((q) => [(z.x + q.x) / th, (z.y + q.y) / th]);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      let r = false;
-      for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
-        const [ax, ay] = poly[k];
-        const [bx, by] = poly[j];
-        if (ay > y + 0.5 !== by > y + 0.5 && x + 0.5 < ((bx - ax) * (y + 0.5 - ay)) / (by - ay) + ax) r = !r;
-      }
-      if (r) mined[y * W + x] = 1;
-    }
-  }
-  const band = hard.slice();
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (hard[y * W + x]) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (x + dx >= 0 && y + dy >= 0 && x + dx < W && y + dy < H) band[(y + dy) * W + x + dx] = 1;
-  const [sx, sy] = leg[0];
-  const [gx, gy] = leg[leg.length - 1];
-  const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && !mined[y * W + x] && (!band[y * W + x] || (x === sx && y === sy) || (x === gx && y === gy) || (!hard[y * W + x] && ((Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3) || (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6))));
-  const g = new Float64Array(W * H).fill(Infinity);
-  const from = new Int32Array(W * H).fill(-1);
-  // Binary heap of [f, cell].
-  const heap = [];
-  const push = (f, c) => {
-    heap.push([f, c]);
-    for (let i = heap.length - 1; i > 0; ) {
-      const pI = (i - 1) >> 1;
-      if (heap[pI][0] <= heap[i][0]) break;
-      [heap[pI], heap[i]] = [heap[i], heap[pI]];
-      i = pI;
-    }
-  };
-  const pop = () => {
-    const top = heap[0];
-    const last = heap.pop();
-    if (heap.length) {
-      heap[0] = last;
-      for (let i = 0; ; ) {
-        const l = 2 * i + 1;
-        const r = l + 1;
-        let m = i;
-        if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
-        if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
-        if (m === i) break;
-        [heap[m], heap[i]] = [heap[i], heap[m]];
-        i = m;
-      }
-    }
-    return top;
-  };
-  g[sy * W + sx] = 0;
-  push(0, sy * W + sx);
-  while (heap.length) {
-    const [f, c] = pop();
-    const x = c % W;
-    const y = (c - x) / W;
-    if (f - Math.hypot(gx - x, gy - y) > g[c] + 1e-9) continue;
-    if (x === gx && y === gy) {
-      const cells = [];
-      for (let k = c; k >= 0; k = from[k]) cells.push([k % W, Math.floor(k / W)]);
-      return { m: g[c], cells: cells.reverse() };
-    }
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      if (!dx && !dy) continue;
-      const nx = x + dx;
-      const ny = y + dy;
-      if (!free(nx, ny) || (dx && dy && (!free(x + dx, y) || !free(x, y + dy)))) continue;
-      const ng = g[c] + (dx && dy ? Math.SQRT2 : 1);
-      const n = ny * W + nx;
-      if (ng < g[n]) {
-        g[n] = ng;
-        from[n] = c;
-        push(ng + Math.hypot(gx - nx, gy - ny), n);
-      }
-    }
-  }
-  return { m: Infinity, cells: [] };
 }
