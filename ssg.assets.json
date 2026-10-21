@@ -630,6 +630,18 @@
         [
           "dirt",
           "sand"
+        ],
+        [
+          "dirt",
+          "road"
+        ],
+        [
+          "road",
+          "water"
+        ],
+        [
+          "dirt",
+          "mud"
         ]
       ],
       "mixes": "triples"

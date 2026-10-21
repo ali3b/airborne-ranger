@@ -1,10 +1,12 @@
 // G6 balance: the shortest walkable route of each mission (drop → objective → extraction) and what it takes at the
 // Ranger's run and walk speeds, with the G9 hazards on it.
-//   node scripts/route-check.mjs [mission1 …] [--walk http://localhost:5296]
+//   node scripts/route-check.mjs [mission1 …] [--walk http://localhost:5296] [--clearance <m>]
 // The routes come from the generator (`ssg map route`, FB-110: collision and solid object footprints block, 8-way, on
 // the map as built in the project, which is what build-maps exported); the hazards are read from the exported .tmj.
 // --walk: the Ranger (unhurtable; the people he escorts are not, G15) then runs that route in the game, steered waypoint to waypoint with the keyboard
-// state, through the game's own collision; it prints the mission clock it took and whether he got there.
+// state, through the game's own collision; it prints the mission clock it took and whether he got there. The walk follows
+// the generator's route with a clearance (`ssg map route --clearance`, FB-125; default WALK_CLEARANCE m), because the
+// game's colliders aren't cell aligned and the plain shortest route can squeeze through a one-cell gap he doesn't fit.
 // Exits 1 when a route is missing or crosses a minefield, or the walk doesn't get to the end.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -15,13 +17,21 @@ import { chromium } from '@playwright/test';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SSG = process.env.SSG_BIN ?? '/home/andrew/projects/synty-sprite-generator/apps/cli/bin/ssg.mjs';
 const project = JSON.parse(fs.readFileSync(path.join(root, 'ssg.assets.json'), 'utf8')).project;
-/** The generator's shortest walkable route between two zones (names) or "x,y" cells: {metres, cells}. */
-const route = (map, from, to) => {
+/** The generator's shortest walkable route between two zones (names) or "x,y" cells: {metres, cells}; `clearance` (m)
+ * keeps it that far from blocked cells and footprints (FB-125). */
+const route = (map, from, to, clearance = 0) => {
   try {
-    const r = JSON.parse(execFileSync(process.execPath, [SSG, '--json', 'map', 'route', map, '--project', project, '--from', from, '--to', to, '--cells'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
+    const args = [SSG, '--json', 'map', 'route', map, '--project', project, '--from', from, '--to', to, '--cells', ...(clearance ? ['--clearance', String(clearance)] : [])];
+    const r = JSON.parse(execFileSync(process.execPath, args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
     return r.found ? { m: r.metres, cells: r.cells } : { m: Infinity, cells: [] };
   } catch (e) {
-    console.log(`  route ${from} → ${to}: ${String(e.stderr || e.message).trim().split('\n')[0]}`);
+    let why = String(e.stderr || e.message).trim().split('\n')[0];
+    try {
+      why = JSON.parse(e.stdout).reason ?? why;
+    } catch {
+      /* not JSON */
+    }
+    console.log(`  route ${from} → ${to}${clearance ? ` (clearance ${clearance} m)` : ''}: ${why}`);
     return { m: Infinity, cells: [] };
   }
 };
@@ -31,7 +41,10 @@ const run = manifest.sprites.ranger.clipInfo.rifle_run.speedMps;
 const walk = manifest.sprites.ranger.clipInfo.rifle_walk.speedMps;
 const argv = process.argv.slice(2);
 const walkUrl = argv.includes('--walk') ? argv[argv.indexOf('--walk') + 1] : null;
-const pos = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--walk');
+const opt = (k) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : null);
+/** The clearance (m) of the route the walk follows (FB-125). */
+const WALK_CLEARANCE = Number(opt('--clearance') ?? 0.5);
+const pos = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--walk' && argv[i - 1] !== '--clearance');
 const names = pos.length ? pos : Object.keys(manifest.maps);
 let browser = null;
 if (walkUrl) {
@@ -71,17 +84,27 @@ for (const name of names) {
     console.log(`  MINES ON THE ROUTE: ${hz.mined} cells`);
     failed++;
   }
-  const wa = clearRoute(tmj, ra.cells);
-  const wb = clearRoute(tmj, rb.cells);
-  if (wa.cells.length && wb.cells.length) console.log(`  walk route (one cell of clearance, FB-125): ${wa.m.toFixed(0)} + ${wb.m.toFixed(0)} m`);
-  else if (Number.isFinite(total)) console.log("  walk route: none with a cell of clearance (FB-125), the walk follows the generator's");
+  // The route the walk follows: the generator's, kept WALK_CLEARANCE m off blocked cells and footprints (FB-125). Where
+  // it finds none (a drop or objective in a thicket: FB-128), that leg falls back to the game's own clearRoute.
+  const walkLeg = (from, to, leg) => {
+    const g = WALK_CLEARANCE ? route(name, from, to, WALK_CLEARANCE) : leg;
+    if (g.cells.length) return { ...g, how: `generator, clearance ${WALK_CLEARANCE} m` };
+    const c = clearRoute(tmj, leg.cells); // FB-128
+    return c.cells.length ? { ...c, how: 'own clearRoute, FB-128' } : { ...leg, how: "generator's shortest" };
+  };
+  const wa = walkLeg(drop.name, oref, ra);
+  const wb = walkLeg(oref, ex.name, rb);
+  if (Number.isFinite(total)) console.log(`  walk route: ${wa.m.toFixed(0)} m (${wa.how}) + ${wb.m.toFixed(0)} m (${wb.how})`);
+  // The walked route must keep out of the minefields too.
+  const wz = hazards(tmj, th, wa.cells, wb.cells);
+  if (wz.mined) {
+    console.log(`  MINES ON THE WALK ROUTE: ${wz.mined} cells`);
+    failed++;
+  }
   if (process.env.ROUTE_DUMP) fs.writeFileSync(path.join(process.env.ROUTE_DUMP, `${name}.route.json`), JSON.stringify({ in: ra.cells, out: rb.cells, walkIn: wa.cells, walkOut: wb.cells }));
   if (browser) {
-    // FB-125: `ssg map route` keeps no gap round props, and the game's colliders aren't cell aligned, so its route can
-    // squeeze through a one-cell gap the Ranger doesn't fit (mission 3's wire, sandbags and rock). The walk follows a
-    // route with a cell of clearance round every blocked cell instead, between the same end cells (where the
-    // generator's route reaches a zone); the reported metres and hazards stay the generator's.
-    // Every 4th cell of the route as a waypoint (cell centres).
+    // The clearance route (the reported metres and hazards stay the shortest route's). Every 4th cell of the route as
+    // a waypoint (cell centres).
     const way = [...(wa.cells.length ? wa.cells : ra.cells), ...(wb.cells.length ? wb.cells : rb.cells)].filter((_, k, all) => k % 4 === 0 || k === all.length - 1).map(([x, y]) => [x + 0.5, y + 0.5]);
     const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
     await page.goto(`${walkUrl.replace(/\/$/, '')}/?scene=mission&mission=${name}`);
@@ -227,10 +250,12 @@ function hazards(tmj, th, inLeg, outLeg) {
 }
 
 /**
- * FB-125 workaround: the shortest 8-way route from the first to the last cell of `leg` (a generator route) over the
+ * FB-128 workaround (was FB-125's): the shortest 8-way route from the first to the last cell of `leg` (a generator route) over the
  * exported map, with the collision layer and object footprints (trees, palms, bushes: their trunk cell) blocked and a
- * band of one cell round them. Cells within 3 of the start and 6 of the goal may lie in the band (zones touch props).
- * Remove once `ssg map route` takes a clearance.
+ * band of one cell round them, and the minefields blocked. Cells within 3 of the start and 6 of the goal may lie in the band (zones touch props).
+ * Used for a leg only when `ssg map route --clearance` finds none: the generator counts the clearance from the 3×3 and
+ * 6×6 footprints of trees and bushes, not their trunk polygons, so in a thicket any clearance shuts every gap (FB-128).
+ * Remove once the clearance is counted from the collision polygons.
  */
 function clearRoute(tmj, leg) {
   if (!leg.length) return { m: Infinity, cells: [] };
@@ -249,11 +274,26 @@ function clearRoute(tmj, leg) {
     const y0 = Math.round(o.y / th - (base ? 0.5 : fh / 2));
     for (let y = y0; y < y0 + (base ? 1 : fh); y++) for (let x = x0; x < x0 + (base ? 1 : fw); x++) mark(x, y);
   }
+  // The minefields are blocked too (no band round them): the walk keeps out as the generator's guards do.
+  const mined = new Uint8Array(W * H);
+  for (const z of layer('zones')) {
+    if (!(z.properties ?? []).some((q) => q.name === 'minefield' && q.value)) continue;
+    const poly = (z.polygon ?? []).map((q) => [(z.x + q.x) / th, (z.y + q.y) / th]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let r = false;
+      for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) {
+        const [ax, ay] = poly[k];
+        const [bx, by] = poly[j];
+        if (ay > y + 0.5 !== by > y + 0.5 && x + 0.5 < ((bx - ax) * (y + 0.5 - ay)) / (by - ay) + ax) r = !r;
+      }
+      if (r) mined[y * W + x] = 1;
+    }
+  }
   const band = hard.slice();
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (hard[y * W + x]) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (x + dx >= 0 && y + dy >= 0 && x + dx < W && y + dy < H) band[(y + dy) * W + x + dx] = 1;
   const [sx, sy] = leg[0];
   const [gx, gy] = leg[leg.length - 1];
-  const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && (!band[y * W + x] || (x === sx && y === sy) || (x === gx && y === gy) || (!hard[y * W + x] && ((Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3) || (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6))));
+  const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && !mined[y * W + x] && (!band[y * W + x] || (x === sx && y === sy) || (x === gx && y === gy) || (!hard[y * W + x] && ((Math.abs(x - sx) <= 3 && Math.abs(y - sy) <= 3) || (Math.abs(x - gx) <= 6 && Math.abs(y - gy) <= 6))));
   const g = new Float64Array(W * H).fill(Infinity);
   const from = new Int32Array(W * H).fill(-1);
   // Binary heap of [f, cell].

@@ -19,6 +19,7 @@ The local folder and the generator project still use the earlier name (`airborne
 | Run | `Shift` |
 | Prone / crawl | `X` |
 | Aim | the mouse: the commando faces the cursor and fires toward it (keyboard only: he fires the way he faces) |
+| Strafe | with the mouse, walk or run any way while you aim: his legs face the way he walks, his upper body turns to the cursor and fires, throws and launches from there |
 | Shoot / use the selected weapon | left click (hold to keep firing) or `Space` |
 | Grenade | right click (lands at the cursor, up to 8 m) or `G` |
 | Sound on/off | `M` |
@@ -38,7 +39,7 @@ retire. `?touch=1` forces the touch controls on a desktop, `?touch=0` turns them
 A plane drops one commando and three supply pods behind enemy lines. Complete the objective and reach the extraction zone
 before the timer runs out, then call the plane and hold out until it picks you up. Machine-gun nests, hidden
 minefields, trenches, tanks (only a LAW or a time bomb stops them) and alerts that spread into an alarm stand in the
-way, on every mission. Escorted people (the officer, the prisoners, the hostages) draw enemy fire too. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one commando). Merit earns promotions (PFC to COL) and medals for a persistent roster of six commandos.
+way, on every mission. Escorted people (the officer, the prisoners, the hostages) draw enemy fire too, but an enemy round only wounds them: they take 5 hits on Easy, 4 on Normal and 3 on Hard, with 1.5 s after each hit in which more rounds do nothing (they flash red and blink), and once hurt a row of pips over them shows the hits left. Your own bullets and blasts still kill them outright. Play Easy, Normal or Hard, single missions or the campaign (the missions in order with one commando). Merit earns promotions (PFC to COL) and medals for a persistent roster of six commandos.
 Each mission area is 128×256 m (drop in the south, objective in the far north), and before the drop you pack the
 supply pods: magazines, grenades, first aid, LAW rockets and time bombs, up to 21 items and a weight limit.
 Missions 5–8 have their own objectives: walk up to the code book to take it; get close to the enemy officer and he
@@ -69,6 +70,8 @@ the prisoners out (they follow you; the debriefing counts the rescued).
 | ![](docs/screenshots/g9-nest.png) | ![](docs/screenshots/g9-tank.png) | ![](docs/screenshots/g9-plane.png) |
 | **Mines spotted (prone)** | **In a trench** | **Difficulty and campaign** |
 | ![](docs/screenshots/g9-mines.png) | ![](docs/screenshots/g9-trench.png) | ![](docs/screenshots/g9-missions.png) |
+| **Strafing: legs walk east, torso aims north** | **Mouse aim and the grenade's range** | |
+| ![](docs/screenshots/g14-strafe.png) | ![](docs/screenshots/g12-mouse-aim.png) | |
 
 ## How it's made
 
